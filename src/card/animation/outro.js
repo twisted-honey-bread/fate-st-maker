@@ -10,7 +10,7 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
  *  0.0~0.6  원래 카드
- *  0.6~2.0  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
+ *  0.6~2.0  로고 중심에서 어둠이 번져 어두워진 화면으로 바뀜
  *  0.6~2.0  (어둠이 번진 자리에서는 왼쪽 위·오른쪽 위 텍스트와 상단 선이 보이지 않음)
  *           로고는 스스로 빛나지 않는 옅은 회색 실루엣
  *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선, 로고가 함께 살짝 밝아짐
@@ -19,7 +19,7 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
  *  3.0~     입자가 터지는 순간부터 육각형 회로 무늬가 반짝이기 시작하며 아래에서 올라옴
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
- *  입자가 모두 사라지면 중앙부터 어두워지며 암전
+ *  입자가 모두 사라지면 중앙부터 완전히 어두워짐
  */
 const TEXT_END = 4.3;
 const BURST = 3.0;
@@ -99,7 +99,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     ctx.drawImage(canvas, 0, 0);
   }
 
-  // 밤 장면 (중심에서 번져 나옴)
+  // 어두워졌을 때 (중심에서 번져 나옴)
   if (ink > 0) {
     const night = toNight(state);
     const nightState = {
@@ -158,7 +158,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 
-  // 정방형 입자 (모두 사라지는 시점 = 암전 시작)
+  // 정방형 입자 (모두 사라지는 시점 = 완전히 어두워지기 시작)
   drawDiamonds(ctx, W, H, t - BURST, {
     density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, glowSize: A.particleGlowSize / 100, squash: A.particleSquash,
     seed: A.seed, endAt: endStart - BURST,
@@ -168,7 +168,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2,
   });
 
-  // 암전 (중앙부터)
+  // 완전히 어두워짐 (중앙부터)
   drawBlot(ctx, W, H, W / 2, H / 2, clamp(E('easeOutroEnd', prog(t, endStart, endStart + 1.0))));
   fillOverlay(ctx, W, H, '#000000', clamp(E('easeOutroEnd', prog(t, endStart + 0.3, endStart + FADE))));
   ctx.restore();

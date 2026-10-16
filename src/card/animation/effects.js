@@ -380,7 +380,7 @@ export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, coun
   ctx.restore();
 }
 
-/* ---------- 원형 비네트: 네 귀퉁이를 검게 (인트로의 어두운 장면) ---------- */
+/* ---------- 원형 비네트: 네 귀퉁이를 검게 (인트로의 어두워졌을 때) ---------- */
 // inner: 비네트가 시작되는 안쪽 반경 (화면 대각선 절반 대비 %, 클수록 가운데가 넓게 밝음)
 export function drawCornerVignette(ctx, W, H, strength, inner = 38) {
   if (strength <= 0) return;
@@ -398,7 +398,7 @@ export function drawCornerVignette(ctx, W, H, strength, inner = 38) {
   ctx.restore();
 }
 
-/* ---------- 전자 회로 무늬 (인트로의 밝은 장면) ----------
+/* ---------- 전자 회로 무늬 (인트로의 밝아졌을 때) ----------
  * 직선·45도 대각선으로 꺾이는 회로선과 끝점 원으로 이루어진 무늬를 시드로 생성해 캐시
  * 평소에는 보이지 않고, 가로 띠 모양 영역만 회색으로 드러난 채 아래에서 위로 올라감
  */
@@ -511,7 +511,7 @@ function hexCircuitLayer(W, H, seed) {
 }
 
 /*
- * 밤 장면의 구름·안개 노이즈 — 저해상도 fBm 값 노이즈를 부드럽게 확대해 그림
+ * 어두워졌을 때의 구름·안개 노이즈 — 저해상도 fBm 값 노이즈를 부드럽게 확대해 그림
  * t: 초 (아주 천천히 흘러감), opacity: 0~1
  */
 // coverage: 0~1 화면을 덮는 면적 (클수록 자욱함), scale: 덩어리 크기 배율

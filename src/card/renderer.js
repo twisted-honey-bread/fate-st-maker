@@ -61,7 +61,7 @@ export function drawBackground(ctx, W, H, state, bgImage) {
     ctx.drawImage(layer, 0, 0);
     return;
   }
-  // 흐림은 무거우므로 같은 값이 반복되면(어두운 장면처럼) 결과를 재사용
+  // 흐림은 무거우므로 같은 값이 반복되면(어두워졌을 때처럼) 결과를 재사용
   if (animBlur > 0) {
     const tkey = `${key}|${animScale}|${animBlur}`;
     let t = blurCache.get(tkey);

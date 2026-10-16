@@ -7,8 +7,8 @@ import {
 import { bell, ease, easeOut, flicker, layer, prog } from './util';
 
 /*
- * 인트로 — 어두운 장면에서 시작해 원래 타이틀 카드로 밝아짐
- *  0.0~0.8  검은 화면에서 밤 장면이 떠오름 (네 귀퉁이가 검은 원형 비네트, 배경은 흐리고 살짝 확대)
+ * 인트로 — 어두워졌을 때에서 시작해 원래 타이틀 카드로 밝아짐
+ *  0.0~0.8  검은 화면에서 어두워진 화면이 떠오름 (네 귀퉁이가 검은 원형 비네트, 배경은 흐리고 살짝 확대)
  *  0.3~1.5  상단 선이 가운데에서 양옆으로 그려지며 푸른 빛 입자가 흩어짐
  *  0.5~1.3  왼쪽 위 · 오른쪽 위 텍스트가 상단 선 아래에서 동시에 페이드 인하며 올라옴
  *           (오른쪽 위의 '_' 뒤 글자는 자리만 차지하고 비어 있음)
@@ -60,7 +60,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, W, H);
 
-  // 밤 장면
+  // 어두워졌을 때
   if (reveal < 1) {
     const night = toNight(state);
     const nightState = {

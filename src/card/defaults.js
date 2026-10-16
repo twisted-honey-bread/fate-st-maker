@@ -89,12 +89,12 @@ export const DEFAULTS = {
     introFlash: false,
     introZoom: 1.06,
     introBlur: 0.5,
-    // 어두운 장면 비네트: 배경 원형 비네트(인트로·아웃트로) + 인트로의 네 귀퉁이 비네트
+    // 어두워졌을 때 비네트: 배경 원형 비네트(인트로·아웃트로) + 인트로의 네 귀퉁이 비네트
     nightVignette: 0.97,
     nightVignetteSize: 28,
     introCornerVignette: 0.9,
     introCornerSize: 38,
-    // 밤 장면의 구름·안개 노이즈 — 진하기(불투명도), 자욱함(덮는 면적), 덩어리 크기
+    // 어두워졌을 때의 구름·안개 노이즈 — 진하기(불투명도), 자욱함(덮는 면적), 덩어리 크기
     fogOpacity: 0.25,
     fogCoverage: 0.35,
     fogScale: 1,
@@ -128,7 +128,7 @@ export const DEFAULTS = {
     rayOpacity: 0.15,
     rayFade: 0.3,
     rayStartLength: 0.6, // 처음 나타날 때의 길이 비율 (0.6 = 60% 길이에서 시작해 100%까지)
-    outroLogoColor: '#ffffff', // 암전과 함께 순백 실루엣
+    outroLogoColor: '#ffffff', // 어두워질 때 함께 순백 실루엣
     outroLogoDark: '#14161b',
     particleDensity: 1,
     particleColor: '#fffef4',
