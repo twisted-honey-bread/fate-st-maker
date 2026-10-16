@@ -340,15 +340,22 @@ export function fillOverlay(ctx, W, H, color, alpha) {
 }
 
 // 중앙에서 퍼지는 검은 얼룩
-export function drawBlot(ctx, W, H, cx, cy, p) {
+// aspect: 가로 / 세로 비율 (1 = 원, 1보다 크면 가로로 넓은 타원 — 다른 전환·비네트와 같은 모양)
+export function drawBlot(ctx, W, H, cx, cy, p, aspect = 1) {
   if (p <= 0) return;
-  const r = Math.hypot(W, H) * 0.75 * p;
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(1, r));
+  const k = Math.max(0.2, aspect);
+  // 세로 반경 기준, 가로는 k 배. p=1 에서 화면 모서리를 충분히 덮도록 끝 반경을 잡음
+  const r = Math.hypot(Math.max(cx, W - cx) / k, Math.max(cy, H - cy)) * 1.5 * p;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(k, 1);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(1, r));
   g.addColorStop(0, 'rgba(0,0,0,0.95)');
   g.addColorStop(0.6, 'rgba(0,0,0,0.6)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(-cx / k, -cy, W / k, H);
+  ctx.restore();
 }
 
 /* ---------- 선 위로 떠오르는 입자 (인트로) ----------

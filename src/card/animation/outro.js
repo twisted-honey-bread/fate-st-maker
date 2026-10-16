@@ -179,10 +179,12 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
      * 제목 전체 폭이 지금까지 늘어난 만큼(px)만 부제 폭도 똑같이 늘림.
      * 부제가 늘어날 총량 = 제목이 늘어나는 총량 (부제 자간을 0 근처까지 좁혀도 모자라면 거기까지만, 다 펼쳐지면 멈춤)
      */
+    // 글자 사이 칸 수는 지금 입력된 문구에서 셈 (문구가 바뀌어도 자동으로 맞음)
     const gaps = s => Math.max(1, [...(s.text || '')].length - 1);
     const pxOf = s => (s.size / 100) * H;
-    const mainGrowth = gaps(main) * main.spacing * 0.7 * pxOf(main); // 제목 폭이 펼쳐지며 늘어나는 총량 (px)
-    const subRoom = gaps(sub) * Math.max(0, sub.spacing) * 0.9 * pxOf(sub); // 부제가 좁혀질 수 있는 최대 폭 (px)
+    const mainGrowth = Math.max(0, gaps(main) * main.spacing * 0.7 * pxOf(main)); // 제목 폭이 펼쳐지며 늘어나는 총량 (px)
+    // 부제가 좁혀질 수 있는 최대 폭 (px) — 자간을 -0.15em 까지 좁힐 수 있음 (짧은 부제도 제목 속도를 끝까지 따라가도록)
+    const subRoom = gaps(sub) * Math.max(0, sub.spacing + 0.15) * pxOf(sub);
     const subGrowth = Math.min(mainGrowth, subRoom);
     const grown = Math.min(subGrowth, mainGrowth * spread); // 제목과 같은 px 만큼
     const subSpacing = sub.spacing - (subGrowth - grown) / (gaps(sub) * pxOf(sub));
@@ -195,7 +197,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
 
   // 완전히 어두워짐 (중앙부터)
-  drawBlot(ctx, W, H, W / 2, H / 2, clamp(E('easeOutroEnd', prog(t, endStart, endStart + 1.0))));
+  drawBlot(ctx, W, H, W / 2, H / 2, clamp(E('easeOutroEnd', prog(t, endStart, endStart + 1.0))), A.revealAspect);
   fillOverlay(ctx, W, H, '#000000', clamp(E('easeOutroEnd', prog(t, endStart + 0.3, endStart + FADE))));
   ctx.restore();
 }
