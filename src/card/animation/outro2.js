@@ -146,6 +146,8 @@ function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   const d45 = Math.PI / 4;
   square(dia / Math.SQRT2, d45);
   square(inner / Math.SQRT2, d45);
+  // 안쪽 사각형 두 개와 원은 마름모보다 옅게 (0.4배)
+  ctx.globalAlpha *= 0.4;
   square(sq, 0);
   square(sq, d45);
   ctx.beginPath();
