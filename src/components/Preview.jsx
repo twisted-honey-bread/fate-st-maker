@@ -6,6 +6,7 @@ import { drawCard, drawGuides } from '../card/renderer';
 import { PART_BY_ID } from '../card/schema';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from '../card/animation';
 import { ModeSwitch, PlayerBar } from './Player';
+import { BgEditBar, BgEditor, editFrameLayout } from './BgEditor';
 
 const Pane = styled.section`
   min-width: 0;
@@ -13,7 +14,7 @@ const Pane = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center; /* 내용이 넘쳐도 위쪽이 잘리지 않게 */
   gap: 10px;
   padding-block: 24px;
   padding-right: 16px;
@@ -33,11 +34,15 @@ const Pane = styled.section`
 
 const Frame = styled.div`
   position: relative;
+  z-index: 0;
+  isolation: isolate; /* 직접 조정 상자가 넘쳐도 위·아래 막대보다 뒤에 있도록 */
   width: 100%;
   max-width: 1600px;
 `;
 
 const Canvas = styled.canvas`
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   max-width: 100%;
@@ -128,8 +133,14 @@ const ANIM_H = 720;
 
 export function Preview({
   state, images, showGuides, fontVersion, layout, selected,
-  onLayout, onSelect, onDropImage, onModeChange, reference, exporting, children,
+  onLayout, onSelect, onDropImage, onModeChange, reference, exporting, children, bgEdit,
 }) {
+  const frameRef = useRef(null);
+  // 직접 조정 중 카드 배치 — 끄는 동안에는 고정하고 손을 뗄 때만 다시 맞춤 (끄는 중 좌표가 흔들리지 않게)
+  const [dragging, setDragging] = useState(false);
+  const fitRef = useRef(null);
+  if (bgEdit && (!dragging || !fitRef.current)) fitRef.current = editFrameLayout(images.bg, bgEdit.draft);
+  const fit = bgEdit ? fitRef.current : null;
   const canvasRef = useRef(null);
   const renderId = useRef(0);
   const lastLayout = useRef('');
@@ -278,8 +289,18 @@ export function Preview({
 
   return (
     <Pane>
-      <ModeSwitch mode={mode} onChange={onModeChange} />
-      <Frame>
+      {bgEdit
+        ? <BgEditBar draft={bgEdit.draft} onApply={bgEdit.onApply} onCancel={bgEdit.onCancel} onReset={bgEdit.onReset} />
+        : <ModeSwitch mode={mode} onChange={onModeChange} />}
+      <Frame
+        ref={frameRef}
+        style={fit ? {
+          width: `${fit.width}%`,
+          marginTop: `${fit.top}%`,
+          marginBottom: `${fit.bottom}%`,
+          transform: `translateX(${fit.shift}%)`,
+        } : undefined}
+      >
         <Canvas
           ref={canvasRef}
           width={animMode ? ANIM_W : CARD_WIDTH}
@@ -289,7 +310,7 @@ export function Preview({
           aria-label={animMode
             ? `${state.title.text} ${anim.label} 애니메이션 미리보기`
             : `${state.title.text} 타이틀 카드 미리보기. 누르면 해당 부분을 편집합니다.`}
-          onClick={handleClick}
+          onClick={bgEdit ? undefined : handleClick}
           onDragOver={e => { e.preventDefault(); setDrag(true); }}
           onDragLeave={() => setDrag(false)}
           onDrop={e => {
@@ -306,7 +327,10 @@ export function Preview({
             style={{ opacity: reference.opacity, mixBlendMode: reference.difference ? 'difference' : 'normal' }}
           />
         )}
-        {sel && (
+        {bgEdit && (
+          <BgEditor frameRef={frameRef} image={images.bg} imageUrl={bgEdit.imageUrl} draft={bgEdit.draft} onChange={bgEdit.onChange} onDragging={setDragging} />
+        )}
+        {sel && !bgEdit && (
           <Outline
             data-below={sel.y < 9 ? '' : undefined}
             style={{

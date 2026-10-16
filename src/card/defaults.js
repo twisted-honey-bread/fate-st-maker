@@ -42,7 +42,7 @@ export const DEFAULTS = {
     opacity: 0.85, left: 3, right: 1.8, fade: 10,
   },
   logo: {
-    show: true, x: 50.3, y: 40, height: 33, opacity: 1,
+    show: true, x: 50.3, y: 40, height: 33, zoom: 100, opacity: 1, // 실제 높이 = height × zoom%
     source: 'upload', // upload = 직접 업로드(없으면 기본 로고) | generate = 연대·제목으로 자동 생성
     // 임시 로고 생성 옵션 (연대·제목으로 패턴 생성)
     genShape: 'shield', genGrid: 9, genDensity: 0.5, genGap: 0.12, genFrame: true, genColor: '#1d2127',

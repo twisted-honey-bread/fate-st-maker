@@ -365,7 +365,7 @@ function drawTitleGroup(ctx, W, H, state) {
 /* ---------- 로고 ---------- */
 function drawLogo(ctx, W, H, L, img) {
   const ready = img && img.naturalWidth;
-  const h = (L.height / 100) * H * (L.scale ?? 1); // scale: 애니메이션용 확대 (기본 1)
+  const h = (L.height / 100) * H * ((L.zoom ?? 100) / 100) * (L.scale ?? 1); // zoom: 크기 배율 %, scale: 애니메이션용 확대 (기본 1)
   const w = ready ? (h * img.naturalWidth) / img.naturalHeight : h;
   const x = (L.x / 100) * W - w / 2;
   const y = (L.y / 100) * H - h / 2;

@@ -16,6 +16,7 @@ const F = (k, label) => ({ k, label, type: 'font' });
 const IM = (k, label, hint) => ({ k, label, hint, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
+const BTN = (action, label, text) => ({ k: `action.${action}`, action, label, text, type: 'button' });
 const SEG = (k, label, options) => ({ k, label, type: 'segment', options });
 const NOTE = text => ({ type: 'note', label: text });
 const when = (field, fn) => ({ ...field, when: fn });
@@ -94,13 +95,16 @@ export const PARTS = [
   {
     id: 'bg', short: '배경', title: '배경', desc: '설원 이미지와 분위기 효과',
     main: [
-      IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장. 비율이 다르면 화면을 꽉 채우도록 가운데 기준으로 넘치는 부분이 잘립니다 (고급 설정의 확대·위치로 조절). 미리보기에 끌어다 놓아도 됩니다.'),
+      IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장. 비율이 다르면 화면을 꽉 채우도록 가운데 기준으로 넘치는 부분이 잘립니다 (아래 ‘화면에서 끌어서 조정하기’ 또는 확대·위치로 조절). 미리보기에 끌어다 놓아도 됩니다.'),
       S('bg.styleMode', '사진 스타일 변환', [['duotone', '듀오톤'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
       when(C('bg.styleInk', '톤 색 (어두운 부분)'), hasStyle),
       when(C('bg.stylePaper', '톤 색 (밝은 부분)'), hasStyle),
+      HD('크기·위치'),
+      when(BTN('bgEdit', '', '화면에서 끌어서 조정하기'), s => s.anim.mode === 'still'),
       R('bg.zoom', '확대', 100, 300, 1, '%'),
       R('bg.posX', '가로 위치', 0, 100, 0.5, '%'),
       R('bg.posY', '세로 위치', 0, 100, 0.5, '%'),
+      HD('분위기'),
       R('bg.brightness', '밝기', 0, 200, 1, '%'),
       R('bg.washOpacity', '흰색 덮기', 0, 1, 0.01),
       B('bg.snow', '눈 입자'),
@@ -153,10 +157,11 @@ export const PARTS = [
       HD('배치'),
       R('logo.x', 'X 중심', 0, 100, 0.1, '%W'),
       R('logo.y', 'Y 중심', 0, 100, 0.1, '%H'),
-      R('logo.height', '높이', 2, 90, 0.5, '%H'),
+      R('logo.zoom', '크기 배율', 10, 300, 1, '%'),
       B('logo.flare', '렌즈 플레어'),
     ],
     advanced: [
+      R('logo.height', '기준 높이 (배율 100%일 때)', 2, 90, 0.5, '%H'),
       R('logo.opacity', '불투명도', 0, 1, 0.01),
       HD('가장자리 탄 듯한 색 (안쪽)'),
       R('logo.edgeStrength', '진하기', 0, 2, 0.01),

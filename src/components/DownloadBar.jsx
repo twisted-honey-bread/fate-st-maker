@@ -3,6 +3,8 @@ import { Button, Select } from './ui';
 
 /* 미리보기 아래: 지금 보고 있는 결과물(정지 이미지 / 인트로 / 아웃트로)의 다운로드 옵션 */
 const Bar = styled.div`
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

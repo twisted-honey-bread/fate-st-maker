@@ -80,6 +80,8 @@ export default function App() {
   const [hcrAvailable, setHcrAvailable] = useState(null);
   const [fontVersion, setFontVersion] = useState(0);
   const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
+  const [bgDraft, setBgDraft] = useState(null); // 배경 직접 조정 중인 값 { zoom, posX, posY } (적용 전)
+  const viewState = bgDraft ? { ...state, bg: { ...state.bg, ...bgDraft } } : state;
 
   useEffect(() => {
     hcrFontReady.then(setHcrAvailable);
@@ -207,7 +209,19 @@ export default function App() {
         />
         <Main>
           <Preview
-            state={state}
+            state={viewState}
+            bgEdit={bgDraft && {
+              draft: bgDraft,
+              imageUrl: card.imageUrls.bg,
+              onChange: setBgDraft,
+              onReset: () => setBgDraft({ zoom: 100, posX: 50, posY: 50 }),
+              onCancel: () => setBgDraft(null),
+              onApply: () => {
+                for (const k of ['zoom', 'posX', 'posY']) card.setField(`bg.${k}`, Math.round(bgDraft[k] * 10) / 10);
+                setBgDraft(null);
+                notify('배경 크기·위치를 적용했습니다.');
+              },
+            }}
             images={renderImages}
             showGuides={guides}
             fontVersion={fontVersion}
@@ -247,6 +261,11 @@ export default function App() {
             selected={selected}
             onSelect={setSelected}
             hcrAvailable={hcrAvailable}
+            onAction={action => {
+              if (action !== 'bgEdit') return;
+              const { zoom, posX, posY } = state.bg;
+              setBgDraft({ zoom, posX, posY });
+            }}
             onApplyTheme={hex => {
               setThemeUndo(card.applyTheme(hex));
               notify('대표색에 맞춰 색을 바꿨습니다. 마음에 들지 않으면 되돌리기를 누르세요.');
