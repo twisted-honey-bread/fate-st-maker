@@ -73,12 +73,17 @@ export const fontStr = (s, px) =>
  */
 export const HCR_FAMILY = 'HCR Batang';
 const HCR_SOURCES = {
-  400: { local: ['HCR Batang', '함초롬바탕', 'HCRBatang', 'HCR Batang Regular'], file: 'fonts/HCRBatang.woff2' },
-  700: { local: ['HCR Batang Bold', '함초롬바탕 Bold', 'HCRBatang-Bold', 'HCRBatangBold'], file: 'fonts/HCRBatang-Bold.woff2' },
+  400: { local: ['HCR Batang', '함초롬바탕', 'HCRBatang', 'HCR Batang Regular'], file: 'fonts/HCRBatang' },
+  700: { local: ['HCR Batang Bold', '함초롬바탕 Bold', 'HCRBatang-Bold', 'HCRBatangBold'], file: 'fonts/HCRBatang-Bold' },
 };
 
 async function loadHcrFace(weight, { local, file }) {
-  const src = [...local.map(n => `local("${n}")`), `url("${file}") format("woff2")`].join(', ');
+  // 기기 설치 폰트 → 같이 배포한 woff2 → ttf 순으로 시도 (없는 파일은 건너뜀)
+  const src = [
+    ...local.map(n => `local("${n}")`),
+    `url("${file}.woff2") format("woff2")`,
+    `url("${file}.ttf") format("truetype")`,
+  ].join(', ');
   try {
     const face = new FontFace(HCR_FAMILY, src, { weight: String(weight) });
     await face.load();

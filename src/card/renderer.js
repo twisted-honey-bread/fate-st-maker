@@ -97,7 +97,11 @@ function paintBackground(ctx, W, H, state, bgImage) {
   ctx.fillRect(0, 0, W, H);
 
   // cover 맞춤 + 확대/위치
-  const src = bgImage ? stylizeImage(bgImage, B) : getProceduralBackground(W, H);
+  // 기본 설산 배경도 톤 색으로 다시 칠함 (테마 색으로 바뀐 톤 색이 기본 배경에도 적용되도록)
+  // 사진용 밝기·대비 보정은 빼고 밝기 그대로 어두운 톤 → 밝은 톤으로만 매핑 (산 능선이 날아가지 않게)
+  const src = bgImage
+    ? stylizeImage(bgImage, B)
+    : stylizeImage(getProceduralBackground(W, H), { ...B, styleMode: B.styleMode === 'none' ? 'none' : 'duotone', styleExposure: 0, styleContrast: 1, styleBlur: 0 });
   const iw = src.naturalWidth || src.width;
   const ih = src.naturalHeight || src.height;
   const sc = Math.max(W / iw, H / ih) * (B.zoom / 100);
