@@ -233,6 +233,7 @@ const BASE_DEFAULTS = {
     easeO2Text2: 'outCubic',
     easeO2Sub2: 'inOutQuad',
     easeO2Logo: 'inOutQuad',
+    easeO2Circuit: 'linear',
     easeO2End: 'inCubic',
     fps: 30,
     gifFps: 15,

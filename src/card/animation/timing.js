@@ -40,6 +40,7 @@ export const STAGES = {
     { id: 'o2Rays', label: '⑥ 테마 색 바뀜 + 중앙 십자 광선 (점점 사라짐)', ease: 'easeO2Rays', time: [3.65, 4.9] },
     { id: 'o2Text2', label: '⑥ 후반 제목이 돌며 나타남', ease: 'easeO2Text2', time: [3.65, 4.25] },
     { id: 'o2Sub2', label: '⑦ 후반 부제 페이드 인 + 빛무리', ease: 'easeO2Sub2', time: [4.05, 4.7] },
+    { id: 'o2Circuit', label: '⑦ 회로 무늬 상승 (빛무리와 함께)', ease: 'easeO2Circuit', time: [4.05, 6.6] },
     { id: 'o2Bits', label: '⑥~⑦ 세로 사각형·마름모 입자', ease: null, time: [3.65, 5.0] },
     { id: 'o2Logo', label: '⑧ 로고 사라짐', ease: 'easeO2Logo', time: [4.9, 5.7] },
     { id: 'o2Orbs', label: '⑧ 위아래 빛구슬 떨어짐', ease: null, time: [4.6, null] },

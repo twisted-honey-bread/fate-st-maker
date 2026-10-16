@@ -3,7 +3,7 @@ import { drawCard, drawText } from '../renderer';
 import { fontStr } from '../fonts';
 import { FILTER_SUPPORTED, mulberry32 } from '../utils';
 import { toNight } from './night';
-import { drawBlot, drawRevealMask, fillOverlay } from './effects';
+import { drawBlot, drawCircuitBand, drawRevealMask, fillOverlay } from './effects';
 import { bell, clamp01, ease, layer, prog } from './util';
 import { stageTime } from './timing';
 
@@ -15,7 +15,7 @@ import { stageTime } from './timing';
  *  ④ 화면이 일렁이기 시작
  *  ⑤ 글리치가 생기며 화면이 왼쪽으로 쪼개지듯 날아감
  *  ⑥ 테마 색이 후반 색으로 바뀌며 중앙에 커다란 십자 광선(점점 사라짐) + 후반 제목이 돌며 나타남
- *  ⑦ 후반 부제 페이드 인 (⑥~⑦ 동안 세로로 긴 사각형·마름모 입자)
+ *  ⑦ 후반 부제 페이드 인 + 빛무리, 회로 무늬가 아래에서 올라옴 (⑥~⑦ 동안 세로로 긴 사각형·마름모 입자)
  *  ⑧ 테마 색으로 빛나던 로고가 사라지며 완성 (위아래에서 빛구슬이 계속 떨어짐)
  *  ⑨ 유지 시간 뒤 중앙에서부터 어두워짐
  * 전체 내내 배경 위에 고정된 삼각형 무늬가 깔림
@@ -582,6 +582,13 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       drawCross(n, W / 2, midY, rays, W * 0.75, H * 0.75, Math.max(1.5, H * 0.004));
       drawHalo(n, W / 2, midY, W * 0.45, H * 0.07, rays * 1.2);
       drawNebula(n, W / 2, midY, (A.o2Nebula2W / 100) * W, (A.o2Nebula2H / 100) * H, nebula2 * 0.45, t, true);
+      // ⑦ 아웃트로와 같은 육각형 회로 무늬가 아래에서 올라옴 (흰색으로 그려 테마 색이 입혀짐)
+      if (A.hexGrid) {
+        drawCircuitBand(n, W, H, clamp01(E('easeO2Circuit', prog(t, ...T('o2Circuit')))), {
+          seed: A.seed, color: '#ffffff', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
+          image: images.circuitOutro,
+        });
+      }
       const [bS, bE] = T('o2Bits');
       drawShards(n, W, H, t, bS, bE, A.seed);
       drawOrbs(n, W, H, t, T('o2Orbs')[0], A.seed);
