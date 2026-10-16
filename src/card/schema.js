@@ -1,5 +1,4 @@
 import { WEIGHTS } from './fonts';
-import { LOGO_SHAPES } from './logoGen';
 import { STAGES } from './animation/timing';
 
 /*
@@ -96,7 +95,7 @@ export const PARTS = [
       SEG('logo.source', '로고 가져오기', [['upload', '직접 업로드'], ['generate', '연대·제목으로 자동 생성']]),
       when(IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'), s => !isGen(s)),
       gen(NOTE('연대와 제목 글자를 정해진 계산 규칙에 넣어 좌우대칭 무늬를 만듭니다. 그림을 지어내는 생성형 AI가 아니라 계산이라서, 연대·제목·아래 옵션이 같으면 언제 누가 만들어도 늘 똑같은 로고가 나옵니다. 글자를 한 자만 바꿔도 무늬는 완전히 달라집니다. 정식 로고가 준비되기 전에 임시로 쓰는 용도입니다.')),
-      gen(S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label]))),
+      gen({ k: 'logo.genShape', label: '형태', type: 'shape' }),
       gen(R('logo.genGrid', '분할 수', 3, 21, 2)),
       HD('배치'),
       R('logo.zoom', '크기 배율', 10, 300, 1, '%'),
@@ -139,18 +138,12 @@ export const PARTS = [
     main: [
       when(T('anim.outroText', '제목'), isOutro),
       when(T('anim.outroSub', '부제'), isOutro),
-      when(R('anim.introHold', '끝난 뒤 마지막 화면 유지', 0, 10, 0.1, '초'), isIntro),
     ],
-    // 재생 속도·시드·유지 시간·비네트·회로·광선·입자·제목 색·크기·위치 등은 고정값 (defaults.json)
+    // 재생 속도·시드·유지 시간·안개·비네트·회로·광선·입자·제목 색·크기·위치 등은 고정값 (defaults.json)
     advanced: [
       when(HD('폰트'), isOutro),
       when(F('anim.outroFont', '제목 폰트'), isOutro),
       when(F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), isOutro),
-      HD('어두워졌을 때의 요소 조정 (안개)'),
-      R('anim.fogCoverage', '자욱한 정도 (덮는 면적)', 0, 1, 0.01),
-      R('anim.fogOpacity', '진하기', 0, 1, 0.01),
-      R('anim.fogScale', '덩어리 크기', 0.4, 2.5, 0.05, '배'),
-      C('anim.fogColor', '안개 색'),
       when(HD('움직임 곡선 · 재생 시간'), isIntro),
       ...STAGES.intro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isIntro)),
       when(HD('움직임 곡선 · 재생 시간'), isOutro),

@@ -6,6 +6,7 @@ import { Field } from './fields/Field';
 import { GradientEditor } from './fields/GradientEditor';
 import { FontField } from './fields/FontField';
 import { StageField } from './fields/StageField';
+import { ShapePicker } from './fields/ShapePicker';
 import { ANIMATIONS } from '../card/animation';
 import { effectiveTime, stageTime } from '../card/animation/timing';
 import { Section } from './Section';
@@ -126,7 +127,9 @@ export function ControlPanel({
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const renderFields = list =>
-    visibleFields(list, state).map((f, i) => (f.type === 'stage' ? (() => {
+    visibleFields(list, state).map((f, i) => (f.type === 'shape' ? (
+      <ShapePicker key={f.k} id={`f_${f.k.replace(/\./g, '_')}`} label={f.label} value={getPath(state, f.k)} onChange={v => onField(f.k, v)} />
+    ) : f.type === 'stage' ? (() => {
       const st = f.stage;
       const A = state.anim;
       const total = ANIMATIONS[A.mode] ? ANIMATIONS[A.mode].duration({ ...state, anim: { ...A, introSpeed: 1, outroSpeed: 1 } }) : 0;

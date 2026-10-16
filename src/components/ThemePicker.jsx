@@ -128,7 +128,7 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
           <input type="color" id="themeColor" aria-label="대표색 (제목 위쪽 색)" value={color} onChange={e => setColor(e.target.value)} />
         </Pick>
       </Head>
-      <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 글자·배치·배경 사진은 그대로입니다.</Lead>
+      <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 글자와 배치는 그대로입니다.</Lead>
       {pending && (
         <Changes aria-label="바뀌는 색 (지금 → 적용 후)">
           <Change aria-hidden="true">

@@ -56,6 +56,8 @@ const RULES = [
  * 채도는 대표색이 지금 제목 색보다 옅거나 진한 만큼 비례해서 조절 (회색 지점은 회색으로 남음, 같은 색을 다시 적용해도 그대로)
  */
 const STOP_PATHS = ['title.stops', 'era.stops', 'left.stops', 'topLine.stops', 'sub.stops'];
+// 단색이지만 지금 색의 밝기를 유지한 채 색조만 바꾸는 경로 (배경 사진 톤 색)
+const SHIFT_PATHS = ['bg.styleInk', 'bg.stylePaper'];
 const shiftStops = (stops, h, satK) =>
   stops.map(([p, c]) => {
     const [, cs, cl] = hexToHsl(c);
@@ -68,6 +70,7 @@ export const THEME_GROUPS = [
   { label: '왼쪽 위 글자 · 상단선', paths: ['left.stops', 'topLine.stops'] },
   { label: '글로우 · 렌즈 플레어 · 선 빛', paths: ['title.glowColor', 'logo.flareColor', 'anim.introLineColor'] },
   { label: '부제 · 로고 뒤 그림자', paths: ['sub.stops', 'logo.backShadowColor'] },
+  { label: '배경 사진 톤 (어두운 · 밝은 부분)', paths: ['bg.styleInk', 'bg.stylePaper'] },
 ];
 
 const getAt = (state, path) => {
@@ -75,7 +78,7 @@ const getAt = (state, path) => {
   return state[sec][key];
 };
 
-const ALL_PATHS = [...RULES.map(([p]) => p), ...STOP_PATHS];
+const ALL_PATHS = [...RULES.map(([p]) => p), ...STOP_PATHS, ...SHIFT_PATHS];
 
 // 대표색을 적용했을 때 각 경로의 값 (미리보기·적용 공통)
 export function themeColors(state, primary) {
@@ -84,6 +87,7 @@ export function themeColors(state, primary) {
   return Object.fromEntries([
     ...RULES.map(([path, rule]) => [path, rule(h, s, l)]),
     ...STOP_PATHS.map(path => [path, shiftStops(getAt(state, path), h, satK)]),
+    ...SHIFT_PATHS.map(path => [path, shiftStops([[0, getAt(state, path)]], h, satK)[0][1]]),
   ]);
 }
 
