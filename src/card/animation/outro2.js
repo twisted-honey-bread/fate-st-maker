@@ -1,10 +1,10 @@
 import { TEXT_BASE } from '../defaults';
-import { drawCard, drawText, measureText } from '../renderer';
+import { drawCard, drawText } from '../renderer';
 import { fontStr } from '../fonts';
-import { mulberry32 } from '../utils';
+import { FILTER_SUPPORTED, mulberry32 } from '../utils';
 import { toNight } from './night';
 import { drawBlot, drawRevealMask, fillOverlay } from './effects';
-import { bell, clamp01, ease, layer, mixHex, prog } from './util';
+import { bell, clamp01, ease, layer, prog } from './util';
 import { stageTime } from './timing';
 
 /*
@@ -16,7 +16,7 @@ import { stageTime } from './timing';
  *  ⑤ 글리치가 생기며 화면이 왼쪽으로 쪼개지듯 날아감
  *  ⑥ 테마 색이 후반 색으로 바뀌며 중앙에 커다란 십자 광선(점점 사라짐) + 후반 제목이 돌며 나타남
  *  ⑦ 후반 부제 페이드 인 (⑥~⑦ 동안 세로로 긴 사각형·마름모 입자)
- *  ⑧ 로고가 어두워지며 완성 (위아래에서 빛구슬이 계속 떨어짐)
+ *  ⑧ 테마 색으로 빛나던 로고가 사라지며 완성 (위아래에서 빛구슬이 계속 떨어짐)
  *  ⑨ 유지 시간 뒤 중앙에서부터 어두워짐
  * 전체 내내 배경 위에 고정된 삼각형 무늬가 깔림
  * 어두워진 장면은 흑백에 가깝게 그린 뒤 테마 색을 색조로 입힘 (밝은 부분은 흰빛, 어두운 부분은 짙은 테마 색)
@@ -34,7 +34,7 @@ function textStyles(state, part) {
     font: A.outroFont,
     weight: A.outroWeight,
     size: A.o2Size,
-    spacing: A.o2Spacing,
+    spacing: part === 1 ? A.o2Spacing : A.o2Spacing2,
     color: '#ffffff',
     glowColor: '#ffffff',
     glowOpacity: 0.9,
@@ -47,7 +47,7 @@ function textStyles(state, part) {
     font: A.outroSubFont,
     weight: A.outroSubWeight,
     size: A.o2SubSize,
-    spacing: A.o2SubSpacing,
+    spacing: part === 1 ? A.o2SubSpacing : A.o2SubSpacing2,
     color: '#f2f4f8',
     glowColor: '#ffffff',
     glowOpacity: 0.35,
@@ -108,52 +108,63 @@ function polyLayer(W, H, size, sparse) {
   return c;
 }
 
-function drawPoly(ctx, W, H, A, alpha) {
+function drawPoly(ctx, W, H, A) {
+  if (A.o2PolyOpacity <= 0) return;
   ctx.save();
-  ctx.globalAlpha = alpha;
+  ctx.globalAlpha = A.o2PolyOpacity;
+  ctx.globalCompositeOperation = A.o2PolyBlend;
   ctx.drawImage(polyLayer(W, H, A.o2PolySize, A.o2PolySparse), 0, 0);
   ctx.restore();
 }
 
-/* ---------- ② 사각형·마름모·원 무늬 (p: 0 = 돌아가 있음, 1 = 정렬) ---------- */
-function drawShapes(ctx, W, H, cx, cy, p, alpha) {
-  if (alpha <= 0) return;
-  const off = 1 - p;
-  const sc = 1 + 0.14 * off;
-  const s = 0.37 * H;
+/*
+ * ---------- ② 배경 무늬 ----------
+ * 순서대로 나타남: 두 겹 마름모(바깥) → 90° 돌며 안쪽 사각형 → 90° 돌며 그 안쪽 사각형 → 앞 사각형에 내접하는 원
+ * p: 0~1 (②단계 진행도, 움직임 곡선 적용 전), cx·cy: 중심, sq: 사각형 반폭(px), dia: 마름모 중심~꼭짓점(px)
+ */
+function drawShapes(ctx, H, cx, cy, p, alpha, sq, dia, curve) {
+  if (alpha <= 0 || p <= 0) return;
+  const part = (a, b) => curve(clamp01((p - a) / (b - a)));
+  const gap = H * 0.014; // 두 겹 사이 간격
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = Math.max(1, H * 0.0026);
+  ctx.lineWidth = Math.max(1, H * 0.0024);
   ctx.shadowColor = 'rgba(255,255,255,0.7)';
   ctx.shadowBlur = H * 0.006;
   ctx.translate(cx, cy);
-  ctx.scale(sc, sc);
-  // 사각형
-  ctx.save();
-  ctx.rotate(-0.75 * off);
-  ctx.strokeRect(-s, -s, s * 2, s * 2);
-  ctx.restore();
-  // 마름모 (큰 사각형을 45° 돌린 것)
-  ctx.save();
-  ctx.rotate(Math.PI / 4 + 0.95 * off);
-  const m = 0.73 * H / Math.SQRT2;
-  ctx.strokeRect(-m, -m, m * 2, m * 2);
-  ctx.restore();
-  // 원 — 끊긴 곳이 있어 도는 것이 보임
-  ctx.save();
-  ctx.rotate(1.4 * off);
-  for (let i = 0; i < 4; i++) {
+  const square = (half, k, rot) => {
+    if (k <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = alpha * Math.min(1, k * 1.5);
+    ctx.rotate(rot);
+    ctx.strokeRect(-half, -half, half * 2, half * 2);
+    ctx.restore();
+  };
+  // 두 겹 마름모: 살짝 크게 시작해 제자리로
+  const a = part(0, 0.35);
+  const grow = 1 + 0.06 * (1 - a);
+  const m = dia / Math.SQRT2;
+  square(m * grow, a, Math.PI / 4);
+  square((m - gap) * grow, a, Math.PI / 4);
+  // 안쪽 사각형 두 개: 각각 90° 돌며 나타남
+  const b = part(0.2, 0.6);
+  square(sq, b, (-Math.PI / 2) * (1 - b));
+  const c = part(0.4, 0.8);
+  const inner = sq - gap;
+  square(inner, c, (Math.PI / 2) * (1 - c));
+  // 내접하는 원: 위에서부터 한 바퀴 그려짐
+  const d = part(0.6, 1);
+  if (d > 0) {
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.98, (i * Math.PI) / 2 + 0.06, ((i + 1) * Math.PI) / 2 - 0.06);
+    ctx.arc(0, 0, inner, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * d);
     ctx.stroke();
   }
-  ctx.restore();
   ctx.restore();
 }
 
 /* ---------- 빛 ---------- */
-// 가로로 긴 타원형 빛무리 (lighter)
+// 가로로 긴 타원형 빛 (lighter) — 후반 섬광이 터질 때만 씀
 function drawHalo(ctx, cx, cy, rx, ry, k) {
   if (k <= 0) return;
   ctx.save();
@@ -171,33 +182,107 @@ function drawHalo(ctx, cx, cy, rx, ry, k) {
   ctx.restore();
 }
 
-// 십자 섬광: 가로·세로로 가늘게 뻗는 빛 + 가운데 밝은 점
-function drawCross(ctx, x, y, k, lenX, lenY, th) {
+/*
+ * 성운 같은 빛무리 — 크고 작은 빛 덩어리와 가로로 긴 줄기를 겹치고 군데군데 파낸 무늬 (시드 고정)
+ * dense: 후반용 — 더 조밀하고 가장자리가 덜 흐려짐
+ */
+const nebulaCache = new Map();
+function nebulaLayer(dense) {
+  if (nebulaCache.has(dense)) return nebulaCache.get(dense);
+  const NW = 640;
+  const NH = 320;
+  const c = document.createElement('canvas');
+  c.width = NW;
+  c.height = NH;
+  const g = c.getContext('2d');
+  const rng = mulberry32(dense ? 5113 : 2087);
+  const gauss = () => (rng() + rng() + rng() - 1.5) / 1.5; // -1~1, 가운데에 몰림
+  const puff = (x, y, r, a, sx = 1, sy = 1) => {
+    g.save();
+    g.translate(x, y);
+    g.scale(sx, sy);
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, r);
+    rg.addColorStop(0, `rgba(255,255,255,${a})`);
+    rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg;
+    g.fillRect(-r, -r, r * 2, r * 2);
+    g.restore();
+  };
+  const spread = dense ? 0.75 : 1;
+  // 빛 덩어리
+  for (let i = 0; i < (dense ? 260 : 200); i++) {
+    puff(NW / 2 + gauss() * NW * 0.42 * spread, NH / 2 + gauss() * NH * 0.38 * spread,
+      8 + Math.pow(rng(), 2) * (dense ? 45 : 60), (dense ? 0.05 : 0.04) + rng() * 0.08, 1 + rng() * 0.8, 1);
+  }
+  // 가로로 조금 뻗은 옅은 줄기
+  for (let i = 0; i < 24; i++) {
+    puff(NW / 2 + gauss() * NW * 0.35, NH / 2 + gauss() * NH * 0.35, 12 + rng() * 25, 0.03 + rng() * 0.05, 2 + rng() * 2, 0.6 + rng() * 0.4);
+  }
+  // 군데군데 파내 구름 결을 만듦
+  g.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < (dense ? 40 : 70); i++) {
+    puff(rng() * NW, rng() * NH, 8 + rng() * 30, 0.12 + rng() * 0.25, 1.5 + rng(), 1);
+  }
+  // 전체 윤곽: 타원 모양으로 가장자리를 흐림 (후반은 더 또렷하게)
+  g.globalCompositeOperation = 'destination-in';
+  g.save();
+  g.translate(NW / 2, NH / 2);
+  g.scale(NW / NH, 1);
+  const edge = g.createRadialGradient(0, 0, 0, 0, 0, NH / 2);
+  edge.addColorStop(0, 'rgba(0,0,0,1)');
+  edge.addColorStop(dense ? 0.7 : 0.35, 'rgba(0,0,0,1)');
+  edge.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = edge;
+  g.fillRect(-NH / 2, -NH / 2, NH, NH);
+  g.restore();
+  nebulaCache.set(dense, c);
+  return c;
+}
+
+// rx·ry: 반폭·반높이(px), k: 밝기 (1 넘으면 한 번 더 겹침)
+function drawNebula(ctx, cx, cy, rx, ry, k, t, dense) {
+  if (k <= 0) return;
+  const tex = nebulaLayer(dense);
+  const drift = Math.sin(t * 0.7) * rx * 0.015; // 천천히 일렁임
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let left = k; left > 0; left -= 1) {
+    ctx.globalAlpha = Math.min(1, left);
+    ctx.drawImage(tex, cx - rx + drift, cy - ry, rx * 2, ry * 2);
+  }
+  ctx.restore();
+}
+
+/*
+ * 십자 섬광: 가로·세로로 가늘게 뻗는 빛 (가운데 원 없음)
+ * lenX·lenY: 가로·세로 반길이(px), th: 두께(px), blur: 흐림(px)
+ */
+function drawCross(ctx, x, y, k, lenX, lenY, th, blur = 0) {
   if (k <= 0) return;
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
+  if (blur > 0) {
+    if (FILTER_SUPPORTED) ctx.filter = `blur(${blur}px)`;
+    else {
+      ctx.shadowColor = 'rgba(255,255,255,1)';
+      ctx.shadowBlur = blur * 2;
+    }
+  }
   const line = (x0, y0, x1, y1, horizontal) => {
     const g = ctx.createLinearGradient(x0, y0, x1, y1);
     g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(0.5, `rgba(255,255,255,${k})`);
+    g.addColorStop(0.5, `rgba(255,255,255,${Math.min(1, k)})`);
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
     if (horizontal) ctx.fillRect(x0, y - th / 2, x1 - x0, th);
     else ctx.fillRect(x - th / 2, y0, th, y1 - y0);
   };
-  line(x - lenX, y, x + lenX, y, true);
-  line(x, y - lenY, x, y + lenY, false);
-  const r = th * 14;
-  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, `rgba(255,255,255,${0.9 * k})`);
-  g.addColorStop(0.25, `rgba(255,255,255,${0.35 * k})`);
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  if (lenX > 0) line(x - lenX, y, x + lenX, y, true);
+  if (lenY > 0) line(x, y - lenY, x, y + lenY, false);
   ctx.restore();
 }
 
-/* ---------- ⑥ 제목이 세로축으로 돌며 나타남 (글자마다 폭이 0 → 원래 폭) ---------- */
+/* ---------- ⑥ 제목이 제자리에서 세로축으로 돌며 나타남 (글자마다 폭이 0 → 원래 폭, 페이드 인 없음) ---------- */
 function drawSpinTitle(ctx, s, W, H, cx, y, p) {
   const chars = [...(s.text || '')];
   if (!chars.length || p <= 0) return;
@@ -206,14 +291,14 @@ function drawSpinTitle(ctx, s, W, H, cx, y, p) {
   ctx.font = fontStr(s, px);
   const widths = chars.map(c => ctx.measureText(c).width * ((s.scaleX ?? 100) / 100));
   ctx.restore();
-  const sp = s.spacing * px * (1 + 0.5 * (1 - p)); // 넓게 벌어진 채로 돌다가 제자리로 모임
+  const sp = s.spacing * px; // 자리는 처음부터 그대로, 글자만 제자리에서 돎
   const total = widths.reduce((a, b) => a + b, 0) + sp * (chars.length - 1);
   let x = cx - total / 2;
   const n = chars.length;
   chars.forEach((c, i) => {
-    const pi = clamp01(p * 1.3 - (0.3 * i) / Math.max(1, n - 1)); // 글자마다 살짝 시차
+    const pi = clamp01(p * 1.15 - (0.15 * i) / Math.max(1, n - 1)); // 글자마다 살짝 시차
     const k = Math.max(0.02, Math.sin((pi * Math.PI) / 2));
-    drawText(ctx, { ...s, text: c, spacing: 0, scaleX: (s.scaleX ?? 100) * k, alpha: (s.alpha ?? 1) * Math.min(1, pi * 4) }, W, H, x + widths[i] / 2, y, 'center');
+    drawText(ctx, { ...s, text: c, spacing: 0, scaleX: (s.scaleX ?? 100) * k }, W, H, x + widths[i] / 2, y, 'center');
     x += widths[i] + sp;
   });
 }
@@ -401,7 +486,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
   const endStart = holdStart(A) + A.o2Hold;
   const FADE = fadeLength(A);
   const ink = clamp01(E('easeO2Dark', prog(t, ...T('o2Dark'))));
-  const poly = (c, w, h) => drawPoly(c, w, h, A, 0.05);
+  const poly = (c, w, h) => drawPoly(c, w, h, A);
 
   ctx.save();
   ctx.fillStyle = '#000000';
@@ -424,11 +509,11 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     const [shapesS, shapesE] = T('o2Shapes');
     // 원래 카드의 연대·제목·부제는 무늬가 돌아가는 동안 사라짐
     const oldA = part2 ? 0 : 1 - prog(t, shapesS, shapesE);
-    const darken = clamp01(E('easeO2Logo', prog(t, ...T('o2Logo'))));
+    const logoOut = clamp01(E('easeO2Logo', prog(t, ...T('o2Logo'))));
     const logoIn = prog(t, switchS, switchS + 0.5);
     const nightState = {
       ...night,
-      bg: { ...night.bg, brightness: night.bg.brightness * 0.4 }, // 색을 입히면 밝아 보이므로 더 어둡게
+      bg: { ...night.bg, brightness: night.bg.brightness * (part2 ? 0.28 : 0.4) }, // 색을 입히면 밝아 보이므로 더 어둡게 (후반은 더)
       left: { ...night.left, alpha: 0 },
       right: { ...night.right, alpha: 0 },
       topLine: { ...night.topLine, show: false },
@@ -436,13 +521,13 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       era: { ...night.era, alpha: 0.7 * oldA },
       title: { ...night.title, alpha: 0.7 * oldA },
       sub: { ...night.sub, alpha: 0.7 * oldA },
-      // 초반: 옅은 실루엣 / 후반: 밝게 빛나다가 ⑧에서 검게 어두워짐 (글로우도 함께 사라짐)
+      // 초반: 옅은 실루엣 / 후반: 테마 색으로 빛나다가 ⑧에서 완전히 사라짐
       logo: part2 ? {
         ...night.logo,
-        tintColor: mixHex('#ffffff', A.outroLogoDark, darken),
-        opacity: logoIn,
-        glowColor: '#ffffff',
-        glowOpacity: 0.75 * (1 - darken),
+        tintColor: A.o2Color2,
+        opacity: logoIn * (1 - logoOut),
+        glowColor: A.o2Color2,
+        glowOpacity: 0.9,
         glowBlur: 2.2,
         glowStrength: 2,
         backShadow: 0,
@@ -453,17 +538,34 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     const [wobS, wobE] = T('o2Wobble');
     const wob = part2 ? 0 : clamp01(E('easeO2Wobble', prog(t, wobS, wobE)));
     const gl = part2 ? 0 : clamp01(E('easeO2Glitch', prog(t, ...T('o2Glitch'))));
-    const shapeP = clamp01(E('easeO2Shapes', prog(t, shapesS, shapesE)));
-    const shapeA = part2 ? 0 : 0.5 * prog(t, shapesS, shapesS + 0.4);
+    const shapeP = prog(t, shapesS, shapesE);
+    const shapeA = part2 ? 0 : 0.5;
+    const nebula2 = part2 ? clamp01(E('easeO2Sub2', prog(t, ...T('o2Sub2')))) : 0; // 후반 빛무리는 부제와 함께 나타남
     const rays = part2 ? 1 - clamp01(E('easeO2Rays', prog(t, ...T('o2Rays')))) : 0;
 
     const { canvas: scene, ctx: n } = layer('o2-scene', W, H);
     drawCard(n, W, H, nightState, images, {
       afterBackground: (c, w, h) => {
         poly(c, w, h);
-        drawShapes(c, w, h, w / 2, h / 2, shapeP, shapeA);
-        // 후반: 화면 가운데가 밝게 (중앙 광선이 사라지며 함께 줄어듦)
-        if (part2) drawHalo(c, w / 2, midY, w * 0.5, h * 0.45, 0.07 + 0.4 * rays);
+        drawShapes(c, h, w / 2, (A.o2ShapeY / 100) * h, shapeP, shapeA, (A.o2ShapeSize / 100) * h, (A.o2DiamondSize / 100) * h, p => ease(A.easeO2Shapes, p));
+        if (part2) {
+          // 섬광이 터질 때 화면 가운데가 밝게 (중앙 광선이 사라지며 함께 줄어듦)
+          drawHalo(c, w / 2, midY, w * 0.5, h * 0.45, 0.4 * rays);
+          // 후반 빛무리가 나올 때: 가로로 화면 가장자리로 갈수록 테마 색에 가까워짐
+          if (nebula2 > 0) {
+            const g = c.createLinearGradient(0, 0, w, 0);
+            const a = 0.16 * nebula2;
+            g.addColorStop(0, `rgba(255,255,255,${a})`);
+            g.addColorStop(0.35, 'rgba(255,255,255,0)');
+            g.addColorStop(0.65, 'rgba(255,255,255,0)');
+            g.addColorStop(1, `rgba(255,255,255,${a})`);
+            c.save();
+            c.globalCompositeOperation = 'lighter';
+            c.fillStyle = g;
+            c.fillRect(0, 0, w, h);
+            c.restore();
+          }
+        }
       },
     });
 
@@ -472,28 +574,29 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       const [t1S, t1E] = T('o2Text1');
       const sp = clamp01(E('easeO2Text1', prog(t, t1S, t1E)));
       const glowK = sp * (1 + 0.7 * wob);
-      drawHalo(n, W / 2, midY, W * (0.25 + 0.2 * sp), H * 0.11, glowK);
+      drawNebula(n, W / 2, midY, (A.o2NebulaW / 100) * W * (0.6 + 0.4 * sp), (A.o2NebulaH / 100) * H, glowK, t, false);
       drawText(n, { ...main, alpha: sp, spacing: main.spacing * (0.35 + 0.65 * sp), glowOpacity: 0.9 * sp }, W, H, W / 2, ty, 'center');
       drawText(n, { ...sub, alpha: clamp01(sp * 1.4 - 0.2), spacing: sub.spacing * (0.5 + 0.5 * sp) }, W, H, W / 2, (A.o2SubY / 100) * H, 'center');
       // 오른쪽 위·왼쪽 아래 십자 섬광
       const [cS, cE] = T('o2Cross');
       const ck = bell(t, cS, cS + (cE - cS) * 0.35, cE) + 0.35 * wob;
       if (ck > 0) {
-        const tw = measureText(n, main, H);
-        const th = Math.max(1, H * 0.0028);
-        drawCross(n, W / 2 + tw / 2 + W * 0.01, ty - px * 0.95, ck, W * 0.32, H * 0.42, th);
-        drawCross(n, W / 2 - tw / 2 - W * 0.01, ty + px * 0.12, ck, W * 0.32, H * 0.42, th);
+        const args = [ck * A.o2CrossOpacity, (A.o2CrossLenX / 100) * W, (A.o2CrossLenY / 100) * H,
+          Math.max(1, (A.o2CrossThick / 100) * H), (A.o2CrossBlur / 100) * H];
+        drawCross(n, (A.o2Cross1X / 100) * W, (A.o2Cross1Y / 100) * H, ...args);
+        drawCross(n, (A.o2Cross2X / 100) * W, (A.o2Cross2Y / 100) * H, ...args);
       }
     } else {
       // ⑥ 중앙 십자 광선 + 후반 제목 / ⑦ 부제 / 입자들
       drawCross(n, W / 2, midY, rays, W * 0.75, H * 0.75, Math.max(1.5, H * 0.004));
       drawHalo(n, W / 2, midY, W * 0.45, H * 0.07, rays * 1.2);
+      drawNebula(n, W / 2, midY, (A.o2Nebula2W / 100) * W, (A.o2Nebula2H / 100) * H, nebula2 * 0.45, t, true);
       const [bS, bE] = T('o2Bits');
       drawShards(n, W, H, t, bS, bE, A.seed);
       drawOrbs(n, W, H, t, T('o2Orbs')[0], A.seed);
       const p2 = clamp01(E('easeO2Text2', prog(t, ...T('o2Text2'))));
       drawSpinTitle(n, { ...main, glowOpacity: 0.75 }, W, H, W / 2, ty, p2);
-      drawText(n, { ...sub, alpha: clamp01(E('easeO2Sub2', prog(t, ...T('o2Sub2')))) }, W, H, W / 2, (A.o2SubY / 100) * H, 'center');
+      drawText(n, { ...sub, alpha: nebula2 }, W, H, W / 2, (A.o2SubY / 100) * H, 'center');
     }
 
     const out = wob > 0 || gl > 0 ? distort(scene, W, H, t, wob, gl) : scene;

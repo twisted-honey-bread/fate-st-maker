@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { REF_DEFAULT, RefOverlayBar, RefOverlayImage } from './RefOverlay';
 import styled from 'styled-components';
 import { CARD_HEIGHT, CARD_WIDTH } from '../card/defaults';
 import { ensureFonts } from '../card/fonts';
@@ -54,7 +55,6 @@ const Canvas = styled.canvas`
   outline-offset: 4px;
 `;
 
-// 원본 이미지 겹쳐보기 (미리보기 전용 — 다운로드에는 포함되지 않음)
 // 선택한 파트 표시 (미리보기 전용 — 다운로드 이미지에는 포함되지 않음)
 const Outline = styled.div`
   position: absolute;
@@ -136,6 +136,7 @@ export function Preview({
   const lastLayout = useRef('');
   const [fontsReady, setFontsReady] = useState(0);
   const [drag, setDrag] = useState(false);
+  const [refImage, setRefImage] = useState(REF_DEFAULT); // 참고 이미지 겹쳐 보기
 
   const mode = state.anim.mode;
   const animMode = isAnimMode(mode);
@@ -309,6 +310,7 @@ export function Preview({
             if (f) onDropImage(f);
           }}
         />
+        <RefOverlayImage value={refImage} />
         {bgEdit && (
           <BgEditor frameRef={frameRef} image={images.bg} imageUrl={bgEdit.imageUrl} draft={bgEdit.draft} onChange={bgEdit.onChange} onDragging={setDragging} />
         )}
@@ -338,6 +340,7 @@ export function Preview({
           onLoop={setLoop}
         />
       )}
+      {!bgEdit && <RefOverlayBar value={refImage} onChange={setRefImage} />}
       {children}
       <Hint>미리보기에서 바꾸고 싶은 부분을 누르면 해당 설정이 열립니다 · 이미지 파일을 끌어다 놓으면 배경으로 설정</Hint>
     </Pane>
