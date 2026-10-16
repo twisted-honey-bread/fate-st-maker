@@ -143,6 +143,10 @@ const BASE_DEFAULTS = {
     outroLogoColor: '#ffffff', // 어두워질 때 함께 순백 실루엣
     outroLogoDark: '#14161b',
     particleDensity: 1,
+    // 입자 크기 배율: 정방형(아웃트로) / 쏟아지는 금빛(아웃트로) / 떠오르는(인트로)
+    diamondSize: 1,
+    goldSize: 1,
+    riseSize: 1,
     particleColor: '#fffef4',
     particleGlow: '#fff0b8',
     particleGlowSize: 3,

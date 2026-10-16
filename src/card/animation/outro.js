@@ -13,8 +13,8 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  0.6~2.0  로고 중심에서 어둠이 번져 어두워진 화면으로 바뀜
  *  0.6~2.0  (어둠이 번진 자리에서는 왼쪽 위·오른쪽 위 텍스트와 상단 선이 보이지 않음)
  *           로고는 스스로 빛나지 않는 옅은 회색 실루엣
- *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선, 로고가 함께 살짝 밝아짐
- *  3.0~3.7  섬광이 사라지며 로고가 검은 실루엣으로 어두워짐
+ *  2.55~4.1 로고 아래 중심에서 노란 별 섬광 + 광선, 로고가 함께 살짝 밝아짐
+ *  3.0~4.1  섬광·광선이 사라지며 로고가 검은 실루엣으로 어두워짐 (문구가 다 나타나는 4.1 에 함께 끝남)
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
  *  3.0~     입자가 터지는 순간부터 육각형 회로 무늬가 반짝이기 시작하며 아래에서 올라옴
@@ -22,6 +22,8 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  입자가 모두 사라지면 중앙부터 완전히 어두워짐
  */
 const TEXT_END = 4.3;
+// '공상절제' 가 완전히 나타나는 시점 — 섬광·섬광 광선이 사라지고 로고가 검게 되는 것도 이때 끝남
+const TEXT_FULL = 4.1;
 const BURST = 3.0;
 const FADE = 1.4;
 
@@ -83,8 +85,8 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const E = (name, p) => ease(A[name], p); // 단계별 움직임 곡선 (애니메이션 패널에서 선택)
   const clamp = v => Math.max(0, Math.min(1, v));
   const ink = clamp(E('easeOutroInk', prog(t, 0.6, 2.0)));
-  const flashK = bell(t, 2.55, 2.8, 3.4); // 중앙 섬광 세기
-  const darken = clamp(E('easeOutroDarken', prog(t, 3.0, 3.7))); // 섬광이 사라지며 로고가 검게 어두워짐
+  const flashK = bell(t, 2.55, 2.8, TEXT_FULL); // 중앙 섬광 세기 (문구가 다 나타날 때 사라짐)
+  const darken = clamp(E('easeOutroDarken', prog(t, 3.0, TEXT_FULL))); // 섬광이 사라지며 로고가 검게 어두워짐
   const dimOld = easeOut(prog(t, 3.0, 3.8));
   const spread = E('easeOutroSpread', prog(t, 2.95, 3.9)); // 페이드 인과 동시에 중앙에서 펼쳐짐
 
@@ -143,15 +145,25 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 금빛 별 섬광 (로고 아래쪽 중심)
   const starY = ly + (L.height / 100) * H * 0.3;
-  drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.55, 2.8, 3.4), A.flareColor, {
+  drawStarFlash(ctx, W, H, lx, starY, flashK, A.flareColor, {
     count: A.rayCount, angle: A.rayAngle, length: A.rayLength, widthStart: A.rayWidthStart,
     widthEnd: A.rayWidthEnd, opacity: A.rayOpacity, fade: A.rayFade,
   }, A.rayStartLength + (1 - A.rayStartLength) * E('easeOutroRays', prog(t, 2.55, 2.8))); // 시작 길이에서 섬광 정점까지 늘어나고, 이후엔 길이 그대로 페이드 아웃
 
-  // 공상절제 문구
+  // 정방형 입자 (모두 사라지는 시점 = 완전히 어두워지기 시작)
+  drawDiamonds(ctx, W, H, t - BURST, {
+    density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, glowSize: A.particleGlowSize / 100, squash: A.particleSquash,
+    seed: A.seed, endAt: endStart - BURST, sizeScale: A.diamondSize,
+  });
+  // 위에서 쏟아지는 금빛 입자
+  drawFallingGold(ctx, W, H, t, {
+    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2, sizeScale: A.goldSize,
+  });
+
+  // 공상절제 문구 — 빛 입자보다 위에 그림
   const { main, sub } = outroTextStyles(state);
   // 처음엔 옅게 페이드 인 → 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
-  const textIn = clamp(E('easeOutroText', prog(t, 2.95, 4.1))); // 펼쳐지는 동안 천천히 페이드 인
+  const textIn = clamp(E('easeOutroText', prog(t, 2.95, TEXT_FULL))); // 펼쳐지는 동안 천천히 페이드 인
   if (textIn > 0) {
     const ty = (A.outroY / 100) * H;
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
@@ -160,15 +172,6 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 
-  // 정방형 입자 (모두 사라지는 시점 = 완전히 어두워지기 시작)
-  drawDiamonds(ctx, W, H, t - BURST, {
-    density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, glowSize: A.particleGlowSize / 100, squash: A.particleSquash,
-    seed: A.seed, endAt: endStart - BURST,
-  });
-  // 위에서 쏟아지는 금빛 입자
-  drawFallingGold(ctx, W, H, t, {
-    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2,
-  });
 
   // 완전히 어두워짐 (중앙부터)
   drawBlot(ctx, W, H, W / 2, H / 2, clamp(E('easeOutroEnd', prog(t, endStart, endStart + 1.0))));

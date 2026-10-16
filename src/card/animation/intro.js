@@ -93,7 +93,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
       drawRisingParticles(n, W, H, t, {
         ...lineRange(state.topLine, W, H),
         start: 1.15, span: 1.4, count: Math.round(40 * A.riseDensity),
-        color: A.introLineColor, seed: A.seed, lighter: true,
+        color: A.introLineColor, seed: A.seed, lighter: true, sizeScale: A.riseSize,
       });
     }
     ctx.globalAlpha = fadeIn;
@@ -136,7 +136,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
       drawRisingParticles(d, W, H, t, {
         ...lineRange(state.bottomLine, W, H),
         start: 6.0, span: 1.0, count: Math.round(30 * A.riseDensity),
-        color: state.title.color, seed: A.seed + 1,
+        color: state.title.color, seed: A.seed + 1, sizeScale: A.riseSize,
       });
     }
     drawRevealMask(ctx, W, H, canvas, W / 2, H / 2, reveal);

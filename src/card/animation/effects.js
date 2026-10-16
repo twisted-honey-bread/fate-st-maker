@@ -201,7 +201,7 @@ const diamondCache = new Map();
 
 // t: 터진 뒤 경과 시간(초), endAt: 마지막 입자가 사라지는 시각(터진 뒤 기준)
 export function drawDiamonds(ctx, W, H, t, {
-  density, color, glow = '#fff0b8', glowSize = 0.022, squash = 0.45, seed = 1, endAt = 3,
+  density, color, glow = '#fff0b8', glowSize = 0.022, squash = 0.45, seed = 1, endAt = 3, sizeScale = 1,
 }) {
   const count = Math.round(44 * density);
   if (count <= 0 || t < 0) return;
@@ -221,7 +221,7 @@ export function drawDiamonds(ctx, W, H, t, {
     const p = age / life;
     const q = Math.max(0, (p - d.hold) / (1 - d.hold));
     const shrink = 1 - Math.pow(q, d.curve); // 입자마다 다른 속도로 작아짐
-    const full = (d.size * H) / 2; // 처음 크기의 반폭
+    const full = (d.size * H * sizeScale) / 2; // 처음 크기의 반폭 (sizeScale: 크기 배율)
     const base = full * shrink;
     if (base < 0.3) continue;
     const hw = base * (1 - d.sx * squash * q); // 가로가 더 빨리 줄어 세로로 긴 마름모
@@ -275,7 +275,7 @@ export function drawDiamonds(ctx, W, H, t, {
  * 화면 맨 위에서 생겨 최대 maxFall(H 비율, 기본 20%)까지만 내려오며 사라짐
  */
 const fallCache = new Map();
-export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, color, maxFall = 0.2 }) {
+export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, color, maxFall = 0.2, sizeScale = 1 }) {
   if (t < start || count <= 0) return;
   const key = `${seed}:${count}`;
   if (!fallCache.has(key)) {
@@ -301,7 +301,7 @@ export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, co
     const fade = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
     const tw = 0.55 + 0.45 * Math.sin(d.phase + age * d.tw);
     const y = (d.y0 + maxFall * d.travel * (1 - Math.pow(1 - k, 2))) * H;
-    const r = (d.r / 1080) * H;
+    const r = (d.r / 1080) * H * sizeScale;
     ctx.globalAlpha = fade * tw;
     ctx.shadowBlur = r * 4;
     ctx.fillStyle = rgba(color, 1);
@@ -357,7 +357,7 @@ function makeRising(seed, count) {
   return list;
 }
 
-export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, count, color, seed, lighter = false }) {
+export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, count, color, seed, lighter = false, sizeScale = 1 }) {
   if (count <= 0 || t < start) return;
   ctx.save();
   if (lighter) ctx.globalCompositeOperation = 'lighter';
@@ -369,7 +369,7 @@ export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, coun
     const a = k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8;
     const x = x0 + (x1 - x0) * p.u + Math.sin(age * 3 + p.phase) * p.sway * W;
     const py = y - p.speed * age * H;
-    const r = (p.size / 1080) * H;
+    const r = (p.size / 1080) * H * sizeScale;
     ctx.globalAlpha = a;
     ctx.shadowBlur = r * 4;
     ctx.fillStyle = rgba(color, 1);
@@ -412,34 +412,44 @@ function circuitLayer(W, H, seed, style = 'grid') {
   c.height = H;
   const g = c.getContext('2d');
   const rng = mulberry32(seed * 104729 + 3);
-  // 인트로: 위로 올라가는 세로선만 (사선·원·가로선 없음)
-  const step = H * 0.028;
-  const cols = Math.ceil(W / step);
+  /*
+   * 인트로: 아래에서 위로 올라가는 세로선 + 이웃한 세로 줄로 건너가는 45도 대각선 (회로 기판 배선처럼)
+   * 원·가로선 없음. 세로 줄 간격(col)을 넉넉히 두고, 선 하나가 위로 가다가 대각선으로 옆 줄에 옮겨 타며 이어짐
+   */
+  const col = H * 0.055; // 세로 줄 사이 간격
+  const cols = Math.ceil(W / col) + 1;
   g.strokeStyle = '#ffffff';
   g.lineWidth = Math.max(1, H * 0.0016);
   g.lineCap = 'butt';
-  const vline = (x, y0, y1) => {
+  g.lineJoin = 'miter';
+  const trace = (pts, dx = 0) => {
     g.beginPath();
-    g.moveTo(x, y0);
-    g.lineTo(x, y1);
+    pts.forEach(([px, py], i) => (i ? g.lineTo(px + dx, py) : g.moveTo(px + dx, py)));
     g.stroke();
   };
-  for (let n = 0; n < 70; n++) {
-    const x = Math.floor(rng() * cols) * step;
-    const y = rng() * H * 1.1;
-    const len = H * (0.06 + rng() * 0.32);
-    // 한 줄을 몇 조각으로 끊어 그림
-    const pieces = 1 + Math.floor(rng() * 3);
-    for (let j = 0; j < pieces; j++) {
-      const a = j / pieces;
-      const b = (j + 1) / pieces - (pieces > 1 ? 0.1 : 0);
-      vline(x, y - len * a, y - len * b);
+  for (let n = 0; n < 46; n++) {
+    let ci = Math.floor(rng() * cols);
+    let x = ci * col;
+    let y = H * (0.2 + rng() * 0.95);
+    const top = y - H * (0.25 + rng() * 0.55);
+    const pts = [[x, y]];
+    while (y > top) {
+      // 세로로 올라감
+      y = Math.max(top, y - H * (0.04 + rng() * 0.16));
+      pts.push([x, y]);
+      if (y <= top) break;
+      // 자주 옆 줄로 대각선 이동 (위쪽 45도, 가끔 두 줄 건너뜀)
+      if (rng() < 0.65) {
+        const dir = (ci <= 0 ? 1 : ci >= cols - 1 ? -1 : rng() < 0.5 ? -1 : 1) * (rng() < 0.25 ? 2 : 1);
+        ci += dir;
+        x = ci * col;
+        y -= Math.abs(dir) * col;
+        pts.push([x, y]);
+      }
     }
-    // 가끔 나란한 선 2~3가닥 (버스)
-    if (rng() < 0.25) {
-      const lanes = 1 + Math.floor(rng() * 2);
-      for (let l = 1; l <= lanes; l++) vline(x + l * step * 0.5, y - len * 0.1, y - len * 0.9);
-    }
+    trace(pts);
+    // 나란히 가는 두 번째 선 (버스)
+    if (rng() < 0.2) trace(pts, col * 0.24);
   }
   if (circuitCache.size > 6) circuitCache.delete(circuitCache.keys().next().value);
   circuitCache.set(key, c);
