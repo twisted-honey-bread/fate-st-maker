@@ -371,9 +371,11 @@ function drawLogo(ctx, W, H, L, img) {
     const cy = (L.y / 100) * H;
     const r = (L.backShadowSize / 100) * H;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    g.addColorStop(0, rgba(L.backShadowColor, L.backShadow * L.opacity));
-    g.addColorStop(0.55, rgba(L.backShadowColor, L.backShadow * 0.55 * L.opacity));
-    g.addColorStop(1, rgba(L.backShadowColor, 0));
+    // 가우시안 모양으로 서서히 옅어져 외곽선이 보이지 않게 흩어짐
+    for (let i = 0; i <= 12; i++) {
+      const u = i / 12;
+      g.addColorStop(u, rgba(L.backShadowColor, L.backShadow * L.opacity * Math.exp(-((u * 2.4) ** 2))));
+    }
     ctx.fillStyle = g;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
   }

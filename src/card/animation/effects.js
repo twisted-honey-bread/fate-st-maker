@@ -78,7 +78,8 @@ export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1) {
     return;
   }
   const maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
-  const r = maxR * 1.35 * p;
+  // 부드러운 가장자리(안쪽 45%부터 흐려짐)까지 화면 모서리를 완전히 지나도록 끝 반경을 잡음 → p=1 에서 끊김 없음
+  const r = (maxR / 0.45) * p;
   const { canvas, ctx: m } = layer('mask', W, H);
   m.drawImage(source, 0, 0);
   m.globalCompositeOperation = 'destination-in';

@@ -45,8 +45,8 @@ export const DEFAULTS = {
     tint: false, tintColor: '#1d2127',
     glowColor: '#ffffff', glowOpacity: 0.95, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
-    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'lighter',
-    backShadow: 0.22, backShadowColor: '#1c2733', backShadowSize: 26,
+    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'screen',
+    backShadow: 0.24, backShadowColor: '#1c2733', backShadowSize: 34,
   },
   era: {
     ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,

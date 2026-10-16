@@ -153,7 +153,7 @@ export const PARTS = [
       R('logo.glowStrength', '강도 (겹침)', 1, 6, 1),
       HD('렌즈 플레어 (가로 광선)'),
       C('logo.flareColor', '색'),
-      S('logo.flareBlend', '합성 방식', [['lighter', '발광 (더하기)'], ['screen', '스크린'], ['source-over', '보통']]),
+      S('logo.flareBlend', '합성 방식', [['screen', '스크린'], ['lighter', '발광 (더하기)'], ['source-over', '보통']]),
       R('logo.flareX', 'X (로고 기준)', -50, 50, 0.1, '%W'),
       R('logo.flareY', 'Y (로고 기준)', -50, 50, 0.1, '%H'),
       R('logo.flareLength', '길이', 1, 40, 0.1, '%W'),

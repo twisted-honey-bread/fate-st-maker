@@ -72,7 +72,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const ly = (L.y / 100) * H;
   const endStart = TEXT_END + A.outroHold;
 
-  const ink = easeInOut(prog(t, 0.6, 1.8));
+  const ink = easeInOut(prog(t, 0.6, 2.0));
   const glowUp = prog(t, 1.8, 2.6);
   const dimOld = easeOut(prog(t, 3.0, 3.8));
 

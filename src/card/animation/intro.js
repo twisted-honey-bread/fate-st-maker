@@ -9,16 +9,21 @@ import { bell, easeInOut, easeOut, flicker, layer, prog } from './util';
  * 인트로 — 어두운 장면에서 시작해 원래 타이틀 카드로 밝아짐
  *  0.0~0.8  검은 화면에서 밤 장면이 떠오름 (네 귀퉁이가 검은 원형 비네트, 배경은 흐리고 살짝 확대)
  *  0.3~1.5  상단 선이 가운데에서 양옆으로 그려지며 푸른 빛 입자가 흩어짐
- *  0.5~1.3  왼쪽 위 · 오른쪽 위 텍스트가 동시에 페이드 인
+ *  0.5~1.3  왼쪽 위 · 오른쪽 위 텍스트가 상단 선 아래에서 동시에 페이드 인하며 올라옴
  *           (오른쪽 위의 '_' 뒤 글자는 자리만 차지하고 비어 있음)
  *  1.15~    상단 선 위로 입자가 떠오름
  *  2.4~3.6  로고가 살짝 확대된 상태에서 제 크기로 줄어들며 흰 실루엣으로 등장, '_' 뒤 글자도 함께 등장
- *  4.3~5.3  화면 중앙에서 원형으로 넓어지며 밝아짐 (비네트 사라짐, 배경 흐림 해제)
+ *  4.3~5.6  화면 중앙에서 원형으로 넓어지며 밝아짐 (비네트 사라짐, 배경 흐림 해제)
  *           연대·제목이 페이드 인, 렌즈 플레어가 켜진 뒤 깜빡임
  *  5.4~6.1  다 밝아진 뒤 하단 선 + 부제가 함께 페이드 인 → 하단 선 위로 입자가 떠오름
  *  5.4~끝   아래에서 회로 무늬 띠가 올라감, 배경은 끝날 때까지 천천히 축소되어 원래 크기가 됨
  */
 const BASE = 6.2;
+
+// 선 아래에서 통째로 올라오는 등장 (선 위쪽만 보이도록 잘라 그림)
+function riseAbove(line, H, progress) {
+  return { lineY: (line.y / 100) * H, dir: 1, progress, stagger: 0 };
+}
 
 // '_' 뒤 글자의 시작 위치 (없으면 null)
 function tailFrom(text) {
@@ -40,7 +45,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
   const end = BASE + A.introHold;
 
   const fadeIn = easeOut(prog(t, 0, 0.8));
-  const reveal = easeInOut(prog(t, 4.3, 5.3)); // 중앙에서 밝아지는 원
+  const reveal = easeInOut(prog(t, 4.3, 5.6)); // 중앙에서 밝아지는 원
   const lineReveal = easeOut(prog(t, 0.3, 1.5));
   const headerIn = easeOut(prog(t, 0.5, 1.3));
   const logoIn = easeOut(prog(t, 2.4, 3.6));
@@ -62,8 +67,8 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     const nightState = {
       ...night,
       bg: { ...night.bg, ...nightBg },
-      left: { ...night.left, alpha: headerIn },
-      right: { ...night.right, alpha: headerIn, tail },
+      left: { ...night.left, alpha: headerIn, rise: riseAbove(state.topLine, H, headerIn) },
+      right: { ...night.right, alpha: headerIn, rise: riseAbove(state.topLine, H, headerIn), tail },
       topLine: { ...night.topLine, reveal: lineReveal },
       bottomLine: { ...night.bottomLine, show: false },
       logo: {
