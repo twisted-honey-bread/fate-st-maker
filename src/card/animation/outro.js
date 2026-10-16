@@ -96,7 +96,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   if (ink < 1) {
     const { canvas, ctx: d } = layer('outro-day', W, H);
     // 아웃트로에는 렌즈 플레어가 없음
-    const dayState = { ...state, logo: { ...L, flare: false } };
+    const dayState = { ...state, logo: { ...L, flare: false }, title: { ...state.title, flare: false } };
     drawCard(d, W, H, dayState, images);
     ctx.drawImage(canvas, 0, 0);
   }

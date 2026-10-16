@@ -72,6 +72,9 @@ const BASE_DEFAULTS = {
   title: {
     ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
+    // 오른쪽 위 렌즈 플레어 (flareX·Y 는 제목 영역 오른쪽 위 모서리 기준)
+    flare: true, flareColor: '#4fb8ff', flareX: -0.5, flareY: 1, flareLength: 12, flareThickness: 0.8,
+    flareIntensity: 0.85, flareAspect: 3.2, flareBlend: 'screen', flareSolid: 0.45,
     fillMode: 'horizontal', color: '#2f9fe8', stops: mirrorStops('#2f9fe8', '#0b1626', 0.06), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.55, glowStrength: 2,
   },

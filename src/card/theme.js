@@ -46,6 +46,7 @@ const RULES = [
   ['topLine.color', (h, s) => hslToHex(h, s * 0.5, 0.53)],
   ['sub.color', (h) => hslToHex(h, 0.08, 0.52)],
   ['logo.flareColor', (h) => hslToHex(h, 1, 0.65)],
+  ['title.flareColor', (h) => hslToHex(h, 1, 0.65)],
   ['logo.backShadowColor', (h, s) => hslToHex(h, s * 0.35, 0.15)],
   ['anim.introLineColor', (h, s) => hslToHex(h, Math.max(0.85, s), 0.78)],
 ];

@@ -77,8 +77,8 @@
     "strokeWidth": 0,
     "strokeColor": "#ffffff",
     "glowColor": "#9ad8ff",
-    "glowOpacity": 0.85,
-    "glowBlur": 0.45,
+    "glowOpacity": 0.66,
+    "glowBlur": 0.75,
     "glowStrength": 2,
     "shadowColor": "#000000",
     "shadowOpacity": 0,
@@ -114,8 +114,8 @@
     "strokeWidth": 0,
     "strokeColor": "#ffffff",
     "glowColor": "#9ad8ff",
-    "glowOpacity": 0.85,
-    "glowBlur": 0.45,
+    "glowOpacity": 0.66,
+    "glowBlur": 0.75,
     "glowStrength": 2,
     "shadowColor": "#000000",
     "shadowOpacity": 0,
@@ -126,8 +126,8 @@
   },
   "topLine": {
     "show": true,
-    "y": 12.6,
-    "thickness": 0.22,
+    "y": 12.7,
+    "thickness": 0.4,
     "fillMode": "horizontal",
     "color": "#4f86bf",
     "stops": [
@@ -162,7 +162,7 @@
     "zoom": 100,
     "opacity": 1,
     "source": "generate",
-    "genShape": "shield",
+    "genShape": "diamond",
     "genGrid": 9,
     "genDensity": 0.5,
     "genGap": 0.12,
@@ -171,25 +171,25 @@
     "tint": false,
     "tintColor": "#1d2127",
     "glowColor": "#ffffff",
-    "glowOpacity": 0.3,
+    "glowOpacity": 0.14,
     "glowBlur": 2.5,
     "glowStrength": 2,
     "flare": true,
     "flareColor": "#4fb8ff",
     "flareX": 8.9,
     "flareY": -6.7,
-    "flareLength": 9,
+    "flareLength": 14.1,
     "flareThickness": 0.9,
-    "flareIntensity": 0.9,
-    "flareAspect": 1.5,
+    "flareIntensity": 0.75,
+    "flareAspect": 3.2,
     "flareBlend": "screen",
-    "flareSolid": 0.6,
+    "flareSolid": 0.33,
     "edgeColor": "#6e4526",
     "edgeStrength": 0.36,
     "edgeWidth": 0.4,
-    "backShadow": 0.24,
+    "backShadow": 0.33,
     "backShadowColor": "#1c2733",
-    "backShadowSize": 34
+    "backShadowSize": 40
   },
   "era": {
     "show": true,
@@ -210,16 +210,16 @@
         "#2b78c2"
       ],
       [
-        0.45,
-        "#0b1626"
-      ],
-      [
-        0.55,
+        0.326,
         "#0b1626"
       ],
       [
         1,
         "#2b78c2"
+      ],
+      [
+        0.674,
+        "#0b1626"
       ]
     ],
     "symmetric": true,
@@ -227,8 +227,8 @@
     "strokeWidth": 0,
     "strokeColor": "#ffffff",
     "glowColor": "#9ad8ff",
-    "glowOpacity": 0.9,
-    "glowBlur": 0.45,
+    "glowOpacity": 0.66,
+    "glowBlur": 0.75,
     "glowStrength": 2,
     "shadowColor": "#000000",
     "shadowOpacity": 0,
@@ -242,8 +242,8 @@
   "title": {
     "show": true,
     "text": "영구동토제국 아나스타샤",
-    "font": "HCR Batang",
-    "weight": 600,
+    "font": "Noto Serif KR",
+    "weight": 700,
     "italic": false,
     "size": 10,
     "spacing": 0.11,
@@ -258,16 +258,16 @@
         "#2f9fe8"
       ],
       [
-        0.44,
-        "#0b1626"
-      ],
-      [
-        0.56,
+        0.297,
         "#0b1626"
       ],
       [
         1,
         "#2f9fe8"
+      ],
+      [
+        0.703,
+        "#0b1626"
       ]
     ],
     "symmetric": true,
@@ -275,8 +275,8 @@
     "strokeWidth": 0,
     "strokeColor": "#ffffff",
     "glowColor": "#9ad8ff",
-    "glowOpacity": 0.85,
-    "glowBlur": 0.55,
+    "glowOpacity": 0.66,
+    "glowBlur": 1.1,
     "glowStrength": 2,
     "shadowColor": "#000000",
     "shadowOpacity": 0,
@@ -288,7 +288,7 @@
   "bottomLine": {
     "show": true,
     "y": 77.6,
-    "thickness": 0.14,
+    "thickness": 0.25,
     "fillMode": "solid",
     "color": "#7d838b",
     "stops": [

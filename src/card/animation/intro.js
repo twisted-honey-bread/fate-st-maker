@@ -109,7 +109,12 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
       bg: { ...state.bg, ...dayBg },
       logo: { ...state.logo, flareIntensity: state.logo.flareIntensity * easeOut(prog(t, 4.8, 5.3)) * flicker(t) },
       era: { ...state.era, alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))) },
-      title: { ...state.title, alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))) },
+      // 제목 플레어도 로고 플레어처럼 밝아진 뒤 깜빡임
+      title: {
+        ...state.title,
+        alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))),
+        flareIntensity: state.title.flareIntensity * easeOut(prog(t, 4.8, 5.3)) * flicker(t + 0.37),
+      },
       bottomLine: { ...state.bottomLine, opacity: state.bottomLine.opacity * groupIn },
       sub: { ...state.sub, alpha: groupIn },
     };

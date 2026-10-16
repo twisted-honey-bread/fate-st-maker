@@ -205,10 +205,22 @@ export const PARTS = [
   },
   {
     id: 'title', short: '제목', title: '제목', desc: '영구동토제국 아나스타샤',
-    main: textMain('title'),
+    main: [...textMain('title'), B('title.flare', '렌즈 플레어 (오른쪽 위)')],
     advanced: textAdvanced('title', [
       HD('배치'),
       S('title.anchor', '가운데 기준', [['group', '연대+제목 묶음'], ['title', '제목만']]),
+      when(HD('렌즈 플레어 (오른쪽 위)'), s => s.title.flare),
+      ...[
+        C('title.flareColor', '색'),
+        S('title.flareBlend', '합성 방식', [['screen', '스크린'], ['lighter', '발광 (더하기)'], ['source-over', '보통']]),
+        R('title.flareSolid', '바탕 색 진하기 (밝은 배경에서 선명하게)', 0, 1, 0.01),
+        R('title.flareX', 'X (제목 오른쪽 위 기준)', -30, 30, 0.1, '%W'),
+        R('title.flareY', 'Y (제목 오른쪽 위 기준)', -30, 30, 0.1, '%H'),
+        R('title.flareLength', '길이', 1, 40, 0.1, '%W'),
+        R('title.flareThickness', '두께', 0.1, 5, 0.05, '%H'),
+        R('title.flareAspect', '중심 광원 가로 비율', 0.3, 4, 0.05, '배'),
+        R('title.flareIntensity', '강도', 0, 1, 0.01),
+      ].map(f => when(f, s => s.title.flare)),
     ]),
   },
   { id: 'bottomLine', short: '하단선', title: '하단 구분선', desc: '제목 아래 가로선', main: lineMain('bottomLine'), advanced: lineAdvanced('bottomLine') },

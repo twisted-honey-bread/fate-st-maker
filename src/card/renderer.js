@@ -24,6 +24,7 @@ export function drawCard(ctx, W, H, state, images, hooks = {}) {
   layout.left = placeText(ctx, state.left, W, H, (state.left.x / 100) * W, (state.left.y / 100) * H, 'left');
   layout.right = placeText(ctx, { ...state.right, text: rightText(state.right) }, W, H, (state.right.x / 100) * W, (state.right.y / 100) * H, 'right');
   Object.assign(layout, drawTitleGroup(ctx, W, H, state));
+  drawTitleFlare(ctx, W, H, state.title, layout.title);
   layout.sub = placeText(ctx, state.sub, W, H, (state.sub.x / 100) * W, (state.sub.y / 100) * H, 'center');
   ctx.restore();
   return layout;
@@ -418,6 +419,15 @@ function drawLogo(ctx, W, H, L, img) {
 
   if (L.flare && L.flareIntensity > 0) drawFlare(ctx, W, H, L);
   return rect;
+}
+
+// 제목 오른쪽 위 렌즈 플레어 — 로고 플레어와 같은 모양, 기준점만 제목 영역의 오른쪽 위 모서리
+function drawTitleFlare(ctx, W, H, T, rect) {
+  if (!T.flare || !(T.flareIntensity > 0) || !rect || rect.hidden || (T.alpha ?? 1) <= 0) return;
+  ctx.save();
+  ctx.globalAlpha *= T.alpha ?? 1;
+  drawFlare(ctx, W, H, { ...T, x: ((rect.x + rect.w) / W) * 100, y: (rect.y / H) * 100 });
+  ctx.restore();
 }
 
 function drawFlare(ctx, W, H, L) {

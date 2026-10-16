@@ -50,7 +50,7 @@ export function toNight(state) {
       edgeStrength: 0, // 흰 실루엣일 때는 가장자리 색 없음
     },
     era: dimText(state.era, '#1b2a45'),
-    title: dimText(state.title, '#1b2a45'),
+    title: dimText(state.title, '#1b2a45', { flare: false }), // 어두워졌을 때는 제목 플레어 없음
     sub: dimText(state.sub, '#2a3448'),
   };
 }
