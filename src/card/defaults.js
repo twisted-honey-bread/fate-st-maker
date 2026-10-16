@@ -7,6 +7,7 @@ export const CARD_HEIGHT = 1080;
 
 import { isSymmetric, mirrorStops } from './gradient';
 import { FONT_GROUPS, PRESET_WEIGHTS } from './fonts';
+import { DEFAULT_TIMES } from './animation/timing';
 // 앱의 ‘레포 기본값으로 저장’ 버튼이 덮어쓰는 파일 — 여기 있는 값이 아래 기본값보다 우선
 import SAVED_DEFAULTS from './defaults.json';
 
@@ -155,6 +156,9 @@ const BASE_DEFAULTS = {
     riseDensity: 1,
     hexGrid: true,
     // 단계별 움직임 곡선 (EASINGS 이름) — 기본값은 지금까지 쓰던 곡선과 같음
+    // 단계별 재생 시간 [시작, 끝] (초) — animation/timing.js
+    times: DEFAULT_TIMES,
+    syncFlashToText: true,
     easeIntroFade: 'outCubic',
     easeIntroLine: 'outCubic',
     easeIntroHeader: 'outCubic',

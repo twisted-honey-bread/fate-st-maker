@@ -1,5 +1,6 @@
 import { WEIGHTS } from './fonts';
 import { LOGO_SHAPES } from './logoGen';
+import { STAGES } from './animation/timing';
 
 /*
  * 파트 스키마 — 캔버스의 각 구성 요소(파트)마다 메인 설정과 고급 설정을 정의
@@ -253,24 +254,11 @@ export const PARTS = [
       when(R('anim.introZoom', '배경 확대', 1, 1.3, 0.01, '배'), isIntro),
       when(R('anim.introBlur', '배경 흐림', 0, 2, 0.05, '%H'), isIntro),
       when(C('anim.outroLogoColor', '로고 색'), isOutro),
-      when(HD('움직임 곡선 (easing)'), isIntro),
-      when(EZ('anim.easeIntroFade', '어두워진 화면 등장'), isIntro),
-      when(EZ('anim.easeIntroLine', '상단 선 펼침'), isIntro),
-      when(EZ('anim.easeIntroHeader', '위쪽 텍스트 등장'), isIntro),
-      when(EZ('anim.easeIntroLogo', '로고 등장·축소'), isIntro),
-      when(EZ('anim.easeIntroReveal', '원형으로 밝아짐'), isIntro),
-      when(EZ('anim.easeIntroTitle', '연대·제목 등장'), isIntro),
-      when(EZ('anim.easeIntroSub', '하단 선·부제 등장'), isIntro),
-      when(EZ('anim.easeIntroZoom', '배경 축소'), isIntro),
-      when(EZ('anim.easeIntroCircuit', '회로 무늬 상승'), isIntro),
-      when(HD('움직임 곡선 (easing)'), isOutro),
-      when(EZ('anim.easeOutroInk', '로고에서부터 어두워짐 (번짐)'), isOutro),
-      when(EZ('anim.easeOutroDarken', '로고 어두워짐'), isOutro),
-      when(EZ('anim.easeOutroSpread', '문구 펼쳐짐 (자간)'), isOutro),
-      when(EZ('anim.easeOutroText', '문구 페이드 인'), isOutro),
-      when(EZ('anim.easeOutroCircuit', '회로 무늬 상승'), isOutro),
-      when(EZ('anim.easeOutroRays', '섬광 광선 퍼짐'), isOutro),
-      when(EZ('anim.easeOutroEnd', '마지막에 완전히 어두워짐'), isOutro),
+      when(HD('움직임 곡선 · 재생 시간'), isIntro),
+      ...STAGES.intro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isIntro)),
+      when(HD('움직임 곡선 · 재생 시간'), isOutro),
+      when(B('anim.syncFlashToText', '섬광·로고 어두워짐을 문구가 다 나타날 때 함께 끝내기'), isOutro),
+      ...STAGES.outro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isOutro)),
       when(HD('인트로'), isIntro),
       when(C('anim.introLineColor', '라인 빛 색'), isIntro),
       when(B('anim.introFlash', '전환 섬광'), isIntro),

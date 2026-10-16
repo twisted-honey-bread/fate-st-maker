@@ -5,6 +5,7 @@ import {
   drawCircuitBand, drawCornerVignette, drawLineLight, drawRevealMask, drawRisingParticles, fillOverlay,
 } from './effects';
 import { bell, ease, easeOut, flicker, layer, prog } from './util';
+import { stageTime } from './timing';
 
 /*
  * 인트로 — 어두워졌을 때에서 시작해 원래 타이틀 카드로 밝아짐
@@ -19,7 +20,6 @@ import { bell, ease, easeOut, flicker, layer, prog } from './util';
  *  5.4~6.1  다 밝아진 뒤 하단 선 + 부제가 함께 페이드 인 → 하단 선 위로 입자가 떠오름
  *  5.4~끝   아래에서 회로 무늬 띠가 올라감, 배경은 끝날 때까지 천천히 축소되어 원래 크기가 됨
  */
-const BASE = 6.2;
 
 // 선 아래에서 통째로 올라오는 등장 (선 위쪽만 보이도록 잘라 그림)
 function riseAbove(line, H, progress) {
@@ -35,24 +35,34 @@ const lineRange = (line, W, H) => ({
   y: (line.y / 100) * H,
 });
 
-export const introDuration = state => (BASE + state.anim.introHold) / state.anim.introSpeed;
+// 유지 시간 전까지의 길이: 주요 단계(밝아짐·연대·제목·플레어·하단 선·부제)가 모두 끝난 뒤 0.1초
+const introBase = A => Math.max(...['introReveal', 'introTitle', 'introFlare', 'introSub'].map(id => stageTime(A, id)[1])) + 0.1;
+export const introDuration = state => (introBase(state.anim) + state.anim.introHold) / state.anim.introSpeed;
 
 export function drawIntroFrame(ctx, W, H, state, images, time) {
   const t = time * state.anim.introSpeed;
   const A = state.anim;
-  const end = BASE + A.introHold;
+  const end = introBase(A) + A.introHold;
+  // 단계별 [시작, 끝] (애니메이션 패널 → 움직임 곡선·재생 시간)
+  const T = id => stageTime(A, id);
+  const P = id => prog(t, ...T(id));
+  const [logoS, logoE] = T('introLogo');
+  const [revealS] = T('introReveal');
 
   const E = (name, p) => ease(A[name], p); // 단계별 움직임 곡선 (애니메이션 패널에서 선택)
-  const fadeIn = Math.min(1, E('easeIntroFade', prog(t, 0, 0.8)));
-  const reveal = Math.max(0, Math.min(1, E('easeIntroReveal', prog(t, 4.3, 5.6)))); // 중앙에서 밝아지는 원
-  const lineReveal = Math.min(1, E('easeIntroLine', prog(t, 0.3, 1.5)));
-  const headerIn = Math.min(1, E('easeIntroHeader', prog(t, 0.5, 1.3)));
-  const logoIn = E('easeIntroLogo', prog(t, 2.4, 3.6));
+  const fadeIn = Math.min(1, E('easeIntroFade', P('introFade')));
+  const reveal = Math.max(0, Math.min(1, E('easeIntroReveal', P('introReveal')))); // 중앙에서 밝아지는 원
+  const lineReveal = Math.min(1, E('easeIntroLine', P('introLine')));
+  const headerIn = Math.min(1, E('easeIntroHeader', P('introHeader')));
+  const logoIn = E('easeIntroLogo', P('introLogo'));
   const tailIdx = tailFrom(state.right);
-  const tail = tailIdx !== null ? { from: tailIdx, alpha: Math.min(1, E('easeIntroLogo', prog(t, 2.4, 3.2))) } : undefined;
+  // '_' 뒤 글자는 로고 등장 구간의 앞 2/3 동안 나타남
+  const tail = tailIdx !== null
+    ? { from: tailIdx, alpha: Math.min(1, E('easeIntroLogo', prog(t, logoS, logoS + ((logoE - logoS) * 2) / 3))) }
+    : undefined;
 
   // 배경: 어두울 때는 흐리고 확대, 밝아진 뒤 흐림이 풀리고 끝까지 천천히 축소
-  const zoom = 1 + (A.introZoom - 1) * (1 - E('easeIntroZoom', prog(t, 4.3, end)));
+  const zoom = 1 + (A.introZoom - 1) * (1 - E('easeIntroZoom', prog(t, revealS, end)));
   const nightBg = { animScale: A.introZoom, animBlur: A.introBlur };
   const dayBg = { animScale: zoom, animBlur: 0 };
 
@@ -74,8 +84,8 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
         ...night.logo,
         opacity: logoIn,
         scale: 1 + 0.12 * (1 - logoIn),
-        glowOpacity: 0.25 + 0.6 * prog(t, 3.0, 4.2),
-        glowBlur: 0.6 + 1.6 * prog(t, 3.0, 4.2),
+        glowOpacity: 0.25 + 0.6 * prog(t, logoS + 0.6, logoE + 0.6),
+        glowBlur: 0.6 + 1.6 * prog(t, logoS + 0.6, logoE + 0.6),
       },
       era: { ...night.era, alpha: 0 },
       title: { ...night.title, alpha: 0 },
@@ -92,7 +102,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     if (state.topLine.show) {
       drawRisingParticles(n, W, H, t, {
         ...lineRange(state.topLine, W, H),
-        start: 1.15, span: 1.4, count: Math.round(40 * A.riseDensity),
+        start: T('introRise')[0], span: T('introRise')[1] - T('introRise')[0], count: Math.round(40 * A.riseDensity),
         color: A.introLineColor, seed: A.seed, lighter: true, sizeScale: A.riseSize,
       });
     }
@@ -103,22 +113,23 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
 
   // 원래 카드 (중앙에서 원형으로 드러남)
   if (reveal > 0) {
-    const groupIn = Math.min(1, E('easeIntroSub', prog(t, 5.4, 6.1))); // 하단 선 + 부제
+    const groupIn = Math.min(1, E('easeIntroSub', P('introSub'))); // 하단 선 + 부제
+    const flareIn = easeOut(P('introFlare'));
     const dayState = {
       ...state,
       bg: { ...state.bg, ...dayBg },
-      logo: { ...state.logo, flareIntensity: state.logo.flareIntensity * easeOut(prog(t, 4.8, 5.3)) * flicker(t) },
-      era: { ...state.era, alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))) },
+      logo: { ...state.logo, flareIntensity: state.logo.flareIntensity * flareIn * flicker(t) },
+      era: { ...state.era, alpha: Math.min(1, E('easeIntroTitle', P('introTitle'))) },
       // 제목 플레어도 로고 플레어처럼 밝아진 뒤 깜빡임
       title: {
         ...state.title,
-        alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))),
-        flareIntensity: state.title.flareIntensity * easeOut(prog(t, 4.8, 5.3)) * flicker(t + 0.37),
+        alpha: Math.min(1, E('easeIntroTitle', P('introTitle'))),
+        flareIntensity: state.title.flareIntensity * flareIn * flicker(t + 0.37),
       },
       bottomLine: { ...state.bottomLine, opacity: state.bottomLine.opacity * groupIn },
       sub: { ...state.sub, alpha: groupIn },
     };
-    const circuitP = E('easeIntroCircuit', prog(t, 5.4, Math.max(5.4 + 2, end - 0.2)));
+    const circuitP = E('easeIntroCircuit', P('introCircuit'));
     const { canvas, ctx: d } = layer('intro-day', W, H);
     drawCard(d, W, H, dayState, images, {
       afterBackground: (c, w, h) => {
@@ -135,7 +146,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     if (state.bottomLine.show) {
       drawRisingParticles(d, W, H, t, {
         ...lineRange(state.bottomLine, W, H),
-        start: 6.0, span: 1.0, count: Math.round(30 * A.riseDensity),
+        start: T('introRise2')[0], span: T('introRise2')[1] - T('introRise2')[0], count: Math.round(30 * A.riseDensity),
         color: state.title.color, seed: A.seed + 1, sizeScale: A.riseSize,
       });
     }
@@ -143,6 +154,6 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
   }
 
   // 전환 섬광 (선택)
-  if (A.introFlash) fillOverlay(ctx, W, H, '#ffffff', 0.5 * bell(t, 4.3, 4.7, 5.3));
+  if (A.introFlash) fillOverlay(ctx, W, H, '#ffffff', 0.5 * bell(t, revealS, revealS + 0.4, revealS + 1.0));
   ctx.restore();
 }

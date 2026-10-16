@@ -6,6 +6,7 @@ import {
   drawBlot, drawCircuitBand, drawDiamonds, drawFallingGold, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
 import { bell, ease, easeOut, layer, mixHex, prog } from './util';
+import { effectiveTime, stageTime } from './timing';
 
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
@@ -21,13 +22,11 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
  *  입자가 모두 사라지면 중앙부터 완전히 어두워짐
  */
-const TEXT_END = 4.3;
-// '공상절제' 가 완전히 나타나는 시점 — 섬광·섬광 광선이 사라지고 로고가 검게 되는 것도 이때 끝남
-const TEXT_FULL = 4.1;
-const BURST = 3.0;
-const FADE = 1.4;
+// 단계별 시간은 timing.js (콘솔에서 조절). 유지 시간은 문구가 다 나타난 뒤 0.2초부터 셈
+const holdStart = A => stageTime(A, 'outroText')[1] + 0.2;
+const fadeLength = A => stageTime(A, 'outroEnd')[1];
 
-export const outroDuration = state => (TEXT_END + state.anim.outroHold + FADE) / state.anim.outroSpeed;
+export const outroDuration = state => (holdStart(state.anim) + state.anim.outroHold + fadeLength(state.anim)) / state.anim.outroSpeed;
 
 function outroTextStyles(state) {
   const A = state.anim;
@@ -80,15 +79,22 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const L = state.logo;
   const lx = (L.x / 100) * W;
   const ly = (L.y / 100) * H;
-  const endStart = TEXT_END + A.outroHold;
+  const endStart = holdStart(A) + A.outroHold;
+  const FADE = fadeLength(A);
+  const T = id => effectiveTime(A, id);
+  const [flashS, flashE] = T('outroFlash');
+  const flashPeak = flashS + Math.min(0.25, (flashE - flashS) / 3);
+  const [darkS] = T('outroDarken');
+  const [textS, textE] = T('outroText');
+  const BURST = T('outroParticles')[0];
 
   const E = (name, p) => ease(A[name], p); // 단계별 움직임 곡선 (애니메이션 패널에서 선택)
   const clamp = v => Math.max(0, Math.min(1, v));
-  const ink = clamp(E('easeOutroInk', prog(t, 0.6, 2.0)));
-  const flashK = bell(t, 2.55, 2.8, TEXT_FULL); // 중앙 섬광 세기 (문구가 다 나타날 때 사라짐)
-  const darken = clamp(E('easeOutroDarken', prog(t, 3.0, TEXT_FULL))); // 섬광이 사라지며 로고가 검게 어두워짐
-  const dimOld = easeOut(prog(t, 3.0, 3.8));
-  const spread = E('easeOutroSpread', prog(t, 2.95, 3.9)); // 페이드 인과 동시에 중앙에서 펼쳐짐
+  const ink = clamp(E('easeOutroInk', prog(t, ...T('outroInk'))));
+  const flashK = bell(t, flashS, flashPeak, flashE); // 중앙 섬광 세기
+  const darken = clamp(E('easeOutroDarken', prog(t, ...T('outroDarken')))); // 섬광이 사라지며 로고가 검게 어두워짐
+  const dimOld = easeOut(prog(t, darkS, darkS + 0.8));
+  const spread = E('easeOutroSpread', prog(t, textS, Math.max(textS + 0.1, textE - 0.2))); // 페이드 인과 동시에 중앙에서 펼쳐짐
 
   ctx.save();
   ctx.fillStyle = '#000000';
@@ -137,7 +143,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 육각형 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
   if (A.hexGrid) {
-    drawCircuitBand(ctx, W, H, E('easeOutroCircuit', prog(t, BURST, BURST + 2.8)), {
+    drawCircuitBand(ctx, W, H, E('easeOutroCircuit', prog(t, ...T('outroCircuit'))), {
       seed: A.seed, color: '#d6c496', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
       image: images.circuitOutro,
     });
@@ -148,7 +154,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   drawStarFlash(ctx, W, H, lx, starY, flashK, A.flareColor, {
     count: A.rayCount, angle: A.rayAngle, length: A.rayLength, widthStart: A.rayWidthStart,
     widthEnd: A.rayWidthEnd, opacity: A.rayOpacity, fade: A.rayFade,
-  }, A.rayStartLength + (1 - A.rayStartLength) * E('easeOutroRays', prog(t, 2.55, 2.8))); // 시작 길이에서 섬광 정점까지 늘어나고, 이후엔 길이 그대로 페이드 아웃
+  }, A.rayStartLength + (1 - A.rayStartLength) * E('easeOutroRays', prog(t, flashS, flashPeak))); // 시작 길이에서 섬광 정점까지 늘어나고, 이후엔 길이 그대로 페이드 아웃
 
   // 정방형 입자 (모두 사라지는 시점 = 완전히 어두워지기 시작)
   drawDiamonds(ctx, W, H, t - BURST, {
@@ -157,18 +163,20 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   });
   // 위에서 쏟아지는 금빛 입자
   drawFallingGold(ctx, W, H, t, {
-    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2, sizeScale: A.goldSize,
+    start: T('outroGold')[0], seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2, sizeScale: A.goldSize,
   });
 
   // 공상절제 문구 — 빛 입자보다 위에 그림
   const { main, sub } = outroTextStyles(state);
   // 처음엔 옅게 페이드 인 → 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
-  const textIn = clamp(E('easeOutroText', prog(t, 2.95, TEXT_FULL))); // 펼쳐지는 동안 천천히 페이드 인
+  const textIn = clamp(E('easeOutroText', prog(t, textS, textE))); // 펼쳐지는 동안 천천히 페이드 인
   if (textIn > 0) {
     const ty = (A.outroY / 100) * H;
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
     drawText(ctx, {
-      ...sub, alpha: clamp(E('easeOutroText', prog(t, 3.05, 4.2))), spacing: sub.spacing * (0.4 + 0.6 * E('easeOutroSpread', prog(t, 3.05, 4.0))),
+      ...sub,
+      alpha: clamp(E('easeOutroText', prog(t, textS + 0.1, textE + 0.1))),
+      spacing: sub.spacing * (0.4 + 0.6 * E('easeOutroSpread', prog(t, textS + 0.1, Math.max(textS + 0.2, textE - 0.1)))),
     }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 

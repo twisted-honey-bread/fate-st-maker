@@ -116,7 +116,7 @@ const Curve = styled.svg`
 `;
 
 // 움직임 곡선 미리보기 (가로 = 시간, 세로 = 진행도)
-function EaseCurve({ name }) {
+export function EaseCurve({ name }) {
   const fn = (EASINGS[name] || EASINGS.linear).fn;
   const pts = Array.from({ length: 25 }, (_, i) => {
     const p = i / 24;

@@ -5,6 +5,9 @@ import { HCR_FAMILY } from '../card/fonts';
 import { Field } from './fields/Field';
 import { GradientEditor } from './fields/GradientEditor';
 import { FontField } from './fields/FontField';
+import { StageField } from './fields/StageField';
+import { ANIMATIONS } from '../card/animation';
+import { effectiveTime, stageTime } from '../card/animation/timing';
 import { AnalysisNotes } from './AnalysisNotes';
 import { Section } from './Section';
 import { StructureMap } from './StructureMap';
@@ -82,7 +85,25 @@ export function ControlPanel({
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const renderFields = list =>
-    visibleFields(list, state).map((f, i) => (f.type === 'font' ? (
+    visibleFields(list, state).map((f, i) => (f.type === 'stage' ? (() => {
+      const st = f.stage;
+      const A = state.anim;
+      const total = ANIMATIONS[A.mode] ? ANIMATIONS[A.mode].duration({ ...state, anim: { ...A, introSpeed: 1, outroSpeed: 1 } }) : 0;
+      const time = st.time ? (st.sync ? effectiveTime(A, st.id) : stageTime(A, st.id)) : null;
+      return (
+        <StageField
+          key={f.k}
+          id={`f_stage_${st.id}`}
+          stage={st}
+          ease={st.ease ? A[st.ease] : null}
+          time={time}
+          total={total}
+          locked={st.sync && A.syncFlashToText ? '문구 페이드 인 끝과 같음' : null}
+          onEase={v => onField(`anim.${st.ease}`, v)}
+          onTime={v => onField(`anim.times.${st.id}`, v)}
+        />
+      );
+    })() : f.type === 'font' ? (
       <FontField
         key={f.k}
         id={`f_${f.k.replace(/\./g, '_')}`}
