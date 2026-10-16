@@ -27,8 +27,13 @@ const Panel = styled.aside`
 
 const PartHeader = styled.div`
   display: grid;
-  gap: 2px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
   padding: 14px 16px 6px;
+
+  p { grid-column: 1 / -1; }
 
   h2 {
     margin: 0;
@@ -39,6 +44,43 @@ const PartHeader = styled.div`
     font-size: 12px;
     color: var(--muted);
   }
+`;
+
+// 파트 표시 여부 스위치 (이름 오른쪽 끝)
+const Switch = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+
+  input {
+    appearance: none;
+    position: relative;
+    width: 34px;
+    height: 20px;
+    margin: 0;
+    border-radius: 10px;
+    background: var(--line-strong);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  input::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s;
+  }
+  input:checked { background: var(--accent); }
+  input:checked::after { transform: translateX(14px); }
+  input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 `;
 
 const Body = styled.div`
@@ -159,6 +201,18 @@ export function ControlPanel({
       <div role="tabpanel" aria-labelledby={`tab_${part.id}`}>
         <PartHeader>
           <h2>{part.title}</h2>
+          {part.toggle && (
+            <Switch>
+              {getPath(state, part.toggle) ? '표시' : '숨김'}
+              <input
+                type="checkbox"
+                role="switch"
+                aria-label={`${part.title} 표시`}
+                checked={!!getPath(state, part.toggle)}
+                onChange={e => onField(part.toggle, e.target.checked)}
+              />
+            </Switch>
+          )}
           <p>{part.desc}</p>
         </PartHeader>
         {usesMissingHcr && (

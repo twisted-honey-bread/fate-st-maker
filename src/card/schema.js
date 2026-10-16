@@ -32,21 +32,21 @@ const gen = f => when(f, isGen);
 
 // fontGroup: 'korean' 이면 폰트·굵기를 따로, 그 외(left/latin)는 정해진 '폰트 + 굵기' 선택지
 // 크기·위치는 고정값 (패널에서 뺌)
+// 표시 여부는 파트 이름 오른쪽 끝의 토글 (PARTS 의 toggle), 채우기는 고급 설정
 function textMain(p, { extra = [], fontGroup = 'korean' } = {}) {
   return [
-    B(`${p}.show`, '표시'),
     T(`${p}.text`, '텍스트'),
     ...(fontGroup === 'korean'
       ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
       : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
     ...extra,
-    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal', 'vertical']),
   ];
 }
 
 // 글자·외곽선·그림자·글로우 불투명도는 고정값 — 글로우의 색·번짐·강도만 조절
 function textAdvanced(p, extra = []) {
   return [
+    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal', 'vertical']),
     ...extra,
     HD('글로우 (외부 광채)'),
     C(`${p}.glowColor`, '색'),
@@ -54,8 +54,6 @@ function textAdvanced(p, extra = []) {
     R(`${p}.glowStrength`, '강도 (겹침)', 1, 6, 1),
   ];
 }
-
-const CIRCUIT_HINT = '투명 배경 PNG, 1920×1080 (16:9) 권장. 잘리지 않고 화면 크기로 늘려 그리므로 16:9가 아니면 찌그러집니다. 선 색은 회로 색으로 다시 칠해집니다.';
 
 // short: 구조도에 표시할 짧은 이름
 export const PARTS = [
@@ -113,7 +111,6 @@ export const PARTS = [
       SEG('logo.source', '로고 가져오기', [['upload', '직접 업로드'], ['generate', '연대·제목으로 자동 생성']]),
       when(IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'), s => !isGen(s)),
       gen(NOTE('연대와 제목 글자를 정해진 계산 규칙에 넣어 좌우대칭 무늬를 만듭니다. 그림을 지어내는 생성형 AI가 아니라 계산이라서, 연대·제목·아래 옵션이 같으면 언제 누가 만들어도 늘 똑같은 로고가 나옵니다. 글자를 한 자만 바꿔도 무늬는 완전히 달라집니다. 정식 로고가 준비되기 전에 임시로 쓰는 용도입니다.')),
-      B('logo.show', '표시'),
       gen(S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label]))),
       gen(R('logo.genGrid', '분할 수', 3, 21, 2)),
       HD('배치'),
@@ -158,9 +155,10 @@ export const PARTS = [
       when(T('anim.outroText', '제목'), isOutro),
       when(T('anim.outroSub', '부제'), isOutro),
       when(F('anim.outroFont', '제목 폰트'), isOutro),
+      when(F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), isOutro),
       when(R('anim.introHold', '끝난 뒤 마지막 화면 유지', 0, 10, 0.1, '초'), isIntro),
     ],
-    // 재생 속도·시드·유지 시간·비네트·회로·광선·크기·위치 등은 고정값 (defaults.json)
+    // 재생 속도·시드·유지 시간·비네트·회로·광선·입자·제목 색·크기·위치 등은 고정값 (defaults.json)
     advanced: [
       HD('어두워졌을 때의 요소 조정 (안개)'),
       R('anim.fogCoverage', '자욱한 정도 (덮는 면적)', 0, 1, 0.01),
@@ -172,29 +170,14 @@ export const PARTS = [
       when(HD('움직임 곡선 · 재생 시간'), isOutro),
       when(B('anim.syncFlashToText', '섬광·로고 어두워짐을 제목이 다 나타날 때 함께 끝내기'), isOutro),
       ...STAGES.outro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isOutro)),
-      when(HD('제목'), isOutro),
-      when(G('색 (세로 그라데이션)', { stops: 'anim.outroStops', symmetric: 'anim.outroSymmetric' }, ['vertical']), isOutro),
-      when(C('anim.outroGlow', '글로우 색'), isOutro),
-      when(HD('부제'), isOutro),
-      when(F('anim.outroSubFont', '폰트', 'latin', 'anim.outroSubWeight'), isOutro),
-      when(HD('빛 · 입자'), isOutro),
-      when(C('anim.flareColor', '섬광 색'), isOutro),
-      when(R('anim.particleDensity', '입자 양', 0, 3, 0.1, '배'), isOutro),
-      when(R('anim.diamondSize', '정방형 입자 크기', 0.2, 3, 0.05, '배'), isOutro),
-      when(R('anim.diamondInDur', '정방형 입자 등장 시간', 0, 1.5, 0.05, '초'), isOutro),
-      when(B('anim.diamondInFade', '등장할 때 페이드 인'), isOutro),
-      when(B('anim.diamondInZoom', '등장할 때 확대'), isOutro),
-      when(R('anim.diamondInScale', '확대 시작 크기', 0.05, 1, 0.05, '배'), s => isOutro(s) && s.anim.diamondInZoom),
-      when(R('anim.goldSize', '쏟아지는 금빛 입자 크기', 0.2, 4, 0.05, '배'), isOutro),
-      when(C('anim.particleColor', '정방형 입자 색'), isOutro),
-      when(C('anim.particleGlow', '정방형 입자 빛 번짐 색'), isOutro),
-      when(R('anim.particleGlowSize', '정방형 입자 빛 번짐 크기', 0, 8, 0.1, '%H'), isOutro),
-      when(R('anim.particleSquash', '작아질 때 찌그러짐 정도', 0, 0.9, 0.01), isOutro),
-      when(B('anim.hexGrid', '회로 무늬'), isOutro),
-      when(IM('circuitOutro', '회로 무늬 이미지', CIRCUIT_HINT), s => isOutro(s) && s.anim.hexGrid),
     ],
   },
 ];
+
+// 파트 이름 오른쪽 끝에 두는 표시 여부 토글
+for (const part of PARTS) {
+  if (['left', 'right', 'logo', 'era', 'title', 'sub'].includes(part.id)) part.toggle = `${part.id}.show`;
+}
 
 export const PART_BY_ID = Object.fromEntries(PARTS.map(p => [p.id, p]));
 
