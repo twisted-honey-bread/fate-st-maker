@@ -34,7 +34,7 @@ const Ghost = styled.img`
 
 const Box = styled.div`
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   border: 2px solid var(--accent);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
   cursor: move;

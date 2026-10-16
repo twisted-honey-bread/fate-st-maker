@@ -56,8 +56,10 @@ const Canvas = styled.canvas`
 `;
 
 // 원본 이미지 겹쳐보기 (미리보기 전용 — 다운로드에는 포함되지 않음)
+// 쌓는 순서: 배경 직접 조정의 흐린 사진(0) < 캔버스(1) < 원본 겹쳐보기(2) < 직접 조정 상자·선택 표시(3)
 const Reference = styled.img`
   position: absolute;
+  z-index: 2;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -69,6 +71,7 @@ const Reference = styled.img`
 // 선택한 파트 표시 (미리보기 전용 — 다운로드 이미지에는 포함되지 않음)
 const Outline = styled.div`
   position: absolute;
+  z-index: 3;
   pointer-events: none;
   border: 2px dashed var(--accent);
   border-radius: 3px;
