@@ -85,7 +85,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     drawCard(n, W, H, nightState, images, {
       afterBackground: (c, w, h) => {
         drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor });
-        drawCornerVignette(c, w, h, 0.9);
+        drawCornerVignette(c, w, h, A.introCornerVignette, A.introCornerSize);
       },
     });
     drawLineLight(n, W, H, state.topLine, lineReveal, t, u => 0.3 + 1.2 * u, A.introLineColor, 1);

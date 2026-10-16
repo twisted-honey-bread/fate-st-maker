@@ -381,16 +381,18 @@ export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, coun
 }
 
 /* ---------- 원형 비네트: 네 귀퉁이를 검게 (인트로의 어두운 장면) ---------- */
-export function drawCornerVignette(ctx, W, H, strength) {
+// inner: 비네트가 시작되는 안쪽 반경 (화면 대각선 절반 대비 %, 클수록 가운데가 넓게 밝음)
+export function drawCornerVignette(ctx, W, H, strength, inner = 38) {
   if (strength <= 0) return;
+  const i0 = Math.max(0, Math.min(0.95, inner / 100));
   ctx.save();
   ctx.translate(W / 2, H / 2);
   ctx.scale(W / H, 1);
   const outer = (H / 2) * 1.42;
-  const g = ctx.createRadialGradient(0, 0, outer * 0.38, 0, 0, outer);
+  const g = ctx.createRadialGradient(0, 0, outer * i0, 0, 0, outer);
   g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(0.6, `rgba(0,0,0,${strength * 0.6})`);
-  g.addColorStop(1, `rgba(0,0,0,${strength})`);
+  g.addColorStop(0.6, `rgba(0,0,0,${Math.min(1, strength * 0.6)})`);
+  g.addColorStop(1, `rgba(0,0,0,${Math.min(1, strength)})`);
   ctx.fillStyle = g;
   ctx.fillRect(-H / 2, -H / 2, H, H);
   ctx.restore();

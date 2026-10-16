@@ -85,6 +85,11 @@ export const DEFAULTS = {
     introFlash: false,
     introZoom: 1.06,
     introBlur: 0.5,
+    // 어두운 장면 비네트: 배경 원형 비네트(인트로·아웃트로) + 인트로의 네 귀퉁이 비네트
+    nightVignette: 0.97,
+    nightVignetteSize: 28,
+    introCornerVignette: 0.9,
+    introCornerSize: 38,
     fogOpacity: 0.35, // 밤 장면의 구름·안개 노이즈
     fogColor: '#b9c2cc',
     circuit: true,
