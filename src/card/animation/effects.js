@@ -127,7 +127,9 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
   ctx.restore();
 }
 
-/* ---------- 다이아몬드 입자: 양옆 가장자리에서 터져 나와 흩어짐 (아웃트로) ---------- */
+/* ---------- 다이아몬드 입자: 양옆 가장자리에서 나타나 위로 떠오름 (아웃트로) ----------
+ * 세로로 긴 마름모, y축으로만 이동
+ */
 function makeDiamonds(count) {
   const rng = mulberry32(99);
   return Array.from({ length: count }, (_, i) => {
@@ -135,19 +137,17 @@ function makeDiamonds(count) {
     const edge = Math.pow(rng(), 1.8) * 0.2; // 가장자리에 몰리도록
     return {
       x: left ? edge : 1 - edge,
-      y: rng(),
+      y: 0.05 + rng() * 1.0,
       born: Math.pow(rng(), 2.2) * 1.6,
-      life: 0.7 + rng() * 2.0,
-      size: 0.01 + Math.pow(rng(), 1.8) * 0.075,
-      vx: (left ? -1 : 1) * (0.004 + rng() * 0.03),
-      vy: -(rng() * 0.04),
-      tilt: (rng() - 0.5) * 0.3,
+      life: 0.8 + rng() * 2.0,
+      size: 0.01 + Math.pow(rng(), 1.8) * 0.06,
+      vy: -(0.03 + rng() * 0.12), // 위로 떠오르는 속도 (H/초)
     };
   });
 }
 const diamondCache = new Map();
 
-export function drawDiamonds(ctx, W, H, t, density, color) {
+export function drawDiamonds(ctx, W, H, t, density, color, aspect = 1.8) {
   const count = Math.round(90 * density);
   if (count <= 0 || t < 0) return;
   if (!diamondCache.has(count)) diamondCache.set(count, makeDiamonds(count));
@@ -158,21 +158,24 @@ export function drawDiamonds(ctx, W, H, t, density, color) {
     if (age < 0 || age > d.life) continue;
     const p = age / d.life;
     const a = p < 0.12 ? p / 0.12 : 1 - (p - 0.12) / 0.88;
-    const s = d.size * H * (0.55 + 0.45 * Math.min(1, p * 5));
-    const x = (d.x + d.vx * age) * W;
+    const hw = (d.size * H * (0.55 + 0.45 * Math.min(1, p * 5))) / 2; // 가로 반폭
+    const hh = hw * aspect; // 세로 반높이
+    const x = d.x * W;
     const y = (d.y + d.vy * age) * H;
     ctx.globalAlpha = a;
-    ctx.shadowBlur = s * 1.2;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(Math.PI / 4 + d.tilt);
-    const g = ctx.createLinearGradient(-s, -s, s, s);
+    ctx.shadowBlur = hw * 2.2;
+    const g = ctx.createLinearGradient(x, y - hh, x, y + hh);
     g.addColorStop(0, '#ffffff');
     g.addColorStop(0.55, '#fffbea');
     g.addColorStop(1, rgba(color, 1));
     ctx.fillStyle = g;
-    ctx.fillRect(-s / 2, -s / 2, s, s);
-    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(x, y - hh);
+    ctx.lineTo(x + hw, y);
+    ctx.lineTo(x, y + hh);
+    ctx.lineTo(x - hw, y);
+    ctx.closePath();
+    ctx.fill();
   }
   ctx.restore();
 }

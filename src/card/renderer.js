@@ -190,33 +190,57 @@ export function drawText(ctx, s, W, H, x, y, align) {
   ctx.lineJoin = 'round';
   ctx.miterLimit = 2;
 
-  let fill = s.color;
-  if (s.fillMode === 'gradient') {
-    fill = ctx.createLinearGradient(0, y - px * 0.85, 0, y + px * 0.1);
-    fill.addColorStop(0, s.color);
-    fill.addColorStop(1, s.color2);
-  }
+  const fillAt = dy => {
+    if (s.fillMode !== 'gradient') return s.color;
+    const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
+    g.addColorStop(0, s.color);
+    g.addColorStop(1, s.color2);
+    return g;
+  };
+  const fill = fillAt(0);
   const sw = (s.strokeWidth / 100) * H;
 
+  /*
+   * rise: 애니메이션용 글자별 등장 (기본 없음)
+   * { lineY: 기준선 위치(px), dir: 1 = 선 아래에서 위로 올라옴 / -1 = 선 위에서 아래로 내려옴,
+   *   progress: 0~1, stagger: 글자 간 시차 }
+   * 선을 경계로 잘라 그려서, 글자가 선 뒤에서 나타나는 것처럼 보임
+   */
+  const rise = s.rise && s.rise.progress < 1 ? s.rise : null;
+  let charOffset = () => 0;
+  if (rise) {
+    ctx.beginPath();
+    if (rise.dir === 1) ctx.rect(0, 0, W, rise.lineY);
+    else ctx.rect(0, rise.lineY, W, H - rise.lineY);
+    ctx.clip();
+    const dist = rise.dir === 1 ? rise.lineY - (y - px * 1.05) : y + px * 0.3 - rise.lineY;
+    const st = rise.stagger ?? 0.1;
+    const span = 1 + st * (chars.length - 1);
+    charOffset = i => {
+      const p = Math.max(0, Math.min(1, rise.progress * span - i * st));
+      return rise.dir * Math.max(0, dist) * Math.pow(1 - p, 3);
+    };
+  }
+
   const paint = () => {
-    const one = (c, cx) => {
+    const one = (c, cx, dy = 0) => {
       if (sw > 0) {
         ctx.lineWidth = sw * 2;
         ctx.strokeStyle = s.strokeColor;
-        ctx.strokeText(c, cx, y);
+        ctx.strokeText(c, cx, y + dy);
       }
-      ctx.fillStyle = fill;
-      ctx.fillText(c, cx, y);
+      ctx.fillStyle = dy ? fillAt(dy) : fill;
+      ctx.fillText(c, cx, y + dy);
     };
-    if (!sp) {
+    if (!sp && !rise) {
       one(s.text, sx);
       return;
     }
     let cx = sx;
-    for (const c of chars) {
-      one(c, cx);
+    chars.forEach((c, i) => {
+      one(c, cx, charOffset(i));
       cx += ctx.measureText(c).width + sp;
-    }
+    });
   };
 
   if (s.shadowOpacity > 0) {
@@ -328,16 +352,20 @@ function drawFlare(ctx, W, H, L) {
   ctx.fillRect(-len, -len, len * 2, len * 2);
   ctx.restore();
 
-  // 중심부 둥근 광원
+  // 중심 광원 — flareAspect 만큼 가로로 늘인 타원 (1 = 원)
   const r = th * 3;
-  const g2 = ctx.createRadialGradient(fx, fy, 0, fx, fy, r);
+  ctx.save();
+  ctx.translate(fx, fy);
+  ctx.scale(L.flareAspect, 1);
+  const g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
   g2.addColorStop(0, `rgba(255,255,255,${k})`);
   g2.addColorStop(0.4, rgba(L.flareColor, k * 0.5));
   g2.addColorStop(1, rgba(L.flareColor, 0));
   ctx.fillStyle = g2;
   ctx.beginPath();
-  ctx.arc(fx, fy, r, 0, Math.PI * 2);
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
 }
 
 /* ---------- 배치 가이드 (미리보기 전용) ---------- */

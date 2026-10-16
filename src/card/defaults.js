@@ -39,7 +39,7 @@ export const DEFAULTS = {
     tint: false, tintColor: '#1d2127',
     glowColor: '#ffffff', glowOpacity: 0.95, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
-    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9,
+    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5,
   },
   era: {
     ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,
@@ -79,6 +79,7 @@ export const DEFAULTS = {
     outroHold: 3.5,
     flareColor: '#ffd27a',
     particleDensity: 1,
+    particleAspect: 1.8,
     hexGrid: true,
     fps: 30,
     gifFps: 15,

@@ -12,7 +12,7 @@ import { bell, easeIn, easeInOut, easeOut, layer, prog } from './util';
  *  0.6~1.8  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
  *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남, 상단 텍스트가 흐려짐
  *  2.5~3.1  금빛 별 섬광 + 가로 광선
- *  2.75~    양옆에서 다이아몬드 입자가 터져 나옴, 육각 격자가 비침
+ *  2.75~    양옆 가장자리에서 세로로 긴 마름모 입자가 나타나 위로 떠오름, 육각 격자가 비침
  *  2.9~3.9  '공상절제' / 'Cosmos Denial' 등장, 로고와 제목은 흐려짐
  *  유지 후 1.3초 동안 중앙부터 어두워지며 암전
  */
@@ -136,7 +136,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   }
 
   // 입자
-  drawDiamonds(ctx, W, H, t - 2.75, A.particleDensity, A.flareColor);
+  drawDiamonds(ctx, W, H, t - 2.75, A.particleDensity, A.flareColor, A.particleAspect);
   drawDust(ctx, W, H, t, 0.8 * prog(t, 3.2, 4.2) * A.particleDensity, '#fff3d6');
 
   // 암전 (중앙부터)
