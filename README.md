@@ -184,7 +184,7 @@ src/lib/videoExport.js   MP4 / GIF 만들기
 제목·부제 기본 폰트는 함초롬바탕(HCR Batang)입니다. 한컴 저작권 폰트라 레포에 포함하지 않았고, 다음 순서로 찾습니다.
 
 1. 기기에 설치된 폰트 (한컴오피스 설치 시 포함)
-2. `public/lostbelt/fonts/HCRBatang.woff2`·`.ttf`, `public/lostbelt/fonts/HCRBatang-Bold.woff2`·`.ttf` (woff2 → ttf 순으로 찾음, 라이선스를 확인한 뒤 넣기)
+2. 눈누 CDN(jsDelivr)의 함초롬바탕 — `https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/HANBatang.woff`, `HANBatangB.woff` (굵게)
 3. 한글 폰트 칸의 ‘업로드’로 올린 파일 (파일 이름에 HCR/함초롬이 들어 있으면 자동으로 함초롬바탕으로 등록)
 
 셋 다 없으면 Noto Serif KR 로 대신 그립니다.

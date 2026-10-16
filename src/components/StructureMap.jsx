@@ -79,6 +79,9 @@ const Bg = styled.button`
       repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), var(--line) calc(12.5% - 1px) 12.5%),
       var(--accent-soft);
   `}
+
+  /* 배경은 선택해도 항상 맨 뒤 (다른 블록을 가리지 않도록) */
+  && { z-index: 0; }
 `;
 
 const Block = styled.button`

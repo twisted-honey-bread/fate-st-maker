@@ -68,22 +68,18 @@ export const fontStr = (s, px) =>
 
 /*
  * 함초롬바탕(HCR Batang)은 한컴 저작권 폰트라 레포에 포함하지 않음
- * 1) 기기에 설치된 폰트(local)  2) public/lostbelt/fonts/ 에 직접 넣은 woff2 파일 순으로 찾고,
+ * 1) 기기에 설치된 폰트(local)  2) 눈누 CDN(jsDelivr)의 함초롬바탕 woff 순으로 찾고,
  * 둘 다 없으면 Noto Serif KR 로 대신 그려짐 (한글 폰트 칸의 ‘업로드’로 TTF 를 올려도 됨)
  */
 export const HCR_FAMILY = 'HCR Batang';
 const HCR_SOURCES = {
-  400: { local: ['HCR Batang', '함초롬바탕', 'HCRBatang', 'HCR Batang Regular'], file: 'fonts/HCRBatang' },
-  700: { local: ['HCR Batang Bold', '함초롬바탕 Bold', 'HCRBatang-Bold', 'HCRBatangBold'], file: 'fonts/HCRBatang-Bold' },
+  400: { local: ['HCR Batang', '함초롬바탕', 'HCRBatang', 'HCR Batang Regular'], url: 'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/HANBatang.woff' },
+  700: { local: ['HCR Batang Bold', '함초롬바탕 Bold', 'HCRBatang-Bold', 'HCRBatangBold'], url: 'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/HANBatangB.woff' },
 };
 
-async function loadHcrFace(weight, { local, file }) {
-  // 기기 설치 폰트 → 같이 배포한 woff2 → ttf 순으로 시도 (없는 파일은 건너뜀)
-  const src = [
-    ...local.map(n => `local("${n}")`),
-    `url("${file}.woff2") format("woff2")`,
-    `url("${file}.ttf") format("truetype")`,
-  ].join(', ');
+async function loadHcrFace(weight, { local, url }) {
+  // 기기에 설치된 폰트가 있으면 그것을, 없으면 눈누(jsDelivr) CDN 의 함초롬바탕 woff 를 씀
+  const src = [...local.map(n => `local("${n}")`), `url("${url}") format("woff")`].join(', ');
   try {
     const face = new FontFace(HCR_FAMILY, src, { weight: String(weight) });
     await face.load();
