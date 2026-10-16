@@ -43,7 +43,7 @@ export const DEFAULTS = {
   logo: {
     show: true, x: 50.3, y: 40, height: 33, opacity: 1,
     tint: false, tintColor: '#1d2127',
-    glowColor: '#ffffff', glowOpacity: 0.95, glowBlur: 2.5, glowStrength: 2,
+    glowColor: '#ffffff', glowOpacity: 0.3, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
     flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'screen', flareSolid: 0.6,
     edgeColor: '#6e4526', edgeStrength: 0.55, edgeWidth: 0.4,

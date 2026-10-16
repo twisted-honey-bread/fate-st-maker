@@ -1,5 +1,5 @@
 // localStorage 는 사생활 보호 모드 등에서 실패할 수 있으므로 항상 try/catch
-const KEY = 'fate-st-maker:settings:v15';
+const KEY = 'fate-st-maker:settings:v16';
 
 export function loadSettings() {
   try {
