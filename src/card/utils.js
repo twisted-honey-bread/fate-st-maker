@@ -29,6 +29,10 @@ export function loadImage(url) {
   });
 }
 
+// 업로드 가능한 이미지 형식과 크기 (입력 칸 accept 와 업로드 검사에 같이 사용)
+export const IMAGE_ACCEPT = '.png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml';
+export const IMAGE_MAX_MB = 20;
+
 export function readFileAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const fr = new FileReader();

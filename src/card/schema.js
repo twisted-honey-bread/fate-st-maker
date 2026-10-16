@@ -13,7 +13,7 @@ const T = (k, label) => ({ k, label, type: 'text' });
 const S = (k, label, options) => ({ k, label, type: 'select', options });
 const B = (k, label) => ({ k, label, type: 'check' });
 const F = (k, label) => ({ k, label, type: 'font' });
-const IM = (k, label) => ({ k, label, type: 'image' });
+const IM = (k, label, hint) => ({ k, label, hint, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
 const BTN = (action, label, text) => ({ k: `action.${action}`, action, label, text, type: 'button' });
@@ -84,12 +84,14 @@ function lineAdvanced(p) {
   ];
 }
 
+const CIRCUIT_HINT = '투명 배경 PNG, 1920×1080 (16:9) 권장. 잘리지 않고 화면 크기로 늘려 그리므로 16:9가 아니면 찌그러집니다. 선 색은 회로 색으로 다시 칠해집니다.';
+
 // short: 구조도에 표시할 짧은 이름
 export const PARTS = [
   {
     id: 'bg', short: '배경', title: '배경', desc: '설원 이미지와 분위기 효과',
     main: [
-      IM('bg', '배경 이미지'),
+      IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장. 비율이 다르면 화면을 꽉 채우도록 가운데 기준으로 넘치는 부분이 잘립니다 (고급 설정의 확대·위치로 조절). 미리보기에 끌어다 놓아도 됩니다.'),
       S('bg.styleMode', '사진 스타일 변환', [['duotone', '듀오톤'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
       when(C('bg.styleInk', '톤 색 (어두운 부분)'), hasStyle),
       when(C('bg.stylePaper', '톤 색 (밝은 부분)'), hasStyle),
@@ -133,7 +135,7 @@ export const PARTS = [
   {
     id: 'logo', short: '로고', title: '중앙 로고', desc: '문장(紋章) 이미지',
     main: [
-      IM('logo', '로고 이미지'),
+      IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'),
       B('logo.show', '표시'),
       HD('임시 로고 만들기 (연대·제목으로 생성)'),
       S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label])),
@@ -244,7 +246,7 @@ export const PARTS = [
       when(R('anim.introZoom', '배경 시작 확대', 1, 1.3, 0.01, '배'), isIntro),
       when(R('anim.introBlur', '어두운 장면 배경 흐림', 0, 2, 0.05, '%H'), isIntro),
       when(B('anim.circuit', '회로 무늬'), isIntro),
-      when(IM('circuitIntro', '회로 무늬 이미지'), s => isIntro(s) && s.anim.circuit),
+      when(IM('circuitIntro', '회로 무늬 이미지', CIRCUIT_HINT), s => isIntro(s) && s.anim.circuit),
       when(C('anim.circuitColor', '회로 색'), s => isIntro(s) && s.anim.circuit),
       when(R('anim.circuitOpacity', '회로 불투명도', 0, 1, 0.01), s => isIntro(s) && s.anim.circuit),
       when(HD('공상절제 문구'), isOutro),
@@ -282,7 +284,7 @@ export const PARTS = [
       when(R('anim.particleGlowSize', '정방형 입자 빛 번짐 크기', 0, 8, 0.1, '%H'), isOutro),
       when(R('anim.particleSquash', '작아질 때 찌그러짐 정도', 0, 0.9, 0.01), isOutro),
       when(B('anim.hexGrid', '회로 무늬'), isOutro),
-      when(IM('circuitOutro', '회로 무늬 이미지'), s => isOutro(s) && s.anim.hexGrid),
+      when(IM('circuitOutro', '회로 무늬 이미지', CIRCUIT_HINT), s => isOutro(s) && s.anim.hexGrid),
     ],
   },
 ];

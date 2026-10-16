@@ -12,6 +12,7 @@ import { generateLogo } from './card/logoGen';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
 import { ensureAnimFonts, isAnimMode } from './card/animation';
+import { IMAGE_MAX_MB } from './card/utils';
 
 const Shell = styled.div`
   display: grid;
@@ -182,8 +183,10 @@ export default function App() {
   const handleImageFile = async (key, file) => {
     try {
       await card.setImageFile(key, file);
-    } catch {
-      notify('이미지를 읽지 못했습니다. PNG, JPG, SVG, WEBP 파일을 사용해 주세요.', true);
+    } catch (e) {
+      notify(e?.message === 'size'
+        ? `이미지가 너무 큽니다 (${(file.size / 1048576).toFixed(1)}MB). ${IMAGE_MAX_MB}MB 이하로 줄여 주세요.`
+        : '이미지를 읽지 못했습니다. PNG, JPG, WEBP, SVG 파일을 사용해 주세요.', true);
     }
   };
 

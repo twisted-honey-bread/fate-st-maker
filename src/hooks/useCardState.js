@@ -5,6 +5,7 @@ import { applyColorTheme, restoreColors } from '../card/theme';
 import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
 import { loadImage, readFileAsDataURL } from '../card/utils';
 import { loadSettings, saveSettings } from '../lib/storage';
+import { IMAGE_MAX_MB } from '../card/utils';
 
 // 각 항목: { img: HTMLImageElement, url: dataURL } — circuitIntro/Outro: 직접 그린 회로 무늬
 const IMAGE_KEYS = ['bg', 'logo', 'circuitIntro', 'circuitOutro'];
@@ -28,6 +29,10 @@ export function useCardState() {
   const setField = useCallback((path, value) => setState(s => setPath(s, path, value)), []);
 
   const setImageFile = useCallback(async (key, file) => {
+    if (!/\.(png|jpe?g|webp|svg)$/i.test(file.name) && !/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
+      throw new Error('type');
+    }
+    if (file.size > IMAGE_MAX_MB * 1048576) throw new Error('size');
     const url = await readFileAsDataURL(file);
     const img = await loadImage(url);
     setImages(prev => ({ ...prev, [key]: { img, url } }));

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import styled from 'styled-components';
 import { Button, Checkbox, ColorInput, NumberInput, Range, Select, TextInput } from '../ui';
 import { EASINGS } from '../../card/animation/util';
+import { IMAGE_ACCEPT, IMAGE_MAX_MB } from '../../card/utils';
 
 const Row = styled.div`
   display: grid;
@@ -14,6 +15,15 @@ const Row = styled.div`
     color: var(--muted);
   }
 `;
+
+const Hint = styled.p`
+  grid-column: 2;
+  margin: -2px 0 2px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+`;
+
 
 const Subhead = styled.div`
   margin-top: 6px;
@@ -119,7 +129,7 @@ function ImageField({ id, url, onFile, onClear }) {
         ref={inputRef}
         id={id}
         type="file"
-        accept="image/*"
+        accept={IMAGE_ACCEPT}
         hidden
         onChange={e => {
           const f = e.target.files?.[0];
@@ -195,6 +205,12 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
     <Row>
       <label htmlFor={id}>{label}</label>
       {control}
+      {field.type === 'image' && (
+        <Hint>
+          PNG · JPG · WEBP · SVG, 최대 {IMAGE_MAX_MB}MB.
+          {field.hint && <><br />{field.hint}</>}
+        </Hint>
+      )}
     </Row>
   );
 }
