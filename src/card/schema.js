@@ -260,6 +260,7 @@ export const PARTS = [
       when(R('anim.rayCount', '개수', 0, 16, 1), isOutro),
       when(R('anim.rayAngle', '첫 광선 각도', 0, 180, 1, '도'), isOutro),
       when(R('anim.rayLength', '길이', 5, 120, 0.5, '%H'), isOutro),
+      when(R('anim.rayStartLength', '처음 나타날 때 길이 비율', 0, 1, 0.01), isOutro),
       when(R('anim.rayWidthStart', '중심 쪽 폭', 0, 3, 0.01, '%H'), isOutro),
       when(R('anim.rayWidthEnd', '끝 쪽 폭', 0, 10, 0.05, '%H'), isOutro),
       when(R('anim.rayOpacity', '빛 띠 밝기', 0, 1, 0.01), isOutro),

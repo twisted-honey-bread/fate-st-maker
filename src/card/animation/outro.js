@@ -143,7 +143,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.55, 2.8, 3.4), A.flareColor, {
     count: A.rayCount, angle: A.rayAngle, length: A.rayLength, widthStart: A.rayWidthStart,
     widthEnd: A.rayWidthEnd, opacity: A.rayOpacity, core: A.rayCore, fade: A.rayFade,
-  }, E('easeOutroRays', prog(t, 2.55, 3.4)));
+  }, A.rayStartLength + (1 - A.rayStartLength) * E('easeOutroRays', prog(t, 2.55, 2.8))); // 시작 길이에서 섬광 정점까지 늘어나고, 이후엔 길이 그대로 페이드 아웃
 
   // 공상절제 문구
   const { main, sub } = outroTextStyles(state);
