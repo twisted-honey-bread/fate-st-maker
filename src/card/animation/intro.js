@@ -122,7 +122,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
           drawBackground(c, w, h, { ...state, bg: { ...state.bg, animScale: A.introZoom, animBlur: A.introBlur } }, images.bg);
           c.restore();
         }
-        if (A.circuit) drawCircuitBand(c, w, h, circuitP, { seed: A.seed, color: A.circuitColor, opacity: A.circuitOpacity });
+        if (A.circuit) drawCircuitBand(c, w, h, circuitP, { seed: A.seed, color: A.circuitColor, opacity: A.circuitOpacity, image: images.circuitIntro });
       },
     });
     if (state.bottomLine.show) {

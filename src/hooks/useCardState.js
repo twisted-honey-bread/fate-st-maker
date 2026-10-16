@@ -5,7 +5,9 @@ import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
 import { loadImage, readFileAsDataURL } from '../card/utils';
 import { loadSettings, saveSettings } from '../lib/storage';
 
-const EMPTY_IMAGES = { bg: null, logo: null }; // 각 항목: { img: HTMLImageElement, url: dataURL }
+// 각 항목: { img: HTMLImageElement, url: dataURL } — circuitIntro/Outro: 직접 그린 회로 무늬
+const IMAGE_KEYS = ['bg', 'logo', 'circuitIntro', 'circuitOutro'];
+const EMPTY_IMAGES = Object.fromEntries(IMAGE_KEYS.map(k => [k, null]));
 
 export function useCardState() {
   const [state, setState] = useState(() => mergeKnown(DEFAULTS, loadSettings()));
@@ -41,14 +43,14 @@ export function useCardState() {
     () => ({
       version: 1,
       settings: state,
-      images: { bg: images.bg?.url || null, logo: images.logo?.url || null },
+      images: Object.fromEntries(IMAGE_KEYS.map(k => [k, images[k]?.url || null])),
     }),
     [state, images],
   );
 
   const importData = useCallback(async data => {
-    const next = { bg: null, logo: null };
-    for (const k of ['bg', 'logo']) {
+    const next = { ...EMPTY_IMAGES };
+    for (const k of IMAGE_KEYS) {
       const url = data?.images?.[k];
       if (url) next[k] = { img: await loadImage(url), url };
     }
@@ -58,12 +60,17 @@ export function useCardState() {
 
   // 렌더러에 넘길 이미지 (로고가 없으면 기본 로고)
   const renderImages = useMemo(
-    () => ({ bg: images.bg?.img || null, logo: images.logo?.img || defaultLogo }),
+    () => ({
+      bg: images.bg?.img || null,
+      logo: images.logo?.img || defaultLogo,
+      circuitIntro: images.circuitIntro?.img || null,
+      circuitOutro: images.circuitOutro?.img || null,
+    }),
     [images, defaultLogo],
   );
 
   const imageUrls = useMemo(
-    () => ({ bg: images.bg?.url || null, logo: images.logo?.url || null }),
+    () => Object.fromEntries(IMAGE_KEYS.map(k => [k, images[k]?.url || null])),
     [images],
   );
 

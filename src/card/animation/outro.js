@@ -13,10 +13,10 @@ import { bell, easeIn, easeInOut, easeOut, flicker, layer, prog } from './util';
  *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남, 상단 텍스트가 흐려짐
  *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
- *  3.1~     '공상절제' 페이드 인 시작, 108도 회로 무늬가 아래에서 반짝이며 올라옴
- *  3.3~4.3  '공상절제' / 'Cosmos Denial' 이 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
+ *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
+ *  3.1~     108도 회로 무늬가 아래에서 반짝이며 올라옴
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
- *  입자가 모두 사라지면 중앙부터 어두워지며 암전
+ *  입자가 모두 사라지면 중앙부터 어두워지며 암전 (흐리게 남아 있던 왼쪽 위·오른쪽 위 텍스트와 상단 선도 함께 사라짐)
  */
 const TEXT_END = 4.3;
 const BURST = 3.0;
@@ -36,6 +36,8 @@ function outroTextStyles(state) {
     fillMode: 'gradient',
     color: A.outroColor,
     color2: A.outroColor2,
+    // 위(크림색) → 중간(금색) → 맨 아래에서 한 번 더 바뀜(옅은 파랑)
+    gradientStops: [[0, A.outroColor], [Math.max(0.05, A.outroColorStop - 0.12), A.outroColor2], [A.outroColorStop, A.outroColor2], [1, A.outroColor3]],
     strokeWidth: 0,
     glowColor: A.outroGlow,
     glowOpacity: 0.55,
@@ -78,7 +80,8 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const ink = easeInOut(prog(t, 0.6, 2.0));
   const glowUp = prog(t, 1.8, 2.6);
   const dimOld = easeOut(prog(t, 3.0, 3.8));
-  const spread = easeOut(prog(t, 3.3, 4.3)); // 중앙에서 퍼지듯 자간이 넓어짐
+  const spread = easeOut(prog(t, 2.95, 3.9)); // 페이드 인과 동시에 중앙에서 펼쳐짐
+  const blackout = easeOut(prog(t, TEXT_END + A.outroHold, TEXT_END + A.outroHold + 0.6));
 
   ctx.save();
   ctx.fillStyle = '#000000';
@@ -99,9 +102,10 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     const headerAlpha = 1 - 0.75 * glowUp;
     const nightState = {
       ...night,
-      left: { ...night.left, alpha: headerAlpha * (1 - dimOld) },
-      right: { ...night.right, alpha: headerAlpha * (1 - dimOld) },
-      topLine: { ...night.topLine, opacity: night.topLine.opacity * headerAlpha * (1 - dimOld) },
+      // 흐려진 채로 남아 있다가 암전과 함께 사라짐
+      left: { ...night.left, alpha: headerAlpha * (1 - blackout) },
+      right: { ...night.right, alpha: headerAlpha * (1 - blackout) },
+      topLine: { ...night.topLine, opacity: night.topLine.opacity * headerAlpha * (1 - blackout) },
       bottomLine: { ...night.bottomLine, opacity: night.bottomLine.opacity * (1 - dimOld) },
       logo: {
         ...night.logo,
@@ -123,6 +127,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   if (A.hexGrid) {
     drawCircuitBand(ctx, W, H, prog(t, 3.1, 5.9), {
       seed: A.seed, color: '#d6c496', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
+      image: images.circuitOutro,
     });
   }
 
@@ -133,12 +138,12 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   // 공상절제 문구
   const { main, sub } = outroTextStyles(state);
   // 처음엔 옅게 페이드 인 → 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
-  const textIn = 0.4 * easeOut(prog(t, 3.1, 3.5)) + 0.6 * spread;
+  const textIn = spread;
   if (textIn > 0) {
     const ty = (A.outroY / 100) * H;
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
     drawText(ctx, {
-      ...sub, alpha: easeOut(prog(t, 3.4, 4.3)), spacing: sub.spacing * (0.4 + 0.6 * spread),
+      ...sub, alpha: easeOut(prog(t, 3.05, 4.0)), spacing: sub.spacing * (0.4 + 0.6 * easeOut(prog(t, 3.05, 4.0))),
     }, W, H, W / 2, ty + (A.outroSize / 100) * H * 0.62, 'center');
   }
 
@@ -148,7 +153,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   });
   // 위에서 쏟아지는 금빛 입자
   drawFallingGold(ctx, W, H, t, {
-    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#ffe7a8',
+    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#fff3d2', maxFall: 0.2,
   });
 
   // 암전 (중앙부터)

@@ -171,7 +171,7 @@ export function drawDiamonds(ctx, W, H, t, { density, color, aspect = 1, seed = 
     if (diamondCache.size > 6) diamondCache.delete(diamondCache.keys().next().value);
   }
   ctx.save();
-  ctx.shadowColor = rgba(color, 0.9);
+  ctx.shadowColor = rgba(color, 0.95);
   for (const d of diamondCache.get(key)) {
     const age = t - d.born;
     const life = Math.max(0.3, d.end * endAt - d.born);
@@ -184,13 +184,10 @@ export function drawDiamonds(ctx, W, H, t, { density, color, aspect = 1, seed = 
     const hh = hw * aspect;
     const x = d.x * W;
     const y = (d.y + d.vy * age) * H;
+    // 밝은 단색 마름모 + 넓게 번지는 노란 빛 (보케처럼)
     ctx.globalAlpha = Math.min(1, pop * 1.2);
-    ctx.shadowBlur = hw * 2.2;
-    const g = ctx.createLinearGradient(x, y - hh, x, y + hh);
-    g.addColorStop(0, '#ffffff');
-    g.addColorStop(0.55, '#fffbea');
-    g.addColorStop(1, rgba(color, 1));
-    ctx.fillStyle = g;
+    ctx.shadowBlur = hw * 3.2;
+    ctx.fillStyle = '#fffbe9';
     ctx.beginPath();
     ctx.moveTo(x, y - hh);
     ctx.lineTo(x + hw, y);
@@ -198,13 +195,16 @@ export function drawDiamonds(ctx, W, H, t, { density, color, aspect = 1, seed = 
     ctx.lineTo(x - hw, y);
     ctx.closePath();
     ctx.fill();
+    ctx.fill(); // 한 번 더 그려 빛 번짐을 진하게
   }
   ctx.restore();
 }
 
-/* ---------- 위에서 쏟아져 내리는 금빛 입자 (아웃트로) ---------- */
+/* ---------- 위에서 쏟아져 내리는 금빛 입자 (아웃트로) ----------
+ * 화면 맨 위에서 생겨 최대 maxFall(H 비율, 기본 20%)까지만 내려오며 사라짐
+ */
 const fallCache = new Map();
-export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, color }) {
+export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, color, maxFall = 0.2 }) {
   if (t < start || count <= 0) return;
   const key = `${seed}:${count}`;
   if (!fallCache.has(key)) {
@@ -212,7 +212,8 @@ export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, co
     fallCache.set(key, Array.from({ length: count }, () => ({
       x: rng(),
       born: Math.pow(rng(), 1.3) * 3.5,
-      speed: 0.04 + Math.pow(rng(), 2) * 0.22, // H/초
+      y0: -0.01 + rng() * 0.04,
+      travel: 0.25 + Math.pow(rng(), 0.8) * 0.75, // maxFall 중 얼마나 내려오는지
       life: 1.2 + rng() * 2.5,
       r: 0.5 + rng() * 1.6,
       phase: rng() * Math.PI * 2,
@@ -228,7 +229,7 @@ export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, co
     const k = age / d.life;
     const fade = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
     const tw = 0.55 + 0.45 * Math.sin(d.phase + age * d.tw);
-    const y = (-0.02 + d.speed * age) * H;
+    const y = (d.y0 + maxFall * d.travel * (1 - Math.pow(1 - k, 2))) * H;
     const r = (d.r / 1080) * H;
     ctx.globalAlpha = fade * tw;
     ctx.shadowBlur = r * 4;
@@ -444,12 +445,13 @@ function pentaCircuitLayer(W, H, seed) {
  * trail: 띠가 지나간 아래쪽에 남는 밝기 (0 = 남지 않음), twinkle: 0~1 반짝임 정도
  */
 export function drawCircuitBand(ctx, W, H, p, {
-  seed, color, opacity, band = 0.22, style = 'grid', trail = 0, twinkle = 0, t = 0,
+  seed, color, opacity, band = 0.22, style = 'grid', trail = 0, twinkle = 0, t = 0, image = null,
 }) {
   if (opacity <= 0 || p <= 0 || (p >= 1 && trail <= 0)) return;
-  const pattern = circuitLayer(W, H, seed, style);
+  // image: 직접 그린 회로 무늬(투명 배경 PNG 등)가 있으면 화면 크기에 맞춰 사용, 색은 color 로 다시 칠함
+  const pattern = image || circuitLayer(W, H, seed, style);
   const { canvas, ctx: m } = layer('circuit', W, H);
-  m.drawImage(pattern, 0, 0);
+  m.drawImage(pattern, 0, 0, W, H);
   m.globalCompositeOperation = 'source-in';
   m.fillStyle = color;
   m.fillRect(0, 0, W, H);

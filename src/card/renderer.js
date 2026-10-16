@@ -248,6 +248,12 @@ export function drawText(ctx, s, W, H, x, y, align) {
   }
   const fillAt = dy => {
     if (mirrorFill) return mirrorFill;
+    // gradientStops: [[위치 0~1, 색], ...] 세로 다단 그라데이션 (아웃트로 문구용)
+    if (s.gradientStops) {
+      const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
+      for (const [pos, col] of s.gradientStops) g.addColorStop(pos, col);
+      return g;
+    }
     if (s.fillMode !== 'gradient') return s.color;
     const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
     g.addColorStop(0, s.color);
