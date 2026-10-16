@@ -121,7 +121,10 @@ export function ControlPanel({
     ) : f.type === 'stage' ? (() => {
       const st = f.stage;
       const A = state.anim;
-      const total = ANIMATIONS[A.mode] ? ANIMATIONS[A.mode].duration({ ...state, anim: { ...A, introSpeed: 1, outroSpeed: 1 } }) : 0;
+      // 단계 시간은 시작 전 대기(아웃트로...?의 o2Delay) 뒤부터 셈 → 막대 기준 길이에서 뺌
+      const total = ANIMATIONS[A.mode]
+        ? ANIMATIONS[A.mode].duration({ ...state, anim: { ...A, introSpeed: 1, outroSpeed: 1 } }) - (A.mode === 'outro2' ? A.o2Delay : 0)
+        : 0;
       const time = st.time ? (st.sync ? effectiveTime(A, st.id) : stageTime(A, st.id)) : null;
       return (
         <StageField

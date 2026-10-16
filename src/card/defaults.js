@@ -201,6 +201,7 @@ const BASE_DEFAULTS = {
     o2SubSpacing: 0.2,
     o2SubSpacing2: 0.3,
     o2Hold: 1.6,
+    o2Delay: 1.4, // 시작 전 아무것도 하지 않는 시간 (초)
     // 초반 배경 무늬: 중심 높이(%H), 바깥 마름모 중심~꼭짓점(%H) — 안쪽 도형은 차례로 내접
     o2ShapeY: 51,
     o2DiamondSize: 75,

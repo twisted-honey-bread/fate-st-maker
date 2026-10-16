@@ -24,7 +24,8 @@ import { stageTime } from './timing';
 const holdStart = A => Math.max(stageTime(A, 'o2Logo')[1], stageTime(A, 'o2Sub2')[1]);
 const fadeLength = A => stageTime(A, 'o2End')[1];
 
-export const outro2Duration = state => (holdStart(state.anim) + state.anim.o2Hold + fadeLength(state.anim)) / state.anim.outroSpeed;
+// o2Delay: 시작 전에 원래 카드를 그대로 보여 주는 시간 (단계 시간은 이 뒤부터 셈)
+export const outro2Duration = state => (state.anim.o2Delay + holdStart(state.anim) + state.anim.o2Hold + fadeLength(state.anim)) / state.anim.outroSpeed;
 
 function textStyles(state, part) {
   const A = state.anim;
@@ -146,8 +147,8 @@ function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   const d45 = Math.PI / 4;
   square(dia / Math.SQRT2, d45);
   square(inner / Math.SQRT2, d45);
-  // 안쪽 사각형 두 개와 원은 마름모보다 옅게 (0.4배)
-  ctx.globalAlpha *= 0.4;
+  // 안쪽 사각형 두 개와 원은 마름모보다 옅게 (0.2배)
+  ctx.globalAlpha *= 0.2;
   square(sq, 0);
   square(sq, d45);
   ctx.beginPath();
@@ -236,12 +237,31 @@ function nebulaLayer(dense) {
 function drawNebula(ctx, cx, cy, rx, ry, k, t, dense) {
   if (k <= 0) return;
   const tex = nebulaLayer(dense);
-  const drift = Math.sin(t * 0.7) * rx * 0.015; // 천천히 일렁임
+  /*
+   * 일렁임: 같은 무늬를 세 장 겹치되 장마다 다른 속도로 조금씩 움직이고 숨 쉬듯 커졌다 작아짐
+   * (한 장은 좌우를 뒤집어 겹친 모양이 계속 달라짐). 세 장의 밝기 합은 일정하게 유지
+   */
+  const LAYERS = [
+    { sx: 0.43, sy: 0.31, ph: 0, flip: false },
+    { sx: 0.29, sy: 0.47, ph: 2.1, flip: true },
+    { sx: 0.37, sy: 0.23, ph: 4.4, flip: false },
+  ];
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   for (let left = k; left > 0; left -= 1) {
-    ctx.globalAlpha = Math.min(1, left);
-    ctx.drawImage(tex, cx - rx + drift, cy - ry, rx * 2, ry * 2);
+    const a = Math.min(1, left);
+    LAYERS.forEach((l, i) => {
+      const w = 0.75 + 0.25 * Math.sin(t * (0.9 + i * 0.3) + l.ph); // 장마다 밝기가 천천히 오르내림
+      const dx = Math.sin(t * l.sx + l.ph) * rx * 0.05;
+      const dy = Math.cos(t * l.sy + l.ph) * ry * 0.12;
+      const sc = 1 + 0.06 * Math.sin(t * (l.sx + l.sy) + l.ph);
+      ctx.save();
+      ctx.globalAlpha = (a * w) / 2.25;
+      ctx.translate(cx + dx, cy + dy);
+      ctx.scale(l.flip ? -sc : sc, sc);
+      ctx.drawImage(tex, -rx, -ry, rx * 2, ry * 2);
+      ctx.restore();
+    });
   }
   ctx.restore();
 }
@@ -477,7 +497,7 @@ function colorize(c, W, H, color, lift) {
 
 export function drawOutro2Frame(ctx, W, H, state, images, time) {
   const A = state.anim;
-  const t = time * A.outroSpeed;
+  const t = time * A.outroSpeed - A.o2Delay; // 0 보다 작으면 원래 카드 그대로
   const L = state.logo;
   const lx = (L.x / 100) * W;
   const ly = (L.y / 100) * H;
