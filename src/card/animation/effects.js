@@ -95,7 +95,12 @@ export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1) {
 }
 
 /* ---------- 금빛 섬광: 4갈래 별 + 화면을 가로지르는 선 (아웃트로) ---------- */
-export function drawStarFlash(ctx, W, H, x, y, k, color) {
+/*
+ * rays: 방사형 광선 설정 — count(개수), angle(첫 광선 각도, 도), length(%H), widthStart/widthEnd(%H, 중심/끝 폭),
+ *       opacity(빛 띠 밝기), core(가운데 심 밝기), fade(빛이 흐려지기 시작하는 지점 0~1)
+ * spread: 0→1, 광선이 중심에서 바깥으로 퍼져 나가는 진행도
+ */
+export function drawStarFlash(ctx, W, H, x, y, k, color, rays = null, spread = 1) {
   if (k <= 0) return;
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
@@ -129,30 +134,34 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
   ray(H * 0.14 * (0.6 + 0.4 * k), H * 0.008);
   ctx.restore();
 
-  // 6갈래 섬광: 세로축 기준 60도 간격의 직선 광선 (위·아래 + 대각선 4개)
-  // 중심에서 끝으로 갈수록 가늘어지고 흐려지는 직선 띠 + 가운데 밝은 심
-  const beamLen = H * 0.55 * (0.5 + 0.5 * k);
-  const beam = (len, w0, w1, a0) => {
-    const g = ctx.createLinearGradient(0, 0, len, 0);
-    g.addColorStop(0, `rgba(255,255,255,${a0})`);
-    g.addColorStop(0.3, `rgba(255,250,235,${a0 * 0.45})`);
-    g.addColorStop(1, 'rgba(255,250,235,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(0, -w0 / 2);
-    ctx.lineTo(len, -w1 / 2);
-    ctx.lineTo(len, w1 / 2);
-    ctx.lineTo(0, w0 / 2);
-    ctx.closePath();
-    ctx.fill();
-  };
-  for (let i = 0; i < 6; i++) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(Math.PI / 2 + (i * Math.PI) / 3);
-    beam(beamLen, H * 0.022, H * 0.004, 0.32 * k); // 넓은 빛 띠
-    beam(beamLen * 0.85, H * 0.006, H * 0.001, 0.75 * k); // 밝은 심
-    ctx.restore();
+  // 방사형 직선 광선: 중심에서는 가늘고 끝으로 갈수록 넓어지며, 중심에서 바깥으로 퍼져 나감
+  if (rays && rays.count > 0 && spread > 0) {
+    const len = (rays.length / 100) * H * spread;
+    const beam = (bl, w0, w1, a0) => {
+      const g = ctx.createLinearGradient(0, 0, bl, 0);
+      g.addColorStop(0, `rgba(255,255,255,${a0})`);
+      g.addColorStop(Math.max(0.01, Math.min(0.99, rays.fade)), `rgba(255,250,235,${a0 * 0.5})`);
+      g.addColorStop(1, 'rgba(255,250,235,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, -w0 / 2);
+      ctx.lineTo(bl, -w1 / 2);
+      ctx.lineTo(bl, w1 / 2);
+      ctx.lineTo(0, w0 / 2);
+      ctx.closePath();
+      ctx.fill();
+    };
+    // 폭도 퍼지는 진행도에 맞춰 넓어짐
+    const w0 = (rays.widthStart / 100) * H;
+    const w1 = (rays.widthStart + (rays.widthEnd - rays.widthStart) * spread) / 100 * H;
+    for (let i = 0; i < rays.count; i++) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((rays.angle * Math.PI) / 180 + (i * Math.PI * 2) / rays.count);
+      beam(len, w0, w1, rays.opacity * k); // 넓은 빛 띠
+      if (rays.core > 0) beam(len * 0.9, w0 * 0.3, w1 * 0.22, rays.core * k); // 밝은 심
+      ctx.restore();
+    }
   }
 
   // 중심 광원

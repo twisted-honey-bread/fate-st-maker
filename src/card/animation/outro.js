@@ -140,7 +140,10 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 금빛 별 섬광 (로고 아래쪽 중심)
   const starY = ly + (L.height / 100) * H * 0.3;
-  drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.55, 2.8, 3.4), A.flareColor);
+  drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.55, 2.8, 3.4), A.flareColor, {
+    count: A.rayCount, angle: A.rayAngle, length: A.rayLength, widthStart: A.rayWidthStart,
+    widthEnd: A.rayWidthEnd, opacity: A.rayOpacity, core: A.rayCore, fade: A.rayFade,
+  }, E('easeOutroRays', prog(t, 2.55, 3.4)));
 
   // 공상절제 문구
   const { main, sub } = outroTextStyles(state);
