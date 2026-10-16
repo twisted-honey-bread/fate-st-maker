@@ -152,6 +152,7 @@ export function ControlPanel({
         key={f.k}
         id={`f_${f.k.replace(/\./g, '_')}`}
         label={f.label}
+        weightLabel={f.weightLabel}
         group={f.group}
         withWeight={!!f.weightKey}
         value={{ font: getPath(state, f.k), weight: f.weightKey ? getPath(state, f.weightKey) : null }}

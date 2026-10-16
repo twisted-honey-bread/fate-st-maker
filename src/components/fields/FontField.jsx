@@ -23,7 +23,13 @@ const Row = styled.div`
 
 const ACCEPT = '.ttf,.otf,.woff,.woff2';
 
-export function FontField({ id, label, group, value, withWeight, presetWeights = {}, uploaded = [], onPick, onWeight, onUpload }) {
+const Hint = styled.p`
+  margin: -2px 0 2px 112px;
+  font-size: 11px;
+  color: var(--muted);
+`;
+
+export function FontField({ id, label, weightLabel = '굵기', group, value, withWeight, presetWeights = {}, uploaded = [], onPick, onWeight, onUpload }) {
   const inputRef = useRef(null);
   const g = FONT_GROUPS[group];
   const preset = g.presets.find(([f]) => f === value.font);
@@ -69,9 +75,10 @@ export function FontField({ id, label, group, value, withWeight, presetWeights =
           }}
         />
       </Row>
+      <Hint>업로드: TTF · OTF · WOFF · WOFF2 폰트 파일</Hint>
       {withWeight && (
         <Row>
-          <label htmlFor={`${id}_weight`}>굵기</label>
+          <label htmlFor={`${id}_weight`}>{weightLabel}</label>
           <Select
             id={`${id}_weight`}
             value={String(value.weight)}

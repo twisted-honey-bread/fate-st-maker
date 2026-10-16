@@ -227,6 +227,8 @@ export function migrateSettings(src) {
   keepFont('left', 'font', 'weight', 'left');
   keepFont('era', 'font', 'weight', 'latin');
   keepFont('anim', 'outroSubFont', 'outroSubWeight', 'latin');
+  // '단계 분리' 스타일 변환은 없어짐 → 듀오톤
+  if (out.bg?.styleMode === 'poster') out.bg = { ...out.bg, styleMode: 'duotone' };
   const A = out.anim;
   if (A && A.outroStops === undefined && typeof A.outroColor === 'string') {
     const stop = A.outroColorStop ?? 0.72;

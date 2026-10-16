@@ -30,10 +30,13 @@ const Main = styled.main`
   display: grid;
   grid-template-columns: minmax(0, 1fr) 390px;
   min-height: 0;
+  /* 미리보기 배경·콘솔이 화면 양 끝까지 닿도록 (헤더 좌우 여백만큼 바깥으로) */
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
   margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
 
   @media (max-width: 900px) {
     grid-template-columns: minmax(0, 1fr);
+    margin-left: 0;
     margin-right: 0;
   }
 `;

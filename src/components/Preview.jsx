@@ -16,8 +16,7 @@ const Pane = styled.section`
   align-items: center;
   justify-content: safe center; /* 내용이 넘쳐도 위쪽이 잘리지 않게 */
   gap: 10px;
-  padding-block: 24px;
-  padding-right: 16px;
+  padding: 24px 16px; /* 양쪽 여백을 같게 (캔버스 그림자가 왼쪽에서 잘리지 않도록) */
   background: var(--stage);
 
   /* 휴대폰: 콘솔을 스크롤해도 미리보기가 위에 고정되도록 */

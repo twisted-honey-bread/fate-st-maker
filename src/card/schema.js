@@ -66,7 +66,7 @@ export const PARTS = [
   {
     id: 'bg', short: '배경', title: '배경', desc: '설원 이미지와 분위기 효과',
     main: [
-      IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장. 비율이 다르면 화면을 꽉 채우도록 가운데 기준으로 넘치는 부분이 잘립니다 (아래 ‘화면에서 끌어서 조정하기’ 또는 확대·위치로 조절). 미리보기에 끌어다 놓아도 됩니다.'),
+      IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장.'),
       HD('크기·위치'),
       when(BTN('bgEdit', '', '화면에서 끌어서 조정하기'), s => s.anim.mode === 'still'),
       R('bg.zoom', '확대', 100, 300, 1, '%'),
@@ -76,7 +76,7 @@ export const PARTS = [
     // 보정 필터·비네트·중앙 광원·눈 입자 세부·사진 변환 세부 값은 고정값 (defaults.json)
     advanced: [
       HD('사진 스타일 변환'),
-      S('bg.styleMode', '변환 방식', [['duotone', '듀오톤'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
+      S('bg.styleMode', '변환 방식', [['duotone', '듀오톤'], ['threshold', '2치화'], ['none', '원본 그대로']]),
       when(C('bg.styleInk', '톤 색 (어두운 부분)'), hasStyle),
       when(C('bg.stylePaper', '톤 색 (밝은 부분)'), hasStyle),
       HD('분위기'),
@@ -94,7 +94,7 @@ export const PARTS = [
     main: [
       SEG('logo.source', '로고 가져오기', [['upload', '직접 업로드'], ['generate', '연대·제목으로 자동 생성']]),
       when(IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'), s => !isGen(s)),
-      gen(NOTE('연대와 제목 글자를 정해진 계산 규칙에 넣어 좌우대칭 무늬를 만듭니다. 그림을 지어내는 생성형 AI가 아니라 계산이라서, 연대·제목·아래 옵션이 같으면 언제 누가 만들어도 늘 똑같은 로고가 나옵니다. 글자를 한 자만 바꿔도 무늬는 완전히 달라집니다. 정식 로고가 준비되기 전에 임시로 쓰는 용도입니다.')),
+      gen(NOTE('연대와 제목 글자를 정해진 계산 규칙에 넣어 추상화된 로고를 만듭니다(생성형 AI가 아닌 고정 계산식입니다). 연대·제목·아래 옵션이 같으면 언제 누가 만들어도 늘 똑같은 로고가 나오고, 글자를 한 자라도 바뀌면 무늬는 완전히 달라집니다.')),
       gen({ k: 'logo.genShape', label: '형태', type: 'shape' }),
       gen(R('logo.genGrid', '분할 수', 3, 21, 2)),
       HD('배치'),
@@ -143,7 +143,8 @@ export const PARTS = [
     advanced: [
       when(HD('폰트'), isOutro),
       when(F('anim.outroFont', '제목 폰트'), isOutro),
-      when(F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), isOutro),
+      when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
+      when({ ...F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), weightLabel: '부제 폰트 굵기' }, isOutro),
       when(HD('움직임 곡선 · 재생 시간'), isIntro),
       ...STAGES.intro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isIntro)),
       when(HD('움직임 곡선 · 재생 시간'), isOutro),
