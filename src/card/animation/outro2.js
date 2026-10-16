@@ -521,13 +521,12 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       era: { ...night.era, alpha: 0.7 * oldA },
       title: { ...night.title, alpha: 0.7 * oldA },
       sub: { ...night.sub, alpha: 0.7 * oldA },
-      // 후반: 테마 색으로 빛나다가 ⑧에서 완전히 사라짐
+      // 후반: 테마 색 로고(글로우 없음)가 ⑧에서 완전히 사라짐
       logo: part2 ? {
         ...night.logo,
         tintColor: A.o2Color2,
         opacity: logoIn * (1 - logoOut),
-        glowColor: A.o2Color2,
-        glowOpacity: 0.9,
+        glowOpacity: 0, // 글로우 없음
         glowBlur: 2.2,
         glowStrength: 2,
         backShadow: 0,
