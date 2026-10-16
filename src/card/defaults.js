@@ -105,13 +105,12 @@ export const DEFAULTS = {
     // 섬광의 방사형 광선
     rayCount: 6,
     rayAngle: 90,
-    rayLength: 55,
-    rayWidthStart: 0.15,
-    rayWidthEnd: 3,
-    rayOpacity: 0.32,
-    rayCore: 0.75,
+    rayLength: 40,
+    rayWidthStart: 2,
+    rayWidthEnd: 10,
+    rayOpacity: 0.15,
     rayFade: 0.3,
-    rayStartLength: 0.8, // 처음 나타날 때의 길이 비율 (0.8 = 80% 길이에서 시작해 100%까지)
+    rayStartLength: 0.6, // 처음 나타날 때의 길이 비율 (0.6 = 60% 길이에서 시작해 100%까지)
     outroLogoColor: '#c3cad3',
     outroLogoDark: '#14161b',
     particleDensity: 1,

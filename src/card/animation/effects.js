@@ -97,7 +97,7 @@ export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1) {
 /* ---------- 금빛 섬광: 4갈래 별 + 화면을 가로지르는 선 (아웃트로) ---------- */
 /*
  * rays: 방사형 광선 설정 — count(개수), angle(첫 광선 각도, 도), length(%H), widthStart/widthEnd(%H, 중심/끝 폭),
- *       opacity(빛 띠 밝기), core(가운데 심 밝기), fade(빛이 흐려지기 시작하는 지점 0~1)
+ *       opacity(빛 띠 밝기), fade(빛이 흐려지기 시작하는 지점 0~1)
  * spread: 0→1, 광선이 중심에서 바깥으로 퍼져 나가는 진행도
  */
 export function drawStarFlash(ctx, W, H, x, y, k, color, rays = null, spread = 1) {
@@ -158,8 +158,7 @@ export function drawStarFlash(ctx, W, H, x, y, k, color, rays = null, spread = 1
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate((rays.angle * Math.PI) / 180 + (i * Math.PI * 2) / rays.count);
-      beam(len, w0, w1, rays.opacity * k); // 넓은 빛 띠
-      if (rays.core > 0) beam(len * 0.9, w0 * 0.3, w1 * 0.22, rays.core * k); // 밝은 심
+      beam(len, w0, w1, rays.opacity * k);
       ctx.restore();
     }
   }
