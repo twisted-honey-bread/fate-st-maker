@@ -33,7 +33,7 @@ function textStyles(state, part) {
     ...TEXT_BASE,
     text: part === 1 ? A.o2Text1 : A.o2Text2,
     font: A.outroFont,
-    weight: A.outroWeight,
+    weight: A.o2Weight,
     size: A.o2Size,
     spacing: part === 1 ? A.o2Spacing : A.o2Spacing2,
     color: '#ffffff',

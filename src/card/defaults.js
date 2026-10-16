@@ -192,6 +192,7 @@ const BASE_DEFAULTS = {
     o2Sub2: 'Ex Falso Quodlibet',
     o2Color2: '#ff1f2e',
     // 제목·부제 크기(%H)·높이(기준선, %H)는 초반·후반 공통, 자간(em)은 따로
+    o2Weight: 400, // 제목 폰트 굵기 (폰트는 아웃트로와 같은 값)
     o2Size: 25,
     o2Y: 62.5,
     o2Spacing: 0.2,

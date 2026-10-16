@@ -154,7 +154,8 @@ export const PARTS = [
     advanced: [
       when(HD('폰트'), hasOutroFont),
       when(F('anim.outroFont', '제목 폰트'), hasOutroFont),
-      when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), hasOutroFont),
+      when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
+      when(S('anim.o2Weight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), isO2),
       when({ ...F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), weightLabel: '부제 폰트 굵기' }, hasOutroFont),
       when(HD('자간 (다 펼쳐졌을 때)'), isOutro),
       when(R('anim.outroSpacing', '제목 자간', 0, 1.2, 0.005, 'em'), isOutro),

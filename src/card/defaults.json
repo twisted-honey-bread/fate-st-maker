@@ -395,7 +395,7 @@
     "outroText": "공상절제",
     "outroSub": "Cosmos Denial",
     "outroFont": "Noto Serif KR",
-    "outroWeight": 400,
+    "outroWeight": 700,
     "outroSubFont": "Libre Bodoni",
     "outroSubWeight": 400,
     "outroSize": 24.5,
@@ -656,6 +656,7 @@
     "easeO2Circuit": "linear",
     "easeO2End": "inCubic",
     "fps": 30,
-    "gifFps": 15
+    "gifFps": 15,
+    "o2Weight": 400
   }
 }
