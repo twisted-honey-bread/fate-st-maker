@@ -1,5 +1,5 @@
 import { WEIGHTS } from './fonts';
-import { LOGO_CELLS, LOGO_SHAPES } from './logoGen';
+import { LOGO_SHAPES } from './logoGen';
 
 /*
  * 파트 스키마 — 캔버스의 각 구성 요소(파트)마다 메인 설정과 고급 설정을 정의
@@ -137,9 +137,9 @@ export const PARTS = [
       B('logo.show', '표시'),
       HD('임시 로고 만들기 (연대·제목으로 생성)'),
       S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label])),
-      S('logo.genCell', '칸 모양', Object.entries(LOGO_CELLS)),
-      R('logo.genGrid', '격자 크기', 5, 21, 2, '칸'),
+      R('logo.genGrid', '분할 수', 3, 21, 2),
       R('logo.genDensity', '채움 비율', 0.15, 0.85, 0.01),
+      R('logo.genGap', '조각 사이 간격', 0, 0.5, 0.01),
       B('logo.genFrame', '테두리'),
       C('logo.genColor', '색'),
       BTN('generateLogo', '', '연대·제목으로 로고 생성하기'),

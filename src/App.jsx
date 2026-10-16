@@ -241,8 +241,8 @@ export default function App() {
               if (action !== 'generateLogo') return;
               const L = state.logo;
               const url = generateLogo({
-                era: state.era.text, title: state.title.text, shape: L.genShape, cell: L.genCell,
-                grid: L.genGrid, density: L.genDensity, frame: L.genFrame, color: L.genColor,
+                era: state.era.text, title: state.title.text, shape: L.genShape,
+                grid: L.genGrid, density: L.genDensity, gap: L.genGap, frame: L.genFrame, color: L.genColor,
               });
               await card.setImageUrl('logo', url);
               notify(`"${state.era.text} ${state.title.text}" 으로 임시 로고를 만들었습니다.`);

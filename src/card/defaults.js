@@ -43,7 +43,7 @@ export const DEFAULTS = {
   logo: {
     show: true, x: 50.3, y: 40, height: 33, opacity: 1,
     // 임시 로고 생성 옵션 (연대·제목으로 패턴 생성)
-    genShape: 'shield', genCell: 'square', genGrid: 9, genDensity: 0.5, genFrame: true, genColor: '#1d2127',
+    genShape: 'shield', genGrid: 9, genDensity: 0.5, genGap: 0.12, genFrame: true, genColor: '#1d2127',
     tint: false, tintColor: '#1d2127',
     glowColor: '#ffffff', glowOpacity: 0.3, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
