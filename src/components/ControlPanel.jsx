@@ -91,9 +91,15 @@ export function ControlPanel({
         withWeight={!!f.weightKey}
         value={{ font: getPath(state, f.k), weight: f.weightKey ? getPath(state, f.weightKey) : null }}
         uploaded={uploadedFonts[f.group] || []}
+        presetWeights={state.fontWeights?.[f.group]}
         onPick={(font, weight) => {
           onField(f.k, font);
           if (f.weightKey && weight) onField(f.weightKey, weight);
+        }}
+        onWeight={(w, isPreset) => {
+          onField(f.weightKey, w);
+          // 정해진 선택지면 그 선택지의 기본 굵기도 갱신 (레포 기본값 저장에 포함)
+          if (isPreset) onField(`fontWeights.${f.group}.${getPath(state, f.k)}`, w);
         }}
         onUpload={file => onFontUpload(f, file)}
       />

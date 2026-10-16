@@ -19,23 +19,37 @@ export const FONT_LIST = [
 export const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 
 /*
- * 부분별 폰트 선택지 — 폰트와 굵기를 한 번에 고름 (첫 번째가 기본값)
+ * 부분별 폰트 선택지 — [폰트, 처음 기본 굵기, 쓸 수 있는 굵기] (첫 번째 폰트가 기본값)
+ * 선택지별 기본 굵기는 설정의 fontWeights 에 저장되어 콘솔에서 바꾸면 갱신됨 (레포 기본값 저장에도 포함)
  * slot: 업로드 칸. left = 왼쪽 위 전용, latin = 영문(Cosmos Denial·연대), korean = 한글
  */
 export const FONT_GROUPS = {
   left: {
     slot: 'left',
-    presets: [['Spectral', 700], ['Cormorant Garamond', 700], ['Bodoni Moda', 600]],
+    presets: [
+      ['Spectral', 700, [200, 300, 400, 500, 600, 700, 800]],
+      ['Cormorant Garamond', 700, [300, 400, 500, 600, 700]],
+      ['Bodoni Moda', 600, [400, 500, 600, 700, 800, 900]],
+    ],
   },
   latin: {
     slot: 'latin',
-    presets: [['Libre Bodoni', 400], ['Old Standard TT', 700], ['Playfair Display', 600]],
+    presets: [
+      ['Libre Bodoni', 400, [400, 500, 600, 700]],
+      ['Old Standard TT', 700, [400, 700]],
+      ['Playfair Display', 600, [400, 500, 600, 700, 800, 900]],
+    ],
   },
   korean: {
     slot: 'korean',
-    presets: FONT_LIST.filter(f => /KR|HCR|Nanum|Han|Hyeon|Gowun/.test(f.family)).map(f => [f.family, null]),
+    presets: FONT_LIST.filter(f => /KR|HCR|Nanum|Han|Hyeon|Gowun/.test(f.family)).map(f => [f.family, null, null]),
   },
 };
+
+// 설정 기본값: { left: { Spectral: 700, ... }, latin: { ... } }
+export const PRESET_WEIGHTS = Object.fromEntries(
+  ['left', 'latin'].map(g => [g, Object.fromEntries(FONT_GROUPS[g].presets.map(([f, w]) => [f, w]))]),
+);
 export const UPLOAD_SLOTS = {
   left: '왼쪽 위 폰트',
   latin: '영문 폰트 (Cosmos Denial·연대)',

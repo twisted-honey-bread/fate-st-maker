@@ -6,7 +6,7 @@ export const CARD_WIDTH = 1920;
 export const CARD_HEIGHT = 1080;
 
 import { isSymmetric, mirrorStops } from './gradient';
-import { FONT_GROUPS } from './fonts';
+import { FONT_GROUPS, PRESET_WEIGHTS } from './fonts';
 // 앱의 ‘레포 기본값으로 저장’ 버튼이 덮어쓰는 파일 — 여기 있는 값이 아래 기본값보다 우선
 import SAVED_DEFAULTS from './defaults.json';
 
@@ -23,6 +23,8 @@ export const TEXT_BASE = {
 
 // 코드에 적어 둔 기본값 (항목 목록·자료형의 기준). 실제 기본값 = 이것 + defaults.json
 const BASE_DEFAULTS = {
+  // 폰트 선택지별 기본 굵기 (폰트를 고르면 이 굵기로 바뀜, 굵기를 바꾸면 여기도 갱신)
+  fontWeights: PRESET_WEIGHTS,
   bg: {
     // 업로드한 사진을 설원 일러스트 톤으로 변환 (절차적 기본 배경에는 적용 안 함)
     styleMode: 'duotone', styleExposure: 0.22, styleContrast: 1.15, styleLevels: 4,

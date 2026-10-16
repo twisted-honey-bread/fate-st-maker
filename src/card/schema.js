@@ -309,8 +309,8 @@ export const PART_BY_ID = Object.fromEntries(PARTS.map(p => [p.id, p]));
 
 export const getPath = (o, p) => p.split('.').reduce((a, k) => a[k], o);
 
-// 'section.key' 경로를 불변 방식으로 갱신
+// 'section.key' (또는 더 깊은 'a.b.c') 경로를 불변 방식으로 갱신
 export function setPath(state, path, value) {
-  const [sec, key] = path.split('.');
-  return { ...state, [sec]: { ...state[sec], [key]: value } };
+  const set = (o, [k, ...rest]) => ({ ...o, [k]: rest.length ? set(o?.[k] ?? {}, rest) : value });
+  return set(state, path.split('.'));
 }
