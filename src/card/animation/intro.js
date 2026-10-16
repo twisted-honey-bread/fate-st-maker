@@ -3,7 +3,7 @@ import { toNight } from './night';
 import {
   drawCircuitBand, drawCornerVignette, drawLineLight, drawRevealMask, drawRisingParticles, fillOverlay,
 } from './effects';
-import { bell, easeInOut, easeOut, flicker, layer, prog } from './util';
+import { bell, ease, easeOut, flicker, layer, prog } from './util';
 
 /*
  * 인트로 — 어두운 장면에서 시작해 원래 타이틀 카드로 밝아짐
@@ -44,16 +44,17 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
   const A = state.anim;
   const end = BASE + A.introHold;
 
-  const fadeIn = easeOut(prog(t, 0, 0.8));
-  const reveal = easeInOut(prog(t, 4.3, 5.6)); // 중앙에서 밝아지는 원
-  const lineReveal = easeOut(prog(t, 0.3, 1.5));
-  const headerIn = easeOut(prog(t, 0.5, 1.3));
-  const logoIn = easeOut(prog(t, 2.4, 3.6));
+  const E = (name, p) => ease(A[name], p); // 단계별 움직임 곡선 (애니메이션 패널에서 선택)
+  const fadeIn = Math.min(1, E('easeIntroFade', prog(t, 0, 0.8)));
+  const reveal = Math.max(0, Math.min(1, E('easeIntroReveal', prog(t, 4.3, 5.6)))); // 중앙에서 밝아지는 원
+  const lineReveal = Math.min(1, E('easeIntroLine', prog(t, 0.3, 1.5)));
+  const headerIn = Math.min(1, E('easeIntroHeader', prog(t, 0.5, 1.3)));
+  const logoIn = E('easeIntroLogo', prog(t, 2.4, 3.6));
   const tailIdx = tailFrom(state.right.text);
-  const tail = tailIdx !== null ? { from: tailIdx, alpha: easeOut(prog(t, 2.4, 3.2)) } : undefined;
+  const tail = tailIdx !== null ? { from: tailIdx, alpha: Math.min(1, E('easeIntroLogo', prog(t, 2.4, 3.2))) } : undefined;
 
   // 배경: 어두울 때는 흐리고 확대, 밝아진 뒤 흐림이 풀리고 끝까지 천천히 축소
-  const zoom = 1 + (A.introZoom - 1) * (1 - prog(t, 4.3, end));
+  const zoom = 1 + (A.introZoom - 1) * (1 - E('easeIntroZoom', prog(t, 4.3, end)));
   const nightBg = { animScale: A.introZoom, animBlur: A.introBlur };
   const dayBg = { animScale: zoom, animBlur: 0 };
 
@@ -101,17 +102,17 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
 
   // 원래 카드 (중앙에서 원형으로 드러남)
   if (reveal > 0) {
-    const groupIn = easeOut(prog(t, 5.4, 6.1)); // 하단 선 + 부제
+    const groupIn = Math.min(1, E('easeIntroSub', prog(t, 5.4, 6.1))); // 하단 선 + 부제
     const dayState = {
       ...state,
       bg: { ...state.bg, ...dayBg },
       logo: { ...state.logo, flareIntensity: state.logo.flareIntensity * easeOut(prog(t, 4.8, 5.3)) * flicker(t) },
-      era: { ...state.era, alpha: easeOut(prog(t, 4.6, 5.4)) },
-      title: { ...state.title, alpha: easeOut(prog(t, 4.6, 5.4)) },
+      era: { ...state.era, alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))) },
+      title: { ...state.title, alpha: Math.min(1, E('easeIntroTitle', prog(t, 4.6, 5.4))) },
       bottomLine: { ...state.bottomLine, opacity: state.bottomLine.opacity * groupIn },
       sub: { ...state.sub, alpha: groupIn },
     };
-    const circuitP = prog(t, 5.4, Math.max(5.4 + 2, end - 0.2));
+    const circuitP = E('easeIntroCircuit', prog(t, 5.4, Math.max(5.4 + 2, end - 0.2)));
     const { canvas, ctx: d } = layer('intro-day', W, H);
     drawCard(d, W, H, dayState, images, {
       afterBackground: (c, w, h) => {

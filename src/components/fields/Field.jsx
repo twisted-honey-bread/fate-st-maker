@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
 import { Button, Checkbox, ColorInput, NumberInput, Range, Select, TextInput } from '../ui';
+import { EASINGS } from '../../card/animation/util';
 
 const Row = styled.div`
   display: grid;
@@ -46,6 +47,40 @@ const Thumb = styled.div`
   background: var(--stage) center / contain no-repeat;
   background-image: ${p => (p.$url ? `url("${p.$url}")` : 'none')};
 `;
+
+const EaseWrap = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 6px;
+  align-items: center;
+`;
+
+const Curve = styled.svg`
+  width: 44px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-2);
+
+  path { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  line { stroke: var(--line); stroke-width: 1; }
+`;
+
+// 움직임 곡선 미리보기 (가로 = 시간, 세로 = 진행도)
+function EaseCurve({ name }) {
+  const fn = (EASINGS[name] || EASINGS.linear).fn;
+  const pts = Array.from({ length: 25 }, (_, i) => {
+    const p = i / 24;
+    return `${(4 + p * 36).toFixed(1)},${(26 - fn(p) * 20).toFixed(1)}`;
+  });
+  return (
+    <Curve viewBox="0 0 44 30" aria-hidden="true">
+      <line x1="4" y1="26" x2="40" y2="26" />
+      <line x1="4" y1="6" x2="40" y2="6" />
+      <path d={`M${pts.join(' L')}`} />
+    </Curve>
+  );
+}
 
 const fieldId = k => 'f_' + k.replace(/\./g, '_');
 
@@ -134,6 +169,16 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
       );
       break;
     }
+    case 'ease':
+      control = (
+        <EaseWrap>
+          <Select id={id} value={value} onChange={e => onChange(e.target.value)}>
+            {Object.entries(EASINGS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          </Select>
+          <EaseCurve name={value} />
+        </EaseWrap>
+      );
+      break;
     case 'image':
       control = <ImageField id={id} url={imageUrl} onFile={onImageFile} onClear={onImageClear} />;
       break;

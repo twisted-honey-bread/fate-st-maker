@@ -14,6 +14,7 @@ const B = (k, label) => ({ k, label, type: 'check' });
 const F = (k, label) => ({ k, label, type: 'font' });
 const IM = (k, label) => ({ k, label, type: 'image' });
 const HD = label => ({ type: 'heading', label });
+const EZ = (k, label) => ({ k, label, type: 'ease' });
 const when = (field, fn) => ({ ...field, when: fn });
 const isIntro = s => s.anim.mode === 'intro';
 const hasStyle = s => s.bg.styleMode !== 'none';
@@ -205,6 +206,23 @@ export const PARTS = [
       S('anim.gifFps', 'GIF 프레임', [[10, '10 fps'], [12, '12 fps'], [15, '15 fps'], [20, '20 fps']]),
     ],
     advanced: [
+      when(HD('움직임 곡선 (easing)'), isIntro),
+      when(EZ('anim.easeIntroFade', '밤 장면 등장'), isIntro),
+      when(EZ('anim.easeIntroLine', '상단 선 펼침'), isIntro),
+      when(EZ('anim.easeIntroHeader', '위쪽 텍스트 등장'), isIntro),
+      when(EZ('anim.easeIntroLogo', '로고 등장·축소'), isIntro),
+      when(EZ('anim.easeIntroReveal', '원형으로 밝아짐'), isIntro),
+      when(EZ('anim.easeIntroTitle', '연대·제목 등장'), isIntro),
+      when(EZ('anim.easeIntroSub', '하단 선·부제 등장'), isIntro),
+      when(EZ('anim.easeIntroZoom', '배경 축소'), isIntro),
+      when(EZ('anim.easeIntroCircuit', '회로 무늬 상승'), isIntro),
+      when(HD('움직임 곡선 (easing)'), isOutro),
+      when(EZ('anim.easeOutroInk', '어둠 번짐'), isOutro),
+      when(EZ('anim.easeOutroDarken', '로고 어두워짐'), isOutro),
+      when(EZ('anim.easeOutroSpread', '문구 펼쳐짐 (자간)'), isOutro),
+      when(EZ('anim.easeOutroText', '문구 페이드 인'), isOutro),
+      when(EZ('anim.easeOutroCircuit', '회로 무늬 상승'), isOutro),
+      when(EZ('anim.easeOutroEnd', '암전'), isOutro),
       HD('밤 장면'),
       C('anim.nightTint', '색조'),
       when(HD('인트로'), isIntro),

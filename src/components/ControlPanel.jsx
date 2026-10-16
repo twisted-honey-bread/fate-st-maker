@@ -62,9 +62,13 @@ function visibleFields(list, state) {
   return shown.filter((f, i) => f.type !== 'heading' || (shown[i + 1] && shown[i + 1].type !== 'heading'));
 }
 
-function advancedHint(part) {
-  const heads = part.advanced.filter(f => f.type === 'heading').map(f => f.label.replace(/\s*\(.*\)/, ''));
-  return heads.length ? heads.join(' · ') : '세부 값';
+function advancedHint(part, state) {
+  // 현재 모드에서 보이는 소제목만, 중복 없이
+  const heads = visibleFields(part.advanced, state)
+    .filter(f => f.type === 'heading')
+    .map(f => f.label.replace(/\s*\(.*\)/, ''));
+  const unique = [...new Set(heads)];
+  return unique.length ? unique.join(' · ') : '세부 값';
 }
 
 export function ControlPanel({
@@ -111,7 +115,7 @@ export function ControlPanel({
         <Advanced open={advancedOpen} onToggle={e => setAdvancedOpen(e.currentTarget.open)}>
           <summary>
             고급 설정
-            <small>{advancedHint(part)}</small>
+            <small>{advancedHint(part, state)}</small>
           </summary>
           <Body>{renderFields(part.advanced)}</Body>
         </Advanced>
