@@ -19,7 +19,7 @@ lostbelt/index.html         Lostbelt 타이틀 카드 페이지 (/lostbelt/) —
 public/lostbelt/            이 메이커 전용 정적 파일 (reference/, fonts/)
 src/
   main.jsx                  진입점
-  App.jsx                   레이아웃, 다운로드/설정 입출력/폰트 추가 처리
+  App.jsx                   레이아웃, 다운로드/설정 입출력/폰트 업로드 처리
   styles/GlobalStyle.js     색·폰트 토큰 (라이트/다크)
   hooks/useCardState.js     카드 설정 상태, 업로드 이미지, localStorage 자동 저장
   components/
