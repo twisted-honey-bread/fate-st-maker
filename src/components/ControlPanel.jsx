@@ -6,6 +6,7 @@ import { Field } from './fields/Field';
 import { AnalysisNotes } from './AnalysisNotes';
 import { Section } from './Section';
 import { StructureMap } from './StructureMap';
+import { ThemePicker } from './ThemePicker';
 
 const Panel = styled.aside`
   min-width: 0;
@@ -73,7 +74,7 @@ function advancedHint(part, state) {
 
 export function ControlPanel({
   state, onField, fontList, imageUrls, onImageFile, onImageClear,
-  layout, selected, onSelect, hcrAvailable,
+  layout, selected, onSelect, hcrAvailable, onApplyTheme, canUndoTheme, onUndoTheme,
 }) {
   const part = PART_BY_ID[selected] || PART_BY_ID.title;
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -98,6 +99,7 @@ export function ControlPanel({
   return (
     <Panel aria-label="입력 콘솔">
       <StructureMap layout={layout} selected={part.id} onSelect={onSelect} animMode={state.anim.mode !== 'still'} />
+      <ThemePicker primary={state.title.color} onApply={onApplyTheme} canUndo={canUndoTheme} onUndo={onUndoTheme} />
 
       <div role="tabpanel" aria-labelledby={`tab_${part.id}`}>
         <PartHeader>
@@ -114,7 +116,7 @@ export function ControlPanel({
 
         <Advanced open={advancedOpen} onToggle={e => setAdvancedOpen(e.currentTarget.open)}>
           <summary>
-            고급 설정
+            <span style={{ whiteSpace: 'nowrap' }}>고급 설정</span>
             <small>{advancedHint(part, state)}</small>
           </summary>
           <Body>{renderFields(part.advanced)}</Body>

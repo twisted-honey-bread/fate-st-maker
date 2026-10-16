@@ -77,6 +77,7 @@ export default function App() {
   const [layout, setLayout] = useState(null);
   const [hcrAvailable, setHcrAvailable] = useState(null);
   const [fontVersion, setFontVersion] = useState(0);
+  const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
 
   useEffect(() => {
     hcrFontReady.then(setHcrAvailable);
@@ -235,6 +236,16 @@ export default function App() {
             selected={selected}
             onSelect={setSelected}
             hcrAvailable={hcrAvailable}
+            onApplyTheme={hex => {
+              setThemeUndo(card.applyTheme(hex));
+              notify('대표색에 맞춰 색을 바꿨습니다. 마음에 들지 않으면 되돌리기를 누르세요.');
+            }}
+            canUndoTheme={!!themeUndo}
+            onUndoTheme={() => {
+              card.undoTheme(themeUndo);
+              setThemeUndo(null);
+              notify('색을 이전으로 되돌렸습니다.');
+            }}
           />
         </Main>
       </Shell>
