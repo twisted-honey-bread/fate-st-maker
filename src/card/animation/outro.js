@@ -153,7 +153,8 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 정방형 입자 (모두 사라지는 시점 = 암전 시작)
   drawDiamonds(ctx, W, H, t - BURST, {
-    density: A.particleDensity, color: A.flareColor, aspect: A.particleAspect, seed: A.seed, endAt: endStart - BURST,
+    density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, squash: A.particleSquash,
+    seed: A.seed, endAt: endStart - BURST,
   });
   // 위에서 쏟아지는 금빛 입자
   drawFallingGold(ctx, W, H, t, {
