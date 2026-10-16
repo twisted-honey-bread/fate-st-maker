@@ -189,7 +189,7 @@ function nebulaPuffList(dense) {
   const gauss = () => (rng() + rng() + rng() - 1.5) / 1.5; // -1~1, 가운데에 몰림
   // 움직임: 중심 둘레를 가로·세로 각각 다른 속도로 오가고, 밝기·크기가 숨 쉬듯 바뀜
   const motion = () => ({
-    ax: (0.02 + rng() * 0.06) * NW, ay: (0.03 + rng() * 0.08) * NH,
+    ax: (0.06 + rng() * 0.18) * NW, ay: (0.09 + rng() * 0.24) * NH,
     wx: 0.25 + rng() * 0.7, wy: 0.2 + rng() * 0.6, wa: 0.4 + rng() * 1.1, ph: rng() * 6.28,
   });
   const spread = dense ? 0.75 : 1;
@@ -218,8 +218,8 @@ function nebulaLayer(dense, t) {
     const x = p.x + p.ax * Math.sin(t * p.wx + p.ph);
     const y = p.y + p.ay * Math.sin(t * p.wy + p.ph * 1.7);
     const breath = Math.sin(t * p.wa + p.ph * 2.3);
-    const a = p.a * (1 + 0.45 * breath);
-    const r = p.r * (1 + 0.15 * breath);
+    const a = p.a * Math.max(0, 1 + 1.2 * breath); // 거의 사라졌다가 두 배 넘게 밝아짐
+    const r = p.r * (1 + 0.45 * breath);
     g.globalCompositeOperation = p.carve ? 'destination-out' : 'source-over';
     g.save();
     g.translate(x, y);
