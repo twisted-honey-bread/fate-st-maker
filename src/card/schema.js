@@ -17,6 +17,8 @@ const IM = (k, label, hint) => ({ k, label, hint, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
 const BTN = (action, label, text) => ({ k: `action.${action}`, action, label, text, type: 'button' });
+// 그라데이션 편집기: keys = { mode, color, stops, scope } 각 항목의 state 경로 (없는 항목은 편집기에서 숨김)
+const G = (label, keys, modes) => ({ k: keys.stops, label, type: 'gradient', keys, modes });
 const SEG = (k, label, options) => ({ k, label, type: 'segment', options });
 const NOTE = text => ({ type: 'note', label: text });
 const when = (field, fn) => ({ ...field, when: fn });
@@ -36,9 +38,7 @@ function textMain(p, { x = true, y = true, extra = [] } = {}) {
     ...(x ? [R(`${p}.x`, 'X 위치', 0, 100, 0.1, '%W')] : []),
     ...(y ? [R(`${p}.y`, 'Y (기준선)', 0, 100, 0.1, '%H')] : []),
     ...extra,
-    S(`${p}.fillMode`, '채우기', [['solid', '단색'], ['gradient', '세로 그라데이션'], ['mirror', '좌우대칭 그라데이션']]),
-    C(`${p}.color`, '색 1 (상단 · 가장자리)'),
-    when(C(`${p}.color2`, '색 2 (하단 · 가운데)'), s => s[p].fillMode !== 'solid'),
+    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, scope: `${p}.mirrorScope` }, ['solid', 'horizontal', 'vertical']),
   ];
 }
 
@@ -48,8 +48,6 @@ function textAdvanced(p, extra = []) {
     HD('글자'),
     B(`${p}.italic`, '기울임'),
     R(`${p}.spacing`, '자간', -0.1, 0.8, 0.01, 'em'),
-    when(R(`${p}.mirrorCenter`, '대칭 그라데이션 가운데 폭', 0, 0.5, 0.01), s => s[p].fillMode === 'mirror'),
-    when(S(`${p}.mirrorScope`, '대칭 그라데이션 기준', [['text', '글자 폭'], ['canvas', '화면 폭']]), s => s[p].fillMode === 'mirror'),
     HD('외곽선'),
     R(`${p}.strokeWidth`, '두께', 0, 1.5, 0.01, '%H'),
     when(C(`${p}.strokeColor`, '색'), s => s[p].strokeWidth > 0),
@@ -72,15 +70,12 @@ function lineMain(p) {
     B(`${p}.show`, '표시'),
     R(`${p}.y`, 'Y 위치', 0, 100, 0.1, '%H'),
     R(`${p}.thickness`, '두께', 0.05, 1.5, 0.01, '%H'),
-    S(`${p}.fillMode`, '채우기', [['solid', '단색'], ['mirror', '좌우대칭 그라데이션']]),
-    C(`${p}.color`, '색 (가장자리)'),
-    when(C(`${p}.color2`, '가운데 색'), s => s[p].fillMode === 'mirror'),
+    G('채우기 (양 끝 페이드는 고급 설정)', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops` }, ['solid', 'horizontal']),
   ];
 }
 
 function lineAdvanced(p) {
   return [
-    when(R(`${p}.mirrorCenter`, '대칭 그라데이션 가운데 폭', 0, 0.5, 0.01), s => s[p].fillMode === 'mirror'),
     R(`${p}.opacity`, '불투명도', 0, 1, 0.01),
     R(`${p}.left`, '왼쪽 여백', 0, 50, 0.1, '%W'),
     R(`${p}.right`, '오른쪽 여백', 0, 50, 0.1, '%W'),
@@ -269,10 +264,7 @@ export const PARTS = [
       when(R('anim.outroSize', '크기', 4, 40, 0.1, '%H'), isOutro),
       when(R('anim.outroY', 'Y (기준선)', 20, 90, 0.1, '%H'), isOutro),
       when(R('anim.outroSpacing', '자간', 0, 1.5, 0.01, 'em'), isOutro),
-      when(C('anim.outroColor', '색 (위)'), isOutro),
-      when(C('anim.outroColor2', '색 (중간)'), isOutro),
-      when(C('anim.outroColor3', '색 (맨 아래)'), isOutro),
-      when(R('anim.outroColorStop', '맨 아래 색이 시작되는 위치', 0.3, 0.98, 0.01), isOutro),
+      when(G('문구 색 (세로 그라데이션)', { stops: 'anim.outroStops' }, ['vertical']), isOutro),
       when(C('anim.outroGlow', '글로우 색'), isOutro),
       when(HD('영문 부제'), isOutro),
       when(F('anim.outroSubFont', '폰트'), isOutro),

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { THEME_GROUPS, currentThemeColors, themeColors } from '../card/theme';
+import { cssGradient } from '../card/gradient';
 import { Button, ColorInput } from './ui';
 
 /*
@@ -70,11 +71,11 @@ const Swatches = styled.span`
 `;
 
 const Swatch = styled.span`
-  width: 14px;
+  width: ${p => (Array.isArray(p.$c) ? '30px' : '14px')};
   height: 14px;
   border-radius: 3px;
   border: 1px solid var(--line-strong);
-  background: ${p => p.$c};
+  background: ${p => (Array.isArray(p.$c) ? cssGradient(p.$c) : p.$c)};
 `;
 
 const Actions = styled.div`
@@ -82,7 +83,14 @@ const Actions = styled.div`
   gap: 6px;
 `;
 
-const same = (a, b) => a.toLowerCase() === b.toLowerCase();
+// 색 비교 (색 지점 목록 포함) — HSL 변환 반올림 차이(채널당 2 이하)는 같은 색으로 봄
+const hexes = v => JSON.stringify(v).match(/#[0-9a-f]{6}/gi) || [];
+const near = (a, b) => [16, 8, 0].every(sh => Math.abs(((parseInt(a.slice(1), 16) >> sh) & 255) - ((parseInt(b.slice(1), 16) >> sh) & 255)) <= 2);
+const same = (a, b) => {
+  const x = hexes(a);
+  const y = hexes(b);
+  return x.length === y.length && x.every((c, i) => near(c, y[i]));
+};
 
 export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
   const primary = state.title.color;
@@ -90,7 +98,7 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
   useEffect(() => setColor(primary), [primary]);
 
   const now = currentThemeColors(state);
-  const next = useMemo(() => themeColors(color), [color]);
+  const next = useMemo(() => themeColors(state, color), [state, color]);
   const pending = THEME_GROUPS.some(g => g.paths.some(p => !same(now[p], next[p])));
 
   return (

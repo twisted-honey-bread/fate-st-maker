@@ -5,10 +5,14 @@
 export const CARD_WIDTH = 1920;
 export const CARD_HEIGHT = 1080;
 
+import { mirrorStops } from './gradient';
+
 export const TEXT_BASE = {
   show: true, text: '', font: 'Noto Sans KR', weight: 400, italic: false,
   size: 5, spacing: 0, x: 50, y: 50,
-  fillMode: 'solid', color: '#333333', color2: '#000000', mirrorCenter: 0.08, mirrorScope: 'text',
+  // 채우기: solid = 단색(color) | horizontal = 가로 그라데이션 | vertical = 세로 그라데이션 (stops 사용)
+  // mirrorScope: 가로 그라데이션 기준 — text = 글자 폭, canvas = 화면 폭
+  fillMode: 'solid', color: '#333333', stops: [[0, '#333333'], [1, '#000000']], mirrorScope: 'text',
   strokeWidth: 0, strokeColor: '#ffffff',
   glowColor: '#ffffff', glowOpacity: 0, glowBlur: 0.5, glowStrength: 1,
   shadowColor: '#000000', shadowOpacity: 0, shadowBlur: 0.4, shadowX: 0, shadowY: 0.15,
@@ -29,16 +33,16 @@ export const DEFAULTS = {
   },
   left: {
     ...TEXT_BASE, text: 'Lostbelt No.1', font: 'Noto Serif', weight: 700, size: 6.0, spacing: 0.03,
-    x: 6, y: 11.4, fillMode: 'mirror', mirrorScope: 'canvas', color: '#3f78b5', color2: '#262c34', mirrorCenter: 0.12,
+    x: 6, y: 11.4, fillMode: 'horizontal', mirrorScope: 'canvas', color: '#3f78b5', stops: mirrorStops('#3f78b5', '#262c34', 0.12),
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   right: {
     // text = '_' 앞, after = '_' 뒤 (인트로에서 로고와 함께 나타남) — 따로 입력하므로 각 칸에 '_' 가 들어가도 됨
     ...TEXT_BASE, text: '이문심도', after: 'D', font: 'Noto Sans KR', weight: 300, size: 4.3,
-    x: 94.3, y: 10.6, color: '#545961', glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
+    x: 94.3, y: 10.6, color: '#545961', stops: [[0, '#545961'], [1, '#2b2f35']], glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   topLine: {
-    show: true, y: 12.6, thickness: 0.22, fillMode: 'mirror', color: '#4f86bf', color2: '#2c3138', mirrorCenter: 0.15,
+    show: true, y: 12.6, thickness: 0.22, fillMode: 'horizontal', color: '#4f86bf', stops: mirrorStops('#4f86bf', '#2c3138', 0.15),
     opacity: 0.85, left: 3, right: 1.8, fade: 10,
   },
   logo: {
@@ -55,23 +59,23 @@ export const DEFAULTS = {
   },
   era: {
     ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,
-    fillMode: 'mirror', color: '#2b78c2', color2: '#0b1626', mirrorCenter: 0.05,
+    fillMode: 'horizontal', color: '#2b78c2', stops: mirrorStops('#2b78c2', '#0b1626', 0.05),
     glowColor: '#9ad8ff', glowOpacity: 0.9, glowBlur: 0.45, glowStrength: 2,
     position: 'left', gap: 1.6, offsetY: -0.6,
   },
   title: {
     ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
-    fillMode: 'mirror', color: '#2f9fe8', color2: '#0b1626', mirrorCenter: 0.06,
+    fillMode: 'horizontal', color: '#2f9fe8', stops: mirrorStops('#2f9fe8', '#0b1626', 0.06),
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.55, glowStrength: 2,
   },
   bottomLine: {
-    show: true, y: 77.6, thickness: 0.14, fillMode: 'solid', color: '#7d838b', color2: '#4a4f56', mirrorCenter: 0.15,
+    show: true, y: 77.6, thickness: 0.14, fillMode: 'solid', color: '#7d838b', stops: mirrorStops('#7d838b', '#4a4f56', 0.15),
     opacity: 0.8, left: 6, right: 6, fade: 18,
   },
   sub: {
     ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
-    x: 50, y: 89.4, fillMode: 'mirror', color: '#7a828d', color2: '#33383f', mirrorCenter: 0.08, mirrorScope: 'text',
+    x: 50, y: 89.4, fillMode: 'horizontal', color: '#7a828d', stops: mirrorStops('#7a828d', '#33383f', 0.08), mirrorScope: 'text',
     glowOpacity: 0.8, glowBlur: 0.4,
   },
   // 애니메이션 (인트로 / 아웃트로·공상절제)
@@ -106,10 +110,8 @@ export const DEFAULTS = {
     outroSubSize: 7,
     outroSubSpacing: 0.72,
     outroSubY: 75.1,
-    outroColor: '#ffffff',
-    outroColor2: '#d8bd88',
-    outroColor3: '#cfe2f5',
-    outroColorStop: 0.72,
+    // 문구 세로 그라데이션: 위(흰색) → 중간(금색) → 맨 아래에서 한 번 더 바뀜(옅은 파랑)
+    outroStops: [[0, '#ffffff'], [0.6, '#d8bd88'], [0.72, '#d8bd88'], [1, '#cfe2f5']],
     outroGlow: '#ffd98a',
     outroHold: 3.5,
     flareColor: '#ffd27a',
@@ -157,14 +159,34 @@ export const DEFAULTS = {
 // 오른쪽 위에 실제로 그릴 문자열: 앞 + '_' + 뒤 (뒤가 비면 앞만)
 export const rightText = r => (r.after ? `${r.text}_${r.after}` : r.text);
 
-// 예전 저장값(오른쪽 위를 한 칸에 '이문심도_D' 처럼 입력)을 앞/뒤 두 칸으로 나눔
+// 예전 저장값을 지금 형식으로
 export function migrateSettings(src) {
-  const r = src?.right;
+  if (!src || typeof src !== 'object') return src;
+  const out = { ...src };
+  // 오른쪽 위를 한 칸에 '이문심도_D' 처럼 입력 → 앞/뒤 두 칸
+  const r = out.right;
   if (r && typeof r.text === 'string' && r.after === undefined) {
     const i = r.text.indexOf('_');
-    return { ...src, right: { ...r, text: i >= 0 ? r.text.slice(0, i) : r.text, after: i >= 0 ? r.text.slice(i + 1) : '' } };
+    out.right = { ...r, text: i >= 0 ? r.text.slice(0, i) : r.text, after: i >= 0 ? r.text.slice(i + 1) : '' };
   }
-  return src;
+  // 색 1·색 2(+가운데 폭) → 그라데이션 지점 목록
+  for (const k of ['left', 'right', 'era', 'title', 'sub', 'topLine', 'bottomLine']) {
+    const s = out[k];
+    if (!s || s.stops !== undefined || typeof s.color !== 'string') continue;
+    const c2 = typeof s.color2 === 'string' ? s.color2 : s.color;
+    const mode = s.fillMode;
+    out[k] = {
+      ...s,
+      fillMode: mode === 'mirror' ? 'horizontal' : mode === 'gradient' ? 'vertical' : 'solid',
+      stops: mode === 'gradient' ? [[0, s.color], [1, c2]] : mirrorStops(s.color, c2, s.mirrorCenter ?? 0.1),
+    };
+  }
+  const A = out.anim;
+  if (A && A.outroStops === undefined && typeof A.outroColor === 'string') {
+    const stop = A.outroColorStop ?? 0.72;
+    out.anim = { ...A, outroStops: [[0, A.outroColor], [Math.max(0.05, stop - 0.12), A.outroColor2], [stop, A.outroColor2], [1, A.outroColor3]] };
+  }
+  return out;
 }
 
 export const clone = o => JSON.parse(JSON.stringify(o));
@@ -175,7 +197,8 @@ export function mergeKnown(def, src) {
   if (!src || typeof src !== 'object') return out;
   for (const k of Object.keys(out)) {
     if (!(k in src)) continue;
-    if (out[k] && typeof out[k] === 'object') out[k] = mergeKnown(out[k], src[k]);
+    if (Array.isArray(out[k])) { if (Array.isArray(src[k])) out[k] = clone(src[k]); } // 그라데이션 지점 목록 등
+    else if (out[k] && typeof out[k] === 'object') out[k] = mergeKnown(out[k], src[k]);
     else if (typeof src[k] === typeof out[k]) out[k] = src[k];
   }
   return out;

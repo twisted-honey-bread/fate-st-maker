@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { PART_BY_ID, getPath } from '../card/schema';
 import { HCR_FAMILY } from '../card/fonts';
 import { Field } from './fields/Field';
+import { GradientEditor } from './fields/GradientEditor';
 import { AnalysisNotes } from './AnalysisNotes';
 import { Section } from './Section';
 import { StructureMap } from './StructureMap';
@@ -80,7 +81,19 @@ export function ControlPanel({
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const renderFields = list =>
-    visibleFields(list, state).map((f, i) => (
+    visibleFields(list, state).map((f, i) => (f.type === 'gradient' ? (
+      <GradientEditor
+        key={f.k}
+        id={`f_${f.k.replace(/\./g, '_')}`}
+        label={f.label}
+        modes={f.modes}
+        value={{
+          ...Object.fromEntries(Object.entries(f.keys).map(([n, path]) => [n, getPath(state, path)])),
+          mode: f.keys.mode ? getPath(state, f.keys.mode) : f.modes[0],
+        }}
+        onChange={patch => Object.entries(patch).forEach(([n, v]) => f.keys[n] && onField(f.keys[n], v))}
+      />
+    ) : (
       <Field
         key={f.k || `h${i}-${f.label}`}
         field={f}
@@ -92,7 +105,7 @@ export function ControlPanel({
         onImageClear={() => onImageClear(f.k)}
         onAction={onAction}
       />
-    ));
+    )));
 
   const partFont = part.id === 'anim' ? state.anim.mode === 'outro' && state.anim.outroFont : state[part.id]?.font;
   const usesMissingHcr = hcrAvailable === false && partFont === HCR_FAMILY;

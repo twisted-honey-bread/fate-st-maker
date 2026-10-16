@@ -1,5 +1,6 @@
 import { fontStr } from './fonts';
 import { rightText } from './defaults';
+import { addStops, colorAt, sortStops } from './gradient';
 import { getProceduralBackground } from './background';
 import { stylizeImage } from './stylize';
 import { rgba, mulberry32, FILTER_SUPPORTED } from './utils';
@@ -183,16 +184,11 @@ function drawLine(ctx, W, H, L) {
   if (!L.show || L.opacity <= 0 || len <= 0) return rect;
   const f = Math.min(0.49, L.fade / 100);
   const g = ctx.createLinearGradient(x0, 0, x1, 0);
-  g.addColorStop(0, rgba(L.color, 0));
-  g.addColorStop(f, rgba(L.color, L.opacity));
-  // 좌우대칭 그라데이션: 가장자리 색(color) → 가운데 색(color2)
-  if (L.fillMode === 'mirror') {
-    const c = Math.max(0, Math.min(0.5 - f - 0.001, L.mirrorCenter ?? 0.15));
-    g.addColorStop(0.5 - c, rgba(L.color2, L.opacity));
-    g.addColorStop(0.5 + c, rgba(L.color2, L.opacity));
-  }
-  g.addColorStop(1 - f, rgba(L.color, L.opacity));
-  g.addColorStop(1, rgba(L.color, 0));
+  // 색: 단색이면 color, 가로 그라데이션이면 stops / 투명도: 양 끝 f 구간에서 0 → opacity
+  const stops = L.fillMode === 'horizontal' && L.stops?.length ? L.stops : [[0, L.color], [1, L.color]];
+  const alphaAt = p => L.opacity * Math.min(1, f > 0 ? Math.min(p, 1 - p) / f : 1);
+  const ps = new Set([0, f, 1 - f, 1, ...sortStops(stops).map(([p]) => Math.max(0, Math.min(1, p)))]);
+  for (const p of [...ps].sort((a, b) => a - b)) g.addColorStop(p, rgba(colorAt(stops, p), alphaAt(p)));
   // reveal: 0~1, 가운데에서 양옆으로 그려지는 정도 (애니메이션용, 기본 1)
   const reveal = L.reveal ?? 1;
   ctx.fillStyle = g;
@@ -235,31 +231,19 @@ export function drawText(ctx, s, W, H, x, y, align) {
   ctx.lineJoin = 'round';
   ctx.miterLimit = 2;
 
-  // 좌우대칭 그라데이션: 가장자리 색(color) → 가운데 색(color2) → 가장자리 색, 텍스트 폭 기준
-  let mirrorFill = null;
-  if (s.fillMode === 'mirror') {
-    const c = Math.max(0, Math.min(0.5, s.mirrorCenter ?? 0.08));
-    // mirrorScope: 'text' = 글자 폭 기준, 'canvas' = 화면 폭 기준 (화면 가장자리 쪽일수록 가장자리 색)
+  // 그라데이션 채우기 (stops: [[위치 0~1, 색], ...])
+  const hasStops = s.stops?.length > 0;
+  let hFill = null;
+  if (s.fillMode === 'horizontal' && hasStops) {
+    // mirrorScope: 'text' = 글자 폭 기준, 'canvas' = 화면 폭 기준
     const [gx0, gx1] = s.mirrorScope === 'canvas' ? [0, W] : [sx, sx + Math.max(1, w)];
-    mirrorFill = ctx.createLinearGradient(gx0, 0, gx1, 0);
-    mirrorFill.addColorStop(0, s.color);
-    mirrorFill.addColorStop(0.5 - c, s.color2);
-    mirrorFill.addColorStop(0.5 + c, s.color2);
-    mirrorFill.addColorStop(1, s.color);
+    hFill = addStops(ctx.createLinearGradient(gx0, 0, gx1, 0), s.stops);
   }
   const fillAt = dy => {
-    if (mirrorFill) return mirrorFill;
-    // gradientStops: [[위치 0~1, 색], ...] 세로 다단 그라데이션 (아웃트로 문구용)
-    if (s.gradientStops) {
-      const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
-      for (const [pos, col] of s.gradientStops) g.addColorStop(pos, col);
-      return g;
-    }
-    if (s.fillMode !== 'gradient') return s.color;
-    const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
-    g.addColorStop(0, s.color);
-    g.addColorStop(1, s.color2);
-    return g;
+    if (hFill) return hFill;
+    if (s.fillMode !== 'vertical' || !hasStops) return s.color;
+    // 세로: 글자 윗부분(대문자 높이) → 기준선 조금 아래
+    return addStops(ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1), s.stops);
   };
   const fill = fillAt(0);
   const sw = (s.strokeWidth / 100) * H;
