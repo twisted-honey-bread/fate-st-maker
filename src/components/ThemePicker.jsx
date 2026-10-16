@@ -1,54 +1,131 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
+import { THEME_GROUPS, currentThemeColors, themeColors } from '../card/theme';
 import { Button, ColorInput } from './ui';
 
-/* 색 한 번에 맞추기 — 제목 위쪽 색(대표색)을 고르면 관련 색들을 자동으로 맞춤 */
-const Wrap = styled.div`
+/*
+ * 테마 색 — 대표색 하나를 고르면 같은 색조로 강조색들을 한 번에 바꿈
+ * 바뀔 색을 '지금 → 바꾼 뒤' 견본으로 먼저 보여주고, 적용·되돌리기·초기 색 버튼을 둠
+ */
+const Wrap = styled.section`
   display: grid;
-  gap: 6px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
 `;
 
 const Head = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+
+  h2 {
+    margin: 0;
+    font: 700 13px/1.3 var(--font-display);
+  }
+`;
+
+const Lead = styled.p`
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
   color: var(--muted);
 `;
 
-const Row = styled.div`
+const Pick = styled.div`
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-columns: 56px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
 `;
 
-const Hint = styled.p`
+const Changes = styled.ul`
+  display: grid;
+  gap: 4px;
   margin: 0;
-  font-size: 11px;
-  color: var(--muted);
+  padding: 8px 10px;
+  list-style: none;
+  border-radius: 6px;
+  background: var(--surface-2);
 `;
 
-export function ThemePicker({ primary, onApply, canUndo, onUndo }) {
+const Change = styled.li`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 12px auto;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+
+  > i {
+    font-style: normal;
+    text-align: center;
+  }
+`;
+
+const Swatches = styled.span`
+  display: inline-flex;
+  gap: 2px;
+`;
+
+const Swatch = styled.span`
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--line-strong);
+  background: ${p => p.$c};
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+const same = (a, b) => a.toLowerCase() === b.toLowerCase();
+
+export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
+  const primary = state.title.color;
   const [color, setColor] = useState(primary);
   useEffect(() => setColor(primary), [primary]);
 
+  const now = currentThemeColors(state);
+  const next = useMemo(() => themeColors(color), [color]);
+  const pending = THEME_GROUPS.some(g => g.paths.some(p => !same(now[p], next[p])));
+
   return (
-    <Wrap>
+    <Wrap aria-labelledby="themeHead">
       <Head>
-        <span>색 한 번에 맞추기</span>
-        <span>대표색 = 제목 위쪽 색</span>
+        <h2 id="themeHead">테마 색</h2>
+        <Button $small type="button" onClick={onReset} title="테마 색이 바꾸는 색들만 처음 기본값으로">초기 색으로</Button>
       </Head>
-      <Row>
-        <ColorInput id="themeColor" aria-label="대표색" value={color} onChange={e => setColor(e.target.value)} />
-        <Button type="button" $primary onClick={() => onApply(color)}>이 색으로 맞추기</Button>
+      <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 글자·배치·배경 사진은 그대로입니다.</Lead>
+      <Pick>
+        <ColorInput id="themeColor" aria-label="대표색 (제목 위쪽 색)" value={color} onChange={e => setColor(e.target.value)} />
+        <Lead>대표색 = 제목 위쪽 색</Lead>
+      </Pick>
+      <Changes aria-label="바뀌는 색 (지금 → 적용 후)">
+        <Change aria-hidden="true">
+          <span />
+          <span>지금</span>
+          <i />
+          <span>적용 후</span>
+        </Change>
+        {THEME_GROUPS.map(g => (
+          <Change key={g.label}>
+            <span>{g.label}</span>
+            <Swatches>{g.paths.map(p => <Swatch key={p} $c={now[p]} />)}</Swatches>
+            <i aria-hidden="true">→</i>
+            <Swatches>{g.paths.map(p => <Swatch key={p} $c={next[p]} />)}</Swatches>
+          </Change>
+        ))}
+      </Changes>
+      <Actions>
+        <Button type="button" $primary disabled={!pending} onClick={() => onApply(color)} style={{ flex: 1 }}>
+          {pending ? '이 색으로 바꾸기' : '지금 적용된 색입니다'}
+        </Button>
         {canUndo && <Button type="button" onClick={onUndo}>되돌리기</Button>}
-      </Row>
-      <Hint>제목·연대·왼쪽 위 글자·상단선·하늘색 글로우·렌즈 플레어·인트로 선 빛 색이 같은 색조로 바뀝니다.</Hint>
+      </Actions>
     </Wrap>
   );
 }

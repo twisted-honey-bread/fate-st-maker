@@ -128,7 +128,7 @@ const ANIM_H = 720;
 
 export function Preview({
   state, images, showGuides, fontVersion, layout, selected,
-  onLayout, onSelect, onDropImage, onModeChange, reference, exporting,
+  onLayout, onSelect, onDropImage, onModeChange, reference, exporting, children,
 }) {
   const canvasRef = useRef(null);
   const renderId = useRef(0);
@@ -332,6 +332,7 @@ export function Preview({
           onLoop={setLoop}
         />
       )}
+      {children}
       <Hint>미리보기에서 바꾸고 싶은 부분을 누르면 해당 설정이 열립니다 · 이미지 파일을 끌어다 놓으면 배경으로 설정</Hint>
     </Pane>
   );

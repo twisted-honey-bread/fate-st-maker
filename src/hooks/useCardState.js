@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DEFAULTS, clone, mergeKnown } from '../card/defaults';
 import { setPath } from '../card/schema';
-import { applyColorTheme, restoreColors } from '../card/theme';
+import { applyColorTheme, resetColorTheme, restoreColors } from '../card/theme';
 import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
 import { loadImage, readFileAsDataURL } from '../card/utils';
 import { loadSettings, saveSettings } from '../lib/storage';
@@ -41,6 +41,11 @@ export function useCardState() {
   // 색 한 번에 맞추기: 바뀌기 전 값을 돌려줘서 되돌릴 수 있게 함
   const applyTheme = useCallback(primary => {
     const { next, previous } = applyColorTheme(state, primary);
+    setState(next);
+    return previous;
+  }, [state]);
+  const resetTheme = useCallback(() => {
+    const { next, previous } = resetColorTheme(state, DEFAULTS);
     setState(next);
     return previous;
   }, [state]);
@@ -96,6 +101,6 @@ export function useCardState() {
 
   return {
     state, setField, renderImages, imageUrls, setImageFile, clearImage, reset, exportData, importData,
-    applyTheme, undoTheme, setImageUrl,
+    applyTheme, resetTheme, undoTheme, setImageUrl,
   };
 }

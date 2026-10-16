@@ -25,7 +25,7 @@ export const fontStr = (s, px) =>
 
 /*
  * 함초롬바탕(HCR Batang)은 한컴 저작권 폰트라 레포에 포함하지 않음
- * 1) 기기에 설치된 폰트(local)  2) public/fonts/ 에 직접 넣은 woff2 파일 순으로 찾고,
+ * 1) 기기에 설치된 폰트(local)  2) public/lostbelt/fonts/ 에 직접 넣은 woff2 파일 순으로 찾고,
  * 둘 다 없으면 Noto Serif KR 로 대신 그려짐 (툴바의 '폰트 추가'로 TTF 를 올려도 됨)
  */
 export const HCR_FAMILY = 'HCR Batang';

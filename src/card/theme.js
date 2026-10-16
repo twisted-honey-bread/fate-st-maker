@@ -55,6 +55,33 @@ const RULES = [
   ['anim.introLineColor', (h, s) => hslToHex(h, Math.max(0.85, s), 0.78)],
 ];
 
+// 패널에 보여줄 묶음 (같은 색이 여러 곳에 쓰이면 대표 경로 하나만)
+export const THEME_GROUPS = [
+  { label: '제목 · 연대', paths: ['title.color', 'title.color2', 'era.color', 'era.color2'] },
+  { label: '왼쪽 위 글자 · 상단선', paths: ['left.color', 'left.color2', 'topLine.color', 'topLine.color2'] },
+  { label: '글로우 · 렌즈 플레어 · 선 빛', paths: ['title.glowColor', 'logo.flareColor', 'anim.introLineColor'] },
+  { label: '부제 · 로고 뒤 그림자', paths: ['sub.color', 'sub.color2', 'logo.backShadowColor'] },
+];
+
+const getAt = (state, path) => {
+  const [sec, key] = path.split('.');
+  return state[sec][key];
+};
+
+// 대표색을 적용했을 때 각 경로의 색 (미리보기용)
+export function themeColors(primary) {
+  const [h, s, l] = hexToHsl(primary);
+  return Object.fromEntries(RULES.map(([path, rule]) => [path, rule(h, s, l)]));
+}
+
+export const currentThemeColors = state => Object.fromEntries(RULES.map(([path]) => [path, getAt(state, path)]));
+
+// 테마가 바꾸는 색들을 기본값으로 — 반환 형식은 applyColorTheme 과 같음
+export function resetColorTheme(state, defaults) {
+  const previous = currentThemeColors(state);
+  return { next: restoreColors(state, currentThemeColors(defaults)), previous };
+}
+
 // 반환: { next: 새 상태, previous: 바뀌기 전 값들 (되돌리기용) }
 export function applyColorTheme(state, primary) {
   const [h, s, l] = hexToHsl(primary);

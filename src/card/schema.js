@@ -215,8 +215,6 @@ export const PARTS = [
       when(R('anim.introSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isIntro),
       when(R('anim.outroSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isOutro),
       R('anim.seed', '입자 시드', 1, 999, 1),
-      S('anim.fps', 'MP4 프레임', [[24, '24 fps'], [30, '30 fps'], [60, '60 fps']]),
-      S('anim.gifFps', 'GIF 프레임', [[10, '10 fps'], [12, '12 fps'], [15, '15 fps'], [20, '20 fps']]),
     ],
     advanced: [
       when(HD('움직임 곡선 (easing)'), isIntro),

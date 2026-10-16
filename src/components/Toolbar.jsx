@@ -50,12 +50,9 @@ const Spacer = styled.span`
 `;
 
 export function Toolbar({
-  formats, format, onFormat, sizes, size, onSize, onDownload, progress, onCancel,
   guides, onGuides, guidesEnabled, reference, onReference,
   onAddFont, onExport, onImport, onReset,
 }) {
-  const busy = progress !== null;
-  const formatLabel = formats.find(([v]) => v === format)?.[1] || '';
   const fontRef = useRef(null);
   const jsonRef = useRef(null);
   // alert/confirm 없이 두 번 눌러 초기화
@@ -70,22 +67,6 @@ export function Toolbar({
   return (
     <Bar>
       <Title>Lostbelt 타이틀 카드<small>fate-st-maker</small></Title>
-      <Group>
-        <Inline htmlFor="fmtSel">형식
-          <Select id="fmtSel" value={format} onChange={e => onFormat(e.target.value)} disabled={busy}>
-            {formats.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </Select>
-        </Inline>
-        <Inline htmlFor="sizeSel">해상도
-          <Select id="sizeSel" value={size} onChange={e => onSize(+e.target.value)} disabled={busy}>
-            {sizes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </Select>
-        </Inline>
-        <Button $primary type="button" onClick={onDownload} disabled={busy}>
-          {busy ? `만드는 중 ${Math.round(progress * 100)}%` : `${formatLabel} 다운로드`}
-        </Button>
-        {busy && <Button type="button" onClick={onCancel}>취소</Button>}
-      </Group>
       <Spacer />
       <Group>
         <Inline htmlFor="guidesChk">

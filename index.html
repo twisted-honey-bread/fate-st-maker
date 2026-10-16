@@ -2,14 +2,34 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Lostbelt 타이틀 카드</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&family=Noto+Serif+KR:wght@200..900&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Black+Han+Sans&family=Do+Hyeon&family=Gowun+Batang:wght@400;700&family=Noto+Serif:wght@100..900&family=Cinzel:wght@400..900&family=Cormorant+Garamond:wght@300..700&family=Playfair+Display:wght@400..900&family=EB+Garamond:wght@400..800&display=swap" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>fate-st-maker</title>
+    <style>
+      :root { color-scheme: light dark; --bg: #f4f6f9; --fg: #1b2230; --muted: #5d6675; --card: #ffffff; --line: #d9dee6; --accent: #2b78c2; }
+      @media (prefers-color-scheme: dark) { :root { --bg: #11151c; --fg: #e6eaf0; --muted: #98a1ae; --card: #19202a; --line: #2b3441; --accent: #6cb4f5; } }
+      body { margin: 0; padding: 48px 16px; background: var(--bg); color: var(--fg); font: 15px/1.6 system-ui, -apple-system, "Noto Sans KR", sans-serif; }
+      main { max-width: 720px; margin: 0 auto; }
+      h1 { margin: 0 0 4px; font-size: 22px; }
+      p { margin: 0 0 24px; color: var(--muted); }
+      ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+      a { display: block; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: inherit; text-decoration: none; }
+      a:hover { border-color: var(--accent); }
+      a strong { display: block; color: var(--accent); }
+      a span { font-size: 13px; color: var(--muted); }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <main>
+      <h1>fate-st-maker</h1>
+      <p>만들 것을 고르세요.</p>
+      <ul>
+        <li>
+          <a href="./lostbelt/">
+            <strong>Lostbelt 타이틀 카드</strong>
+            <span>정지 이미지 · 인트로 · 아웃트로(공상절제) 애니메이션</span>
+          </a>
+        </li>
+      </ul>
+    </main>
   </body>
 </html>

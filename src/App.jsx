@@ -11,7 +11,8 @@ import { drawCard } from './card/renderer';
 import { generateLogo } from './card/logoGen';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
-import { ensureAnimFonts, isAnimMode } from './card/animation';
+import { ANIMATIONS, ensureAnimFonts, isAnimMode } from './card/animation';
+import { DownloadBar } from './components/DownloadBar';
 import { IMAGE_MAX_MB } from './card/utils';
 
 const Shell = styled.div`
@@ -195,15 +196,6 @@ export default function App() {
       <GlobalStyle />
       <Shell>
         <Toolbar
-          formats={FORMATS[kind]}
-          format={format}
-          onFormat={f => setFormatByKind(prev => ({ ...prev, [kind]: f }))}
-          sizes={SIZES[format]}
-          size={size}
-          onSize={v => setSizeByFormat(prev => ({ ...prev, [format]: v }))}
-          onDownload={handleDownload}
-          progress={progress}
-          onCancel={() => abortRef.current?.abort()}
           guides={guides}
           onGuides={setGuides}
           guidesEnabled={!animMode}
@@ -228,7 +220,23 @@ export default function App() {
             reference={{ ...reference, src: referenceSrc }}
             exporting={progress !== null}
             onDropImage={file => handleImageFile('bg', file)}
-          />
+          >
+            <DownloadBar
+              label={animMode ? ANIM_NAMES[state.anim.mode] : '이미지'}
+              formats={FORMATS[kind]}
+              format={format}
+              onFormat={f => setFormatByKind(prev => ({ ...prev, [kind]: f }))}
+              sizes={SIZES[format]}
+              size={size}
+              onSize={v => setSizeByFormat(prev => ({ ...prev, [format]: v }))}
+              fps={format === 'gif' ? state.anim.gifFps : state.anim.fps}
+              onFps={v => card.setField(format === 'gif' ? 'anim.gifFps' : 'anim.fps', v)}
+              duration={animMode ? ANIMATIONS[state.anim.mode].duration(state) : 0}
+              onDownload={handleDownload}
+              progress={progress}
+              onCancel={() => abortRef.current?.abort()}
+            />
+          </Preview>
           <ControlPanel
             state={state}
             onField={card.setField}
@@ -253,6 +261,10 @@ export default function App() {
             onApplyTheme={hex => {
               setThemeUndo(card.applyTheme(hex));
               notify('대표색에 맞춰 색을 바꿨습니다. 마음에 들지 않으면 되돌리기를 누르세요.');
+            }}
+            onResetTheme={() => {
+              setThemeUndo(card.resetTheme());
+              notify('테마 색을 처음 기본값으로 되돌렸습니다.');
             }}
             canUndoTheme={!!themeUndo}
             onUndoTheme={() => {

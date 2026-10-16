@@ -14,14 +14,18 @@ npm run build    # dist/ 에 정적 파일 생성 (base: './' 라 아무 경로�
 ## 구조
 
 ```
-index.html                  Google Fonts 링크, #root
+index.html                  메이커 목록 (메인 페이지)
+lostbelt/index.html         Lostbelt 타이틀 카드 페이지 (/lostbelt/) — Google Fonts 링크, #root
+public/lostbelt/            이 메이커 전용 정적 파일 (reference/, fonts/)
 src/
   main.jsx                  진입점
   App.jsx                   레이아웃, 다운로드/설정 입출력/폰트 추가 처리
   styles/GlobalStyle.js     색·폰트 토큰 (라이트/다크)
   hooks/useCardState.js     카드 설정 상태, 업로드 이미지, localStorage 자동 저장
   components/
-    Toolbar.jsx             상단 툴바 (해상도, 형식, 다운로드, 가이드, 설정 저장/불러오기, 초기화)
+    Toolbar.jsx             상단 툴바 (가이드, 원본 겹쳐보기, 폰트 추가, 설정 저장/불러오기, 초기화)
+    DownloadBar.jsx         미리보기 아래 다운로드 (형식, 해상도, 프레임)
+    ThemePicker.jsx         테마 색 (대표색으로 색 일괄 변경, 되돌리기, 초기 색)
     Preview.jsx             캔버스 미리보기, 애니메이션 재생 (드래그&드롭으로 배경 지정)
     Player.jsx              정지/인트로/아웃트로 전환, 재생 막대
     ControlPanel.jsx        선택한 파트의 메인/고급 설정 패널
@@ -44,10 +48,19 @@ src/
     storage.js              localStorage 래퍼
 ```
 
+## 페이지 경로
+
+메이커마다 하위 경로를 하나씩 씁니다. 이 메이커는 `/lostbelt/` 이고, 루트(`/`)는 메이커 목록입니다.
+새 메이커를 추가할 때는 `새이름/index.html` 을 만들고 `vite.config.js` 의 `build.rollupOptions.input` 에 넣으면 되며,
+기존 페이지 주소는 바뀌지 않습니다. 개발 서버에서는 `http://localhost:5173/lostbelt/` 로 엽니다.
+
 ## 화면 구성
 
 - 오른쪽 콘솔 위쪽의 **카드 구조도**는 실제 렌더링 위치를 축소해 각 부분을 블록으로 보여줍니다.
   블록이나 아래 탭, 또는 미리보기 캔버스에서 해당 부분을 누르면 그 부분의 설정만 표시됩니다.
+- 콘솔은 위에서부터 **테마 색** → **카드 구조도(바꿀 부분 고르기)** → 고른 부분의 설정 순서입니다.
+- **테마 색**: 대표색(제목 위쪽 색)을 고르면 바뀔 색을 ‘지금 → 적용 후’ 견본으로 먼저 보여주고, 적용·되돌리기·초기 색으로 버튼을 제공합니다.
+- 다운로드는 미리보기 바로 아래에서 합니다. 정지 이미지 / 인트로 / 아웃트로마다 형식·해상도(애니메이션은 프레임 수도)를 따로 고릅니다.
 - 설정은 **메인 설정**(텍스트, 폰트, 크기, 위치, 색)과 접을 수 있는 **고급 설정**(자간, 외곽선, 글로우, 그림자 등)으로 나뉩니다.
 
 ## 배경 사진 스타일 변환
@@ -86,7 +99,7 @@ src/
 ## 원본 겹쳐보기
 
 툴바의 **원본 겹쳐보기**를 켜면 참고용 원본 캡처를 미리보기 위에 반투명하게 겹쳐 위치와 폰트를 비교할 수 있습니다.
-`public/reference/` 의 이미지(모두 검은 띠를 잘라 1920×1080 으로 맞춤) 중에서 고르며, ‘자동’은 모드에 맞는 것을 씁니다.
+`public/lostbelt/reference/` 의 이미지(모두 검은 띠를 잘라 1920×1080 으로 맞춤) 중에서 고르며, ‘자동’은 모드에 맞는 것을 씁니다.
 
 - 정지 카드 (`lostbelt-no1.jpg`)
 - 아웃트로 · 섬광 (`outro-flash.jpg`, 약 2.8초 시점)
@@ -126,7 +139,7 @@ src/lib/videoExport.js   MP4 / GIF 만들기
 제목·부제 기본 폰트는 함초롬바탕(HCR Batang)입니다. 한컴 저작권 폰트라 레포에 포함하지 않았고, 다음 순서로 찾습니다.
 
 1. 기기에 설치된 폰트 (한컴오피스 설치 시 포함)
-2. `public/fonts/HCRBatang.woff2`, `public/fonts/HCRBatang-Bold.woff2` (라이선스를 확인한 뒤 직접 넣기)
+2. `public/lostbelt/fonts/HCRBatang.woff2`, `public/lostbelt/fonts/HCRBatang-Bold.woff2` (라이선스를 확인한 뒤 직접 넣기)
 3. 툴바의 ‘폰트 추가’로 올린 파일 (파일 이름에 HCR/함초롬이 들어 있으면 자동으로 함초롬바탕으로 등록)
 
 셋 다 없으면 Noto Serif KR 로 대신 그립니다.
