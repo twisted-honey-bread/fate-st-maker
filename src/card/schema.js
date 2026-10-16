@@ -234,7 +234,7 @@ export const PARTS = [
       when(T('anim.outroSub', '영문 부제'), isOutro),
       when(F('anim.outroFont', '문구 폰트'), isOutro),
       when(R('anim.outroHold', '문구 유지 시간', 0.5, 10, 0.1, '초'), isOutro),
-      when(R('anim.introHold', '마지막 정지 시간', 0, 10, 0.1, '초'), isIntro),
+      when(R('anim.introHold', '끝난 뒤 마지막 화면 유지', 0, 10, 0.1, '초'), isIntro),
       when(R('anim.introSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isIntro),
       when(R('anim.outroSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isOutro),
       R('anim.seed', '입자 시드', 1, 999, 1),

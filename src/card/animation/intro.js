@@ -5,7 +5,7 @@ import {
   drawCircuitBand, drawCornerVignette, drawLineLight, drawRevealMask, drawRisingParticles, fillOverlay,
 } from './effects';
 import { bell, ease, easeOut, flicker, layer, prog } from './util';
-import { stageTime } from './timing';
+import { STAGES, stageTime } from './timing';
 
 /*
  * 인트로 — 어두워졌을 때에서 시작해 원래 타이틀 카드로 밝아짐
@@ -35,14 +35,16 @@ const lineRange = (line, W, H) => ({
   y: (line.y / 100) * H,
 });
 
-// 유지 시간 전까지의 길이: 주요 단계(밝아짐·연대·제목·플레어·하단 선·부제)가 모두 끝난 뒤 0.1초
-const introBase = A => Math.max(...['introReveal', 'introTitle', 'introFlare', 'introSub'].map(id => stageTime(A, id)[1])) + 0.1;
+// 움직임이 모두 끝나는 시점: 모든 단계(입자·회로 무늬 포함) 중 가장 늦게 끝나는 단계 + 0.1초
+// 그 뒤 '마지막 화면 유지 시간'(introHold) 동안은 마지막 프레임을 그대로 멈춰 보여줌
+const introBase = A => Math.max(...STAGES.intro.filter(s => s.time).map(s => stageTime(A, s.id)[1])) + 0.1;
 export const introDuration = state => (introBase(state.anim) + state.anim.introHold) / state.anim.introSpeed;
 
 export function drawIntroFrame(ctx, W, H, state, images, time) {
-  const t = time * state.anim.introSpeed;
   const A = state.anim;
-  const end = introBase(A) + A.introHold;
+  // 움직임이 끝난 뒤에는 시간을 멈춰 마지막 화면을 유지 (배경 축소·플레어 깜빡임도 멈춤)
+  const end = introBase(A);
+  const t = Math.min(time * A.introSpeed, end);
   // 단계별 [시작, 끝] (애니메이션 패널 → 움직임 곡선·재생 시간)
   const T = id => stageTime(A, id);
   const P = id => prog(t, ...T(id));

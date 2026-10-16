@@ -180,13 +180,13 @@
     "flareY": -6.7,
     "flareLength": 14.1,
     "flareThickness": 0.9,
-    "flareIntensity": 0.75,
+    "flareIntensity": 0.5,
     "flareAspect": 3.2,
     "flareBlend": "screen",
     "flareSolid": 0.33,
     "edgeColor": "#6e4526",
-    "edgeStrength": 0.36,
-    "edgeWidth": 0.4,
+    "edgeStrength": 1,
+    "edgeWidth": 0.75,
     "backShadow": 0.33,
     "backShadowColor": "#1c2733",
     "backShadowSize": 40
@@ -283,7 +283,17 @@
     "shadowBlur": 0.4,
     "shadowX": 0,
     "shadowY": 0.15,
-    "anchor": "group"
+    "anchor": "group",
+    "flare": true,
+    "flareColor": "#4fb8ff",
+    "flareX": -0.5,
+    "flareY": 1,
+    "flareLength": 12,
+    "flareThickness": 0.8,
+    "flareIntensity": 0.5,
+    "flareAspect": 3.2,
+    "flareBlend": "screen",
+    "flareSolid": 0.45
   },
   "bottomLine": {
     "show": true,
@@ -380,7 +390,7 @@
     "fogColor": "#b9c2cc",
     "circuit": true,
     "circuitColor": "#8b949e",
-    "circuitOpacity": 0.4,
+    "circuitOpacity": 0.2,
     "outroText": "공상절제",
     "outroSub": "Cosmos Denial",
     "outroFont": "HCR Batang",
@@ -389,10 +399,10 @@
     "outroSubWeight": 400,
     "outroSize": 24.5,
     "outroY": 60,
-    "outroSpacing": 0.42,
+    "outroSpacing": 0.41,
     "outroScaleX": 100,
     "outroSubSize": 7,
-    "outroSubSpacing": 0.72,
+    "outroSubSpacing": 0.77,
     "outroSubScaleX": 100,
     "outroSubY": 75.1,
     "outroStops": [
@@ -428,6 +438,9 @@
     "outroLogoColor": "#ffffff",
     "outroLogoDark": "#14161b",
     "particleDensity": 1,
+    "diamondSize": 1,
+    "goldSize": 2,
+    "riseSize": 1.3,
     "particleColor": "#fffef4",
     "particleGlow": "#fff0b8",
     "particleGlowSize": 3,
@@ -435,22 +448,101 @@
     "seed": 1,
     "riseDensity": 1,
     "hexGrid": true,
+    "times": {
+      "introFade": [
+        0,
+        0.8
+      ],
+      "introLine": [
+        0.3,
+        1.5
+      ],
+      "introHeader": [
+        0.5,
+        1.3
+      ],
+      "introRise": [
+        1.15,
+        2.55
+      ],
+      "introLogo": [
+        2.4,
+        3.6
+      ],
+      "introReveal": [
+        4.3,
+        5.6
+      ],
+      "introTitle": [
+        4.6,
+        5.4
+      ],
+      "introFlare": [
+        4.8,
+        5.3
+      ],
+      "introSub": [
+        5.4,
+        7
+      ],
+      "introRise2": [
+        6,
+        7.4
+      ],
+      "introCircuit": [
+        7,
+        8.8
+      ],
+      "outroInk": [
+        0.6,
+        1.6
+      ],
+      "outroFlash": [
+        2.3,
+        3.2
+      ],
+      "outroDarken": [
+        2.3,
+        3
+      ],
+      "outroText": [
+        2.3,
+        3.2
+      ],
+      "outroParticles": [
+        2.6,
+        null
+      ],
+      "outroCircuit": [
+        3.2,
+        5.3
+      ],
+      "outroGold": [
+        2.7,
+        null
+      ],
+      "outroEnd": [
+        0,
+        1.4
+      ]
+    },
+    "syncFlashToText": true,
     "easeIntroFade": "outCubic",
     "easeIntroLine": "outCubic",
     "easeIntroHeader": "outCubic",
     "easeIntroLogo": "outCubic",
     "easeIntroReveal": "inOutCubic",
     "easeIntroTitle": "outCubic",
-    "easeIntroSub": "outCubic",
+    "easeIntroSub": "inCubic",
     "easeIntroZoom": "linear",
     "easeIntroCircuit": "linear",
-    "easeOutroInk": "inOutCubic",
+    "easeOutroInk": "inExpo",
     "easeOutroDarken": "inOutCubic",
-    "easeOutroSpread": "outCubic",
+    "easeOutroSpread": "inOutCubic",
     "easeOutroText": "inOutCubic",
     "easeOutroCircuit": "linear",
     "easeOutroEnd": "inCubic",
-    "easeOutroRays": "outCubic",
+    "easeOutroRays": "inOutCubic",
     "fps": 30,
     "gifFps": 15
   }
