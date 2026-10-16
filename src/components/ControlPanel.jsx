@@ -213,7 +213,6 @@ export function ControlPanel({
               />
             </Switch>
           )}
-          <p>{part.desc}</p>
         </PartHeader>
         {usesMissingHcr && (
           <Notice>

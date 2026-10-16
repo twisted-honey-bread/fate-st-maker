@@ -33,20 +33,27 @@ const gen = f => when(f, isGen);
 // fontGroup: 'korean' 이면 폰트·굵기를 따로, 그 외(left/latin)는 정해진 '폰트 + 굵기' 선택지
 // 크기·위치는 고정값 (패널에서 뺌)
 // 표시 여부는 파트 이름 오른쪽 끝의 토글 (PARTS 의 toggle), 채우기는 고급 설정
-function textMain(p, { extra = [], fontGroup = 'korean' } = {}) {
+// 폰트·굵기는 고급 설정 (textAdvanced)
+function textMain(p, { extra = [] } = {}) {
   return [
     T(`${p}.text`, '텍스트'),
-    ...(fontGroup === 'korean'
-      ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
-      : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
     ...extra,
   ];
 }
 
+const fontFields = (p, fontGroup = 'korean') => [
+  HD('폰트'),
+  ...(fontGroup === 'korean'
+    ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
+    : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
+];
+
 // 글자·외곽선·그림자·글로우 불투명도는 고정값 — 글로우의 색·번짐·강도만 조절
-function textAdvanced(p, extra = []) {
+function textAdvanced(p, extra = [], fontGroup = 'korean') {
   return [
-    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal', 'vertical']),
+    ...fontFields(p, fontGroup),
+    HD('채우기'),
+    G('색', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal', 'vertical']),
     ...extra,
     HD('글로우 (외부 광채)'),
     C(`${p}.glowColor`, '색'),
@@ -61,47 +68,25 @@ export const PARTS = [
     id: 'bg', short: '배경', title: '배경', desc: '설원 이미지와 분위기 효과',
     main: [
       IM('bg', '배경 이미지', '16:9, 1920×1080 이상 권장. 비율이 다르면 화면을 꽉 채우도록 가운데 기준으로 넘치는 부분이 잘립니다 (아래 ‘화면에서 끌어서 조정하기’ 또는 확대·위치로 조절). 미리보기에 끌어다 놓아도 됩니다.'),
-      S('bg.styleMode', '사진 스타일 변환', [['duotone', '듀오톤'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
-      when(C('bg.styleInk', '톤 색 (어두운 부분)'), hasStyle),
-      when(C('bg.stylePaper', '톤 색 (밝은 부분)'), hasStyle),
       HD('크기·위치'),
       when(BTN('bgEdit', '', '화면에서 끌어서 조정하기'), s => s.anim.mode === 'still'),
       R('bg.zoom', '확대', 100, 300, 1, '%'),
       R('bg.posX', '가로 위치', 0, 100, 0.5, '%'),
       R('bg.posY', '세로 위치', 0, 100, 0.5, '%'),
+    ],
+    // 보정 필터·비네트·중앙 광원·눈 입자 세부·사진 변환 세부 값은 고정값 (defaults.json)
+    advanced: [
+      HD('사진 스타일 변환'),
+      S('bg.styleMode', '변환 방식', [['duotone', '듀오톤'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
+      when(C('bg.styleInk', '톤 색 (어두운 부분)'), hasStyle),
+      when(C('bg.stylePaper', '톤 색 (밝은 부분)'), hasStyle),
       HD('분위기'),
       R('bg.brightness', '밝기', 0, 200, 1, '%'),
       R('bg.washOpacity', '흰색 덮기', 0, 1, 0.01),
       B('bg.snow', '눈 입자'),
     ],
-    advanced: [
-      when(HD('사진 스타일 변환 (업로드한 이미지에만 적용)'), hasStyle),
-      when(R('bg.styleExposure', '밝게', -0.5, 0.8, 0.01), hasStyle),
-      when(R('bg.styleContrast', '대비', 0.2, 3, 0.05, '배'), hasStyle),
-      when(R('bg.styleLevels', '단계 수', 2, 8, 1), s => s.bg.styleMode === 'poster'),
-      when(R('bg.styleThreshold', '2치화 기준', 0.05, 0.95, 0.01), s => s.bg.styleMode === 'threshold'),
-      when(R('bg.styleEdge', '2치화 경계 부드럽게', 0, 0.3, 0.01), s => s.bg.styleMode === 'threshold'),
-      when(R('bg.styleBlur', '잡티 줄이기 (사전 흐림)', 0, 1, 0.01, '%H'), hasStyle),
-      HD('보정 필터'),
-      R('bg.contrast', '대비', 0, 200, 1, '%'),
-      R('bg.saturate', '채도', 0, 200, 1, '%'),
-      R('bg.blur', '흐림', 0, 3, 0.05, '%H'),
-      C('bg.washColor', '덮기 색'),
-      HD('밝아졌을 때의 요소 조정 (안개·비네트)'),
-      R('bg.fogBottom', '하단 안개', 0, 1, 0.01),
-      R('bg.vignette', '비네트 강도', 0, 1, 0.01),
-      C('bg.vignetteColor', '비네트 색'),
-      R('bg.vignetteSize', '비네트 안쪽 크기', 0, 95, 1, '%'),
-      HD('중앙 광원 (로고 뒤)'),
-      R('bg.glowOpacity', '불투명도', 0, 1, 0.01),
-      C('bg.glowColor', '색'),
-      R('bg.glowRadius', '반경', 2, 80, 0.5, '%W'),
-      HD('눈 입자'),
-      R('bg.snowCount', '개수', 0, 800, 10),
-      R('bg.snowOpacity', '불투명도', 0, 1, 0.01),
-    ],
   },
-  { id: 'left', short: '좌상단', title: '왼쪽 위 텍스트', desc: 'Lostbelt No.1', main: textMain('left', { fontGroup: 'left' }), advanced: textAdvanced('left') },
+  { id: 'left', short: '좌상단', title: '왼쪽 위 텍스트', desc: 'Lostbelt No.1', main: textMain('left'), advanced: textAdvanced('left', [], 'left') },
   { id: 'right', short: '우상단', title: '오른쪽 위 텍스트', desc: '오른쪽 끝 기준 정렬', main: textMain('right').flatMap(f => (f.k === 'right.text'
       ? [T('right.text', '_ 앞 텍스트'), { ...T('right.after', '_ 뒤 텍스트'), hint: '인트로에서 로고와 함께 나타납니다. 비워 두면 _ 도 표시하지 않습니다.' }]
       : [f])), advanced: textAdvanced('right') },
@@ -131,8 +116,8 @@ export const PARTS = [
   },
   {
     id: 'era', short: '연대', title: '연대', desc: 'A.D.1570?',
-    main: textMain('era', { fontGroup: 'latin' }),
-    advanced: textAdvanced('era'),
+    main: textMain('era'),
+    advanced: textAdvanced('era', [], 'latin'),
   },
   {
     id: 'title', short: '제목', title: '제목', desc: '영구동토제국 아나스타샤',
@@ -154,12 +139,13 @@ export const PARTS = [
     main: [
       when(T('anim.outroText', '제목'), isOutro),
       when(T('anim.outroSub', '부제'), isOutro),
-      when(F('anim.outroFont', '제목 폰트'), isOutro),
-      when(F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), isOutro),
       when(R('anim.introHold', '끝난 뒤 마지막 화면 유지', 0, 10, 0.1, '초'), isIntro),
     ],
     // 재생 속도·시드·유지 시간·비네트·회로·광선·입자·제목 색·크기·위치 등은 고정값 (defaults.json)
     advanced: [
+      when(HD('폰트'), isOutro),
+      when(F('anim.outroFont', '제목 폰트'), isOutro),
+      when(F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), isOutro),
       HD('어두워졌을 때의 요소 조정 (안개)'),
       R('anim.fogCoverage', '자욱한 정도 (덮는 면적)', 0, 1, 0.01),
       R('anim.fogOpacity', '진하기', 0, 1, 0.01),

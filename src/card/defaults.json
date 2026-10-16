@@ -440,6 +440,10 @@
     "outroLogoDark": "#14161b",
     "particleDensity": 1,
     "diamondSize": 1,
+    "diamondInDur": 0.25,
+    "diamondInZoom": false,
+    "diamondInScale": 0.5,
+    "diamondInFade": true,
     "goldSize": 2,
     "riseSize": 1.3,
     "particleColor": "#fffef4",
@@ -456,11 +460,11 @@
       ],
       "introLine": [
         0.3,
-        1.5
+        1.6
       ],
       "introHeader": [
-        0.5,
-        1.3
+        0.6,
+        2
       ],
       "introRise": [
         1.15,
@@ -500,15 +504,15 @@
       ],
       "outroFlash": [
         2.3,
-        3.2
+        3.1
       ],
       "outroDarken": [
-        2.3,
-        3
+        2.2,
+        3.1
       ],
       "outroText": [
-        2.3,
-        3.2
+        2.2,
+        3.1
       ],
       "outroParticles": [
         2.6,
