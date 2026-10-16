@@ -246,6 +246,7 @@ export const PARTS = [
     ],
     advanced: [
       HD('어두워졌을 때의 요소 조정 (비네트·색조·배경)'),
+      R('anim.revealAspect', '어두워짐·밝아짐 전환 모양 (가로 / 세로)', 0.5, 3, 0.05, '배'),
       R('anim.nightVignette', '배경 비네트 강도', 0, 1, 0.01),
       R('anim.nightVignetteSize', '배경 비네트 안쪽 크기', 0, 95, 1, '%'),
       when(R('anim.introCornerVignette', '네 귀퉁이 비네트 강도', 0, 1.5, 0.01), isIntro),

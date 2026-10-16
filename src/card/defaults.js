@@ -100,6 +100,7 @@ const BASE_DEFAULTS = {
     introZoom: 1.06,
     introBlur: 0.5,
     // 어두워졌을 때 비네트: 배경 원형 비네트(인트로·아웃트로) + 인트로의 네 귀퉁이 비네트
+    revealAspect: 1.35, // 어두워짐/밝아짐 전환 모양: 가로 / 세로 비율 (1 = 원)
     nightVignette: 0.97,
     nightVignetteSize: 28,
     introCornerVignette: 0.9,

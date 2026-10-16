@@ -68,7 +68,8 @@ export function drawLineLight(ctx, W, H, line, reveal, t, revealTime, color, alp
 }
 
 /* ---------- 잉크 번짐: 중심에서 원형으로 퍼지며 다른 장면을 드러냄 ---------- */
-export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1) {
+// aspect: 가로 / 세로 비율 (1 = 원, 1보다 크면 가로로 넓은 타원)
+export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1, aspect = 1) {
   if (p <= 0) return;
   if (p >= 1) {
     ctx.save();
@@ -77,17 +78,23 @@ export function drawRevealMask(ctx, W, H, source, cx, cy, p, alpha = 1) {
     ctx.restore();
     return;
   }
-  const maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
+  const k = Math.max(0.2, aspect);
+  // 세로 반경 기준. 가로는 k 배로 늘린 타원이므로 가로 거리는 k 로 나눠 셈
+  const maxR = Math.hypot(Math.max(cx, W - cx) / k, Math.max(cy, H - cy));
   // 부드러운 가장자리(안쪽 45%부터 흐려짐)까지 화면 모서리를 완전히 지나도록 끝 반경을 잡음 → p=1 에서 끊김 없음
   const r = (maxR / 0.45) * p;
   const { canvas, ctx: m } = layer('mask', W, H);
   m.drawImage(source, 0, 0);
   m.globalCompositeOperation = 'destination-in';
-  const g = m.createRadialGradient(cx, cy, r * 0.45, cx, cy, Math.max(1, r));
+  m.save();
+  m.translate(cx, cy);
+  m.scale(k, 1);
+  const g = m.createRadialGradient(0, 0, r * 0.45, 0, 0, Math.max(1, r));
   g.addColorStop(0, 'rgba(0,0,0,1)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   m.fillStyle = g;
-  m.fillRect(0, 0, W, H);
+  m.fillRect(-cx / k, -cy, W / k, H); // 변환된 좌표에서 화면 전체
+  m.restore();
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.drawImage(canvas, 0, 0);

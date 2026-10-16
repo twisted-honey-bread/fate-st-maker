@@ -152,7 +152,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
         color: state.title.color, seed: A.seed + 1, sizeScale: A.riseSize,
       });
     }
-    drawRevealMask(ctx, W, H, canvas, W / 2, H / 2, reveal);
+    drawRevealMask(ctx, W, H, canvas, W / 2, H / 2, reveal, 1, A.revealAspect);
   }
 
   // 전환 섬광 (선택)

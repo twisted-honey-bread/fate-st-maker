@@ -138,7 +138,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     drawCard(n, W, H, nightState, images, {
       afterBackground: (c, w, h) => drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor, coverage: A.fogCoverage, scale: A.fogScale }),
     });
-    drawRevealMask(ctx, W, H, canvas, lx, ly, ink);
+    drawRevealMask(ctx, W, H, canvas, lx, ly, ink, 1, A.revealAspect);
   }
 
   // 육각형 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
