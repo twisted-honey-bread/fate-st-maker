@@ -141,8 +141,9 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
 }
 
 /* ---------- 정방형(45도 회전한 정사각형) 입자: 양옆 가장자리에서 터져 나옴 (아웃트로) ----------
- * 정방형으로 크게 나타난 뒤 서로 다른 속도로 작아지며 조금씩 위로 올라가고, endAt 까지 모두 사라짐
- * 작아지는 동안 가로·세로 비율이 입자마다 무작위로 달라짐 (squash: 0 = 항상 정방형)
+ * 정방형으로 나타난 뒤 서로 다른 속도로 작아지며 조금씩 위로 올라가고, endAt 까지 모두 사라짐
+ * 작아질 때는 위쪽 꼭짓점(가로 중앙, 맨 위)을 기준점으로 줄어들고,
+ * 가로가 더 빨리 줄어 항상 세로로 긴 마름모가 됨 (squash: 0 = 끝까지 정방형)
  */
 function makeDiamonds(count, seed) {
   const rng = mulberry32(seed * 7907 + 99);
@@ -154,10 +155,9 @@ function makeDiamonds(count, seed) {
       y: rng() * 1.05 - 0.02,
       born: Math.pow(rng(), 2.5) * 0.45, // 대부분 터지는 순간에 등장
       end: 0.4 + Math.pow(rng(), 0.7) * 0.6, // 사라지는 시점 (burst~endAt 구간의 비율)
-      size: 0.04 + Math.pow(rng(), 1.2) * 0.1,
+      size: 0.01 + Math.pow(rng(), 2.4) * 0.17, // 작은 것은 더 작게, 큰 것은 더 크게
       vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
-      sx: rng() * 2 - 1, // 축소될 때의 가로 변형 방향 (-1~1)
-      sy: rng() * 2 - 1, // 세로 변형 방향
+      sx: 0.45 + rng() * 0.55, // 축소될 때 가로가 추가로 줄어드는 정도
     };
   });
 }
@@ -183,12 +183,14 @@ export function drawDiamonds(ctx, W, H, t, {
     const p = age / life;
     const pop = Math.min(1, age / 0.12); // 빠르게 커지며 등장
     const shrink = 1 - p * p * (3 - 2 * p); // 부드럽게 작아짐
-    const base = (d.size * H * pop * shrink) / 2;
+    const full = (d.size * H * pop) / 2; // 처음 크기의 반폭
+    const base = full * shrink;
     if (base < 0.3) continue;
-    const hw = base * (1 + d.sx * squash * p);
-    const hh = base * (1 + d.sy * squash * p);
+    const hw = base * (1 - d.sx * squash * p); // 가로가 더 빨리 줄어 세로로 긴 마름모
+    const hh = base;
     const x = d.x * W;
-    const y = (d.y + d.vy * age) * H;
+    const top = (d.y + d.vy * age) * H - full; // 위쪽 꼭짓점 고정
+    const y = top + hh;
     // 거의 흰 단색 마름모 + 옅은 크림색 빛 번짐 (겹치면 하나의 밝은 덩어리처럼 보임)
     ctx.globalAlpha = Math.min(1, pop * 1.2);
     ctx.shadowBlur = Math.max(hw, hh) * 1.4;

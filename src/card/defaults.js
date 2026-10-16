@@ -97,7 +97,7 @@ export const DEFAULTS = {
     outroHold: 3.5,
     flareColor: '#ffd27a',
     outroLogoColor: '#c3cad3',
-    outroLogoDark: '#0b0f15',
+    outroLogoDark: '#14161b',
     particleDensity: 1,
     particleColor: '#fffef4',
     particleGlow: '#fff0b8',
