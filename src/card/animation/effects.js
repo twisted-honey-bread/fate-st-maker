@@ -402,7 +402,7 @@ export function drawCornerVignette(ctx, W, H, strength) {
  */
 const circuitCache = new Map();
 function circuitLayer(W, H, seed, style = 'grid') {
-  if (style === 'penta') return pentaCircuitLayer(W, H, seed);
+  if (style === 'penta') return hexCircuitLayer(W, H, seed);
   const key = `${W}x${H}:${seed}`;
   if (circuitCache.has(key)) return circuitCache.get(key);
   const c = document.createElement('canvas');
@@ -410,54 +410,33 @@ function circuitLayer(W, H, seed, style = 'grid') {
   c.height = H;
   const g = c.getContext('2d');
   const rng = mulberry32(seed * 104729 + 3);
+  // 인트로: 위로 올라가는 세로선만 (사선·원·가로선 없음)
   const step = H * 0.028;
   const cols = Math.ceil(W / step);
-  const rows = Math.ceil(H / step);
-  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]];
   g.strokeStyle = '#ffffff';
-  g.fillStyle = '#ffffff';
   g.lineWidth = Math.max(1, H * 0.0016);
-  g.lineCap = 'square';
-  const node = (x, y, filled) => {
+  g.lineCap = 'butt';
+  const vline = (x, y0, y1) => {
     g.beginPath();
-    g.arc(x, y, step * 0.28, 0, Math.PI * 2);
-    if (filled) g.fill();
-    else g.stroke();
-  };
-  for (let n = 0; n < 90; n++) {
-    let gx = Math.floor(rng() * cols);
-    let gy = Math.floor(rng() * rows);
-    let [dx, dy] = rng() < 0.5 ? [1, 0] : [0, -1];
-    g.beginPath();
-    g.moveTo(gx * step, gy * step);
-    const start = [gx * step, gy * step];
-    const segs = 2 + Math.floor(rng() * 4);
-    for (let i = 0; i < segs; i++) {
-      const len = 2 + Math.floor(rng() * 7);
-      gx += dx * len;
-      gy += dy * len;
-      g.lineTo(gx * step, gy * step);
-      // 다음 방향: 45도씩만 꺾음
-      const idx = dirs.findIndex(d => d[0] === dx && d[1] === dy);
-      const turn = rng() < 0.5 ? 1 : -1;
-      const near = dirs.filter(d => Math.abs(d[0] - dx) + Math.abs(d[1] - dy) === 1 || (d[0] === dx && d[1] === dy));
-      [dx, dy] = near[Math.floor(rng() * near.length)] || dirs[(idx + turn + 8) % 8];
-    }
+    g.moveTo(x, y0);
+    g.lineTo(x, y1);
     g.stroke();
-    node(start[0], start[1], rng() < 0.4);
-    node(gx * step, gy * step, rng() < 0.4);
-  }
-  // 평행한 버스 선
-  for (let n = 0; n < 8; n++) {
-    const y0 = Math.floor(rng() * rows) * step;
-    const x0 = Math.floor(rng() * cols * 0.7) * step;
-    const len = (6 + Math.floor(rng() * 14)) * step;
-    const lanes = 2 + Math.floor(rng() * 3);
-    for (let l = 0; l < lanes; l++) {
-      g.beginPath();
-      g.moveTo(x0, y0 + l * step * 0.6);
-      g.lineTo(x0 + len, y0 + l * step * 0.6);
-      g.stroke();
+  };
+  for (let n = 0; n < 70; n++) {
+    const x = Math.floor(rng() * cols) * step;
+    const y = rng() * H * 1.1;
+    const len = H * (0.06 + rng() * 0.32);
+    // 한 줄을 몇 조각으로 끊어 그림
+    const pieces = 1 + Math.floor(rng() * 3);
+    for (let j = 0; j < pieces; j++) {
+      const a = j / pieces;
+      const b = (j + 1) / pieces - (pieces > 1 ? 0.1 : 0);
+      vline(x, y - len * a, y - len * b);
+    }
+    // 가끔 나란한 선 2~3가닥 (버스)
+    if (rng() < 0.25) {
+      const lanes = 1 + Math.floor(rng() * 2);
+      for (let l = 1; l <= lanes; l++) vline(x + l * step * 0.5, y - len * 0.1, y - len * 0.9);
     }
   }
   if (circuitCache.size > 6) circuitCache.delete(circuitCache.keys().next().value);
@@ -466,48 +445,135 @@ function circuitLayer(W, H, seed, style = 'grid') {
 }
 
 /*
- * 108도(정오각형 내각) 기반의 쪼개진 회로 무늬 (아웃트로)
- * 방향은 36도 단위, 꺾일 때 72도씩(내각 108도) 꺾이고 선 중간중간이 끊어짐
+ * 아웃트로 회로 무늬 — 참고 화면처럼 크고 성긴 육각형 윤곽선
+ * 뾰족한 위아래(pointy-top) 육각형이라 변은 세로선과 ±30도 사선뿐. 변 일부를 빼서 끊긴 느낌을 냄
  */
-function pentaCircuitLayer(W, H, seed) {
-  const key = `penta:${W}x${H}:${seed}`;
+function hexCircuitLayer(W, H, seed) {
+  const key = `hex:${W}x${H}:${seed}`;
   if (circuitCache.has(key)) return circuitCache.get(key);
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const g = c.getContext('2d');
   const rng = mulberry32(seed * 3571 + 11);
-  const unit = H * 0.045;
   g.strokeStyle = '#ffffff';
   g.lineWidth = Math.max(1, H * 0.0013);
-  g.lineCap = 'butt';
-  const dir = k => [Math.cos((k * Math.PI) / 5), Math.sin((k * Math.PI) / 5)];
-  for (let n = 0; n < 46; n++) {
-    let x = rng() * W;
-    let y = rng() * H;
-    let k = Math.floor(rng() * 10);
-    const segs = 2 + Math.floor(rng() * 4);
-    for (let i = 0; i < segs; i++) {
-      const [dx, dy] = dir(k);
-      const len = unit * (1.5 + rng() * 5);
-      // 선을 몇 조각으로 끊어서 그림
-      const pieces = 1 + Math.floor(rng() * 3);
-      for (let j = 0; j < pieces; j++) {
-        const a = j / pieces;
-        const b = (j + 1) / pieces - (pieces > 1 ? 0.12 : 0);
-        g.beginPath();
-        g.moveTo(x + dx * len * a, y + dy * len * a);
-        g.lineTo(x + dx * len * b, y + dy * len * b);
-        g.stroke();
-      }
-      x += dx * len;
-      y += dy * len;
-      k = (k + (rng() < 0.5 ? 2 : -2) + 10) % 10; // 72도 꺾임 = 내각 108도
+  g.lineCap = 'round';
+  const line = (x0, y0, x1, y1) => {
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x1, y1);
+    g.stroke();
+  };
+  const corner = (cx, cy, r, i) => {
+    const a = ((60 * i - 90) * Math.PI) / 180; // 꼭짓점이 위아래
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  // 화면을 고르게 덮도록 가로 칸마다 하나씩 + 가운데는 조금 비움
+  const count = 9;
+  for (let n = 0; n < count; n++) {
+    const cx = ((n + 0.2 + rng() * 0.6) / count) * W;
+    const cy = H * (0.1 + rng() * 0.8);
+    const r = H * (0.16 + rng() * 0.2);
+    const skip = new Set();
+    const drop = 1 + Math.floor(rng() * 3);
+    for (let i = 0; i < drop; i++) skip.add(Math.floor(rng() * 6));
+    for (let i = 0; i < 6; i++) {
+      if (skip.has(i)) continue;
+      const [x0, y0] = corner(cx, cy, r, i);
+      const [x1, y1] = corner(cx, cy, r, i + 1);
+      line(x0, y0, x1, y1);
     }
+    // 안쪽에 작은 육각형 일부 (겹친 느낌)
+    if (rng() < 0.4) {
+      const r2 = r * (0.45 + rng() * 0.2);
+      const from = Math.floor(rng() * 6);
+      for (let i = from; i < from + 3; i++) {
+        const [x0, y0] = corner(cx, cy, r2, i);
+        const [x1, y1] = corner(cx, cy, r2, i + 1);
+        line(x0, y0, x1, y1);
+      }
+    }
+  }
+  // 화면을 가로지르는 긴 가로선·30도 사선 몇 개
+  for (let n = 0; n < 4; n++) {
+    const y = H * (0.15 + rng() * 0.7);
+    const x0 = rng() * W * 0.5;
+    const len = W * (0.25 + rng() * 0.4);
+    const ang = [0, 0, Math.PI / 6, -Math.PI / 6][Math.floor(rng() * 4)];
+    line(x0, y, x0 + len * Math.cos(ang), y + len * Math.sin(ang));
   }
   if (circuitCache.size > 6) circuitCache.delete(circuitCache.keys().next().value);
   circuitCache.set(key, c);
   return c;
+}
+
+/*
+ * 밤 장면의 구름·안개 노이즈 — 저해상도 fBm 값 노이즈를 부드럽게 확대해 그림
+ * t: 초 (아주 천천히 흘러감), opacity: 0~1
+ */
+const fogCache = new Map();
+function fogLayer(seed) {
+  if (fogCache.has(seed)) return fogCache.get(seed);
+  const w = 224;
+  const h = 126;
+  const rng = mulberry32(seed * 7919 + 5);
+  const G = 64;
+  const grid = new Float32Array(G * G).map(() => rng());
+  const at = (x, y) => grid[(((y % G) + G) % G) * G + (((x % G) + G) % G)];
+  const smooth = v => v * v * (3 - 2 * v);
+  const noise = (x, y) => {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const fx = smooth(x - xi);
+    const fy = smooth(y - yi);
+    const a = at(xi, yi) + (at(xi + 1, yi) - at(xi, yi)) * fx;
+    const b = at(xi, yi + 1) + (at(xi + 1, yi + 1) - at(xi, yi + 1)) * fx;
+    return a + (b - a) * fy;
+  };
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d');
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let v = 0;
+      let amp = 0.5;
+      let f = 1 / 28;
+      for (let o = 0; o < 5; o++) {
+        v += amp * noise(x * f + o * 17.3, y * f * 1.3 + o * 9.1);
+        amp *= 0.5;
+        f *= 2;
+      }
+      // 덩어리진 구름만 남기고 사이는 비움
+      const k = Math.max(0, Math.min(1, (v - 0.42) / 0.35));
+      const i = (y * w + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(255 * k * k);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  fogCache.set(seed, c);
+  return c;
+}
+
+export function drawFog(ctx, W, H, { seed = 1, t = 0, opacity = 0.3, color = '#b9c2cc' } = {}) {
+  if (opacity <= 0) return;
+  const src = fogLayer(seed);
+  const { canvas, ctx: m } = layer('fog', W, H);
+  m.imageSmoothingEnabled = true;
+  m.imageSmoothingQuality = 'high';
+  // 화면보다 조금 크게 그려 천천히 옆으로 흘러가게
+  const drift = Math.min(0.1, t * 0.008);
+  m.drawImage(src, -W * (0.05 + drift), -H * 0.05, W * 1.2, H * 1.1);
+  m.globalCompositeOperation = 'source-in';
+  m.fillStyle = color;
+  m.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(canvas, 0, 0);
+  ctx.restore();
 }
 
 /*

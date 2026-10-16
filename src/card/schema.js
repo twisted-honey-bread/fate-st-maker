@@ -225,6 +225,8 @@ export const PARTS = [
       when(R('anim.introSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isIntro),
       when(R('anim.outroSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isOutro),
       R('anim.seed', '입자 시드', 1, 999, 1),
+      R('anim.fogOpacity', '밤 장면 안개 진하기', 0, 1, 0.01),
+      C('anim.fogColor', '안개 색'),
     ],
     advanced: [
       when(HD('움직임 곡선 (easing)'), isIntro),

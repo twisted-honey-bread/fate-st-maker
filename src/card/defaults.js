@@ -85,6 +85,8 @@ export const DEFAULTS = {
     introFlash: false,
     introZoom: 1.06,
     introBlur: 0.5,
+    fogOpacity: 0.35, // 밤 장면의 구름·안개 노이즈
+    fogColor: '#b9c2cc',
     circuit: true,
     circuitColor: '#8b949e',
     circuitOpacity: 0.4,

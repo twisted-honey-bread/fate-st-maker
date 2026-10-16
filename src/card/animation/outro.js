@@ -2,6 +2,7 @@ import { TEXT_BASE } from '../defaults';
 import { drawCard, drawText } from '../renderer';
 import { toNight } from './night';
 import {
+  drawFog,
   drawBlot, drawCircuitBand, drawDiamonds, drawFallingGold, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
 import { bell, ease, easeOut, layer, mixHex, prog } from './util';
@@ -16,7 +17,7 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  3.0~3.7  섬광이 사라지며 로고가 검은 실루엣으로 어두워짐
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
- *  3.0~     입자가 터지는 순간부터 108도 회로 무늬가 반짝이기 시작하며 아래에서 올라옴
+ *  3.0~     입자가 터지는 순간부터 육각형 회로 무늬가 반짝이기 시작하며 아래에서 올라옴
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
  *  입자가 모두 사라지면 중앙부터 어두워지며 암전
  */
@@ -126,11 +127,13 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
       sub: { ...night.sub, alpha: 0.7 * (1 - 0.6 * dimOld) },
     };
     const { canvas, ctx: n } = layer('outro-night', W, H);
-    drawCard(n, W, H, nightState, images);
+    drawCard(n, W, H, nightState, images, {
+      afterBackground: (c, w, h) => drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor }),
+    });
     drawRevealMask(ctx, W, H, canvas, lx, ly, ink);
   }
 
-  // 108도 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
+  // 육각형 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
   if (A.hexGrid) {
     drawCircuitBand(ctx, W, H, E('easeOutroCircuit', prog(t, BURST, BURST + 2.8)), {
       seed: A.seed, color: '#d6c496', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,

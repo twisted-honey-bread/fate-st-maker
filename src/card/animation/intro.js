@@ -1,6 +1,7 @@
 import { drawBackground, drawCard } from '../renderer';
 import { toNight } from './night';
 import {
+  drawFog,
   drawCircuitBand, drawCornerVignette, drawLineLight, drawRevealMask, drawRisingParticles, fillOverlay,
 } from './effects';
 import { bell, ease, easeOut, flicker, layer, prog } from './util';
@@ -82,7 +83,10 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     };
     const { canvas, ctx: n } = layer('intro-night', W, H);
     drawCard(n, W, H, nightState, images, {
-      afterBackground: (c, w, h) => drawCornerVignette(c, w, h, 0.9),
+      afterBackground: (c, w, h) => {
+        drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor });
+        drawCornerVignette(c, w, h, 0.9);
+      },
     });
     drawLineLight(n, W, H, state.topLine, lineReveal, t, u => 0.3 + 1.2 * u, A.introLineColor, 1);
     if (state.topLine.show) {
