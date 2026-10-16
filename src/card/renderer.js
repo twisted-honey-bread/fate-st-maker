@@ -522,21 +522,3 @@ function withInnerEdge(src, w, h, L, H) {
   if (edgeCache.size > 8) edgeCache.delete(edgeCache.keys().next().value);
   return out;
 }
-
-/* ---------- 배치 가이드 (미리보기 전용) ---------- */
-export function drawGuides(ctx, W, H, state) {
-  ctx.save();
-  ctx.lineWidth = 2;
-  ctx.setLineDash([10, 8]);
-  const v = x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); };
-  const h = y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); };
-  ctx.strokeStyle = 'rgba(255,0,140,0.6)';
-  v(W / 2);
-  h(H / 2);
-  ctx.strokeStyle = 'rgba(0,160,255,0.55)';
-  for (const k of ['left', 'right', 'title', 'sub']) if (state[k].show) h((state[k].y / 100) * H);
-  ctx.strokeStyle = 'rgba(0,200,120,0.6)';
-  ctx.setLineDash([]);
-  ctx.strokeRect(W * 0.05, H * 0.05, W * 0.9, H * 0.9);
-  ctx.restore();
-}

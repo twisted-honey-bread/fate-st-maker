@@ -5,7 +5,7 @@ import { fontStr } from '../fonts';
 // 애니메이션 종류별 길이(초)와 프레임 그리기 함수
 export const ANIMATIONS = {
   intro: { label: '인트로', duration: introDuration, draw: drawIntroFrame },
-  outro: { label: '아웃트로 · 공상절제', duration: outroDuration, draw: drawOutroFrame },
+  outro: { label: '아웃트로', duration: outroDuration, draw: drawOutroFrame },
 };
 
 export const isAnimMode = mode => mode in ANIMATIONS;

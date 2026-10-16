@@ -33,7 +33,7 @@ const SwitchButton = styled.button`
 export const MODES = [
   ['still', '정지 이미지'],
   ['intro', '인트로'],
-  ['outro', '아웃트로 · 공상절제'],
+  ['outro', '아웃트로'],
 ];
 
 export function ModeSwitch({ mode, onChange }) {

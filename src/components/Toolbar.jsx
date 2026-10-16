@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { Button, Checkbox, Range, Select } from './ui';
+import { Button } from './ui';
 
 const Bar = styled.header`
   display: flex;
@@ -18,8 +18,8 @@ const Title = styled.h1`
   white-space: nowrap;
 
   small {
-    margin-left: 6px;
-    font: 400 12px var(--font-ui);
+    margin-right: 6px;
+    font: 400 14px var(--font-ui);
     color: var(--muted);
   }
 `;
@@ -31,28 +31,11 @@ const Group = styled.div`
   gap: 8px;
 `;
 
-const Inline = styled.label`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  color: var(--muted);
-
-  select { width: auto; }
-`;
-
-const RefRange = styled(Range)`
-  width: 90px;
-`;
-
 const Spacer = styled.span`
   flex: 1;
 `;
 
-export function Toolbar({
-  guides, onGuides, guidesEnabled, reference, onReference,
-  onExport, onImport, onReset, onSaveDefaults,
-}) {
+export function Toolbar({ onExport, onImport, onReset }) {
   const jsonRef = useRef(null);
   // alert/confirm 없이 두 번 눌러 초기화
   const [armed, setArmed] = useState(false);
@@ -65,48 +48,10 @@ export function Toolbar({
 
   return (
     <Bar>
-      <Title>Lostbelt 타이틀 카드<small>fate-st-maker</small></Title>
+      <Title><small>메이커 /</small> 이문대 카드</Title>
       <Spacer />
       <Group>
-        <Inline htmlFor="guidesChk">
-          <Checkbox id="guidesChk" checked={guides} disabled={!guidesEnabled} onChange={e => onGuides(e.target.checked)} />
-          가이드
-        </Inline>
-        <Inline htmlFor="refChk" title="처음 예시 이미지를 반투명하게 겹쳐 위치와 폰트를 비교">
-          <Checkbox id="refChk" checked={reference.on} onChange={e => onReference({ on: e.target.checked })} />
-          원본 겹쳐보기
-        </Inline>
-        {reference.on && (
-          <>
-            <Select
-              id="refWhich"
-              aria-label="겹쳐볼 원본"
-              value={reference.which}
-              onChange={e => onReference({ which: e.target.value })}
-              style={{ width: 'auto' }}
-            >
-              <option value="auto">자동 (모드에 맞춤)</option>
-              <option value="lostbelt-no1">정지 카드</option>
-              <option value="outro-flash">아웃트로 · 섬광</option>
-              <option value="outro-text">아웃트로 · 문구</option>
-            </Select>
-            <RefRange
-              id="refOpacity"
-              aria-label="원본 불투명도"
-              min={0.05}
-              max={1}
-              step={0.05}
-              value={reference.opacity}
-              onChange={e => onReference({ opacity: +e.target.value })}
-            />
-            <Inline htmlFor="refDiff" title="겹친 두 이미지의 차이만 보여줌 — 정확히 겹치면 검게 보임">
-              <Checkbox id="refDiff" checked={reference.difference} onChange={e => onReference({ difference: e.target.checked })} />
-              차이
-            </Inline>
-          </>
-        )}
         <Button type="button" onClick={onExport}>설정 저장</Button>
-        <Button type="button" title="지금 설정으로 레포의 기본값 파일을 덮어씀 (GitHub 커밋 또는 파일 받기)" onClick={onSaveDefaults}>레포 기본값으로 저장</Button>
         <Button type="button" title="이 페이지의 ‘설정 저장’으로 만든 JSON 파일 (업로드한 이미지 포함)" onClick={() => jsonRef.current?.click()}>설정 불러오기</Button>
         <Button
           type="button"
@@ -115,7 +60,7 @@ export function Toolbar({
             if (armed) { setArmed(false); onReset(); } else setArmed(true);
           }}
         >
-          {armed ? '한 번 더 누르면 초기화' : '초기화'}
+          {armed ? '한 번 더 누르면 모두 초기화' : '모든 설정 초기화'}
         </Button>
       </Group>
       <input

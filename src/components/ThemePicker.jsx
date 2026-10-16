@@ -42,7 +42,6 @@ const Pick = styled.label`
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 0 1px 4px var(--shadow);
   cursor: pointer;
 
   input {

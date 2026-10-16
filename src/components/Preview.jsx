@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { CARD_HEIGHT, CARD_WIDTH } from '../card/defaults';
 import { ensureFonts } from '../card/fonts';
-import { drawCard, drawGuides } from '../card/renderer';
+import { drawCard } from '../card/renderer';
 import { PART_BY_ID } from '../card/schema';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from '../card/animation';
 import { ModeSwitch, PlayerBar } from './Player';
@@ -56,18 +56,6 @@ const Canvas = styled.canvas`
 `;
 
 // 원본 이미지 겹쳐보기 (미리보기 전용 — 다운로드에는 포함되지 않음)
-// 쌓는 순서: 배경 직접 조정의 흐린 사진(0) < 캔버스(1) < 원본 겹쳐보기(2) < 직접 조정 상자·선택 표시(3)
-const Reference = styled.img`
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  object-fit: fill;
-  pointer-events: none;
-`;
-
 // 선택한 파트 표시 (미리보기 전용 — 다운로드 이미지에는 포함되지 않음)
 const Outline = styled.div`
   position: absolute;
@@ -135,8 +123,8 @@ const ANIM_W = 1280;
 const ANIM_H = 720;
 
 export function Preview({
-  state, images, showGuides, fontVersion, layout, selected,
-  onLayout, onSelect, onDropImage, onModeChange, reference, exporting, children, bgEdit,
+  state, images, fontVersion, layout, selected,
+  onLayout, onSelect, onDropImage, onModeChange, exporting, children, bgEdit,
 }) {
   const frameRef = useRef(null);
   // 직접 조정 중 카드 배치 — 끄는 동안에는 고정하고 손을 뗄 때만 다시 맞춤 (끄는 중 좌표가 흔들리지 않게)
@@ -201,12 +189,11 @@ export function Preview({
         if (!c) return;
         const ctx = c.getContext('2d');
         const rects = drawCard(ctx, c.width, c.height, state, images);
-        if (showGuides) drawGuides(ctx, c.width, c.height, state);
         publishLayout(rects, c.width, c.height);
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [state, images, showGuides, fontsReady, fontVersion, animMode, publishLayout]);
+  }, [state, images, fontsReady, fontVersion, animMode, publishLayout]);
 
   /* ---------- 애니메이션 ---------- */
   const drawFrame = useCallback(t => {
@@ -323,13 +310,6 @@ export function Preview({
             if (f) onDropImage(f);
           }}
         />
-        {reference.on && (
-          <Reference
-            src={reference.src}
-            alt=""
-            style={{ opacity: reference.opacity, mixBlendMode: reference.difference ? 'difference' : 'normal' }}
-          />
-        )}
         {bgEdit && (
           <BgEditor frameRef={frameRef} image={images.bg} imageUrl={bgEdit.imageUrl} draft={bgEdit.draft} onChange={bgEdit.onChange} onDragging={setDragging} />
         )}

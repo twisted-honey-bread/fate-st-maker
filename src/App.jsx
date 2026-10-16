@@ -12,7 +12,6 @@ import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from './card/animation';
 import { DownloadBar } from './components/DownloadBar';
-import { RepoDefaultsDialog } from './components/RepoDefaultsDialog';
 import { IMAGE_MAX_MB } from './card/utils';
 
 const Shell = styled.div`
@@ -51,13 +50,7 @@ const SIZES = {
   gif: [[480, '480×270'], [640, '640×360'], [960, '960×540']],
 };
 const MIME = { png: 'image/png', jpg: 'image/jpeg' };
-// 겹쳐보기용 원본 캡처 (public/reference, 모두 1920×1080)
-const REFERENCES = {
-  'lostbelt-no1': 'reference/lostbelt-no1.jpg',
-  'outro-flash': 'reference/outro-flash.jpg',
-  'outro-text': 'reference/outro-text.jpg',
-};
-const ANIM_NAMES = { intro: '인트로', outro: '공상절제' };
+const ANIM_NAMES = { intro: '인트로', outro: '아웃트로' };
 
 const safeFileName = s => (s || '').replace(/[\\/:*?"<>|]/g, '').trim() || 'lostbelt';
 
@@ -66,12 +59,6 @@ export default function App() {
   const { state, renderImages } = card;
   const [formatByKind, setFormatByKind] = useState({ still: 'png', anim: 'mp4' });
   const [sizeByFormat, setSizeByFormat] = useState({ png: 1920, jpg: 1920, mp4: 1920, gif: 640 });
-  const [guides, setGuides] = useState(false);
-  // 원본 예시 이미지 겹쳐보기 (public/reference 의 이미지)
-  const [reference, setReference] = useState({ on: false, opacity: 0.5, difference: false, which: 'auto' });
-  const referenceSrc = REFERENCES[
-    reference.which === 'auto' ? (state.anim.mode === 'outro' ? 'outro-text' : 'lostbelt-no1') : reference.which
-  ];
   const [progress, setProgress] = useState(null); // null = 대기, 0~1 = 만드는 중
   const abortRef = useRef(null);
   // 부분별 업로드 칸에 올린 폰트 이름 { left, latin, korean } (이 탭에서만 유지)
@@ -82,7 +69,6 @@ export default function App() {
   const [hcrAvailable, setHcrAvailable] = useState(null);
   const [fontVersion, setFontVersion] = useState(0);
   const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
-  const [repoDialog, setRepoDialog] = useState(false);
   const [bgDraft, setBgDraft] = useState(null); // 배경 직접 조정 중인 값 { zoom, posX, posY } (적용 전)
   const viewState = bgDraft ? { ...state, bg: { ...state.bg, ...bgDraft } } : state;
 
@@ -207,15 +193,9 @@ export default function App() {
       <GlobalStyle />
       <Shell>
         <Toolbar
-          guides={guides}
-          onGuides={setGuides}
-          guidesEnabled={!animMode}
-          reference={reference}
-          onReference={patch => setReference(r => ({ ...r, ...patch }))}
           onExport={handleExport}
-          onSaveDefaults={() => setRepoDialog(true)}
           onImport={handleImport}
-          onReset={() => { card.reset(); notify('기본값으로 되돌렸습니다.'); }}
+          onReset={() => { card.reset(); notify('모든 설정을 기본값으로 되돌렸습니다.'); }}
         />
         <Main>
           <Preview
@@ -233,14 +213,12 @@ export default function App() {
               },
             }}
             images={renderImages}
-            showGuides={guides}
             fontVersion={fontVersion}
             layout={layout}
             selected={selected}
             onLayout={setLayout}
             onSelect={setSelected}
             onModeChange={handleModeChange}
-            reference={{ ...reference, src: referenceSrc }}
             exporting={progress !== null}
             onDropImage={file => handleImageFile('bg', file)}
           >
@@ -294,7 +272,6 @@ export default function App() {
           />
         </Main>
       </Shell>
-      <RepoDefaultsDialog open={repoDialog} onClose={() => setRepoDialog(false)} state={state} notify={notify} />
       <Toast message={toast} />
     </>
   );

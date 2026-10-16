@@ -97,7 +97,7 @@ export function ControlPanel({
           ease={st.ease ? A[st.ease] : null}
           time={time}
           total={total}
-          locked={st.sync && A.syncFlashToText ? '문구 페이드 인 끝과 같음' : null}
+          locked={st.sync && A.syncFlashToText ? '제목 페이드 인 끝과 같음' : null}
           onEase={v => onField(`anim.${st.ease}`, v)}
           onTime={v => onField(`anim.times.${st.id}`, v)}
         />
