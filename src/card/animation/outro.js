@@ -16,7 +16,7 @@ import { bell, ease, easeOut, layer, mixHex, prog } from './util';
  *  3.0~3.7  섬광이 사라지며 로고가 검은 실루엣으로 어두워짐
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
- *  3.1~     108도 회로 무늬가 아래에서 반짝이며 올라옴
+ *  3.0~     입자가 터지는 순간부터 108도 회로 무늬가 반짝이기 시작하며 아래에서 올라옴
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
  *  입자가 모두 사라지면 중앙부터 어두워지며 암전
  */
@@ -132,7 +132,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 108도 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
   if (A.hexGrid) {
-    drawCircuitBand(ctx, W, H, E('easeOutroCircuit', prog(t, 3.1, 5.9)), {
+    drawCircuitBand(ctx, W, H, E('easeOutroCircuit', prog(t, BURST, BURST + 2.8)), {
       seed: A.seed, color: '#d6c496', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
       image: images.circuitOutro,
     });
@@ -156,7 +156,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
 
   // 정방형 입자 (모두 사라지는 시점 = 암전 시작)
   drawDiamonds(ctx, W, H, t - BURST, {
-    density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, squash: A.particleSquash,
+    density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, glowSize: A.particleGlowSize / 100, squash: A.particleSquash,
     seed: A.seed, endAt: endStart - BURST,
   });
   // 위에서 쏟아지는 금빛 입자

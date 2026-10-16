@@ -129,6 +129,24 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
   ray(H * 0.14 * (0.6 + 0.4 * k), H * 0.008);
   ctx.restore();
 
+  // 6갈래 섬광: 세로축 기준 60도 간격의 넓고 부드러운 광선 (위·아래 + 대각선 4개)
+  for (let i = 0; i < 6; i++) {
+    const ang = Math.PI / 2 + (i * Math.PI) / 3;
+    const len = H * 0.3 * (0.5 + 0.5 * k);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang);
+    ctx.scale(1, 0.09);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, len);
+    g.addColorStop(0, `rgba(255,255,255,${0.55 * k})`);
+    g.addColorStop(0.35, `rgba(255,250,235,${0.22 * k})`);
+    g.addColorStop(1, 'rgba(255,250,235,0)');
+    ctx.fillStyle = g;
+    // 중심에서 한쪽 방향으로만 뻗도록 반쪽만 칠함
+    ctx.fillRect(0, -len, len, len * 2);
+    ctx.restore();
+  }
+
   // 중심 광원
   const r = H * 0.09;
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -157,7 +175,7 @@ function makeDiamonds(count, seed) {
       end: 0.3 + Math.pow(rng(), 0.7) * 0.7, // 사라지는 시점 (burst~endAt 구간의 비율)
       hold: rng() * 0.35, // 작아지기 시작하기 전 그대로 있는 구간 (수명 비율)
       curve: 0.5 + rng() * 2.2, // 작아지는 속도 곡선 (작을수록 초반에 빨리, 클수록 후반에 몰아서)
-      size: 0.01 + Math.pow(rng(), 2.4) * 0.365, // 작은 것은 작게, 큰 것은 화면 높이의 35% 이상까지
+      size: 0.01 + Math.pow(rng(), 2.4) * 0.274, // 작은 것은 작게, 큰 것은 화면 높이의 약 28%까지
       vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
       sx: 0.45 + rng() * 0.55, // 축소될 때 가로가 추가로 줄어드는 정도
     };
@@ -167,7 +185,7 @@ const diamondCache = new Map();
 
 // t: 터진 뒤 경과 시간(초), endAt: 마지막 입자가 사라지는 시각(터진 뒤 기준)
 export function drawDiamonds(ctx, W, H, t, {
-  density, color, glow = '#fff0b8', squash = 0.45, seed = 1, endAt = 3,
+  density, color, glow = '#fff0b8', glowSize = 0.022, squash = 0.45, seed = 1, endAt = 3,
 }) {
   const count = Math.round(44 * density);
   if (count <= 0 || t < 0) return;
@@ -176,8 +194,10 @@ export function drawDiamonds(ctx, W, H, t, {
     diamondCache.set(key, makeDiamonds(count, seed));
     if (diamondCache.size > 6) diamondCache.delete(diamondCache.keys().next().value);
   }
-  ctx.save();
-  ctx.shadowColor = rgba(glow, 0.95);
+  // 입자는 그림자 없이 한 레이어에 모아 그린 뒤, 레이어 전체에 빛 번짐을 한 번만 줌
+  // (입자끼리 서로 그림자가 겹치지 않고, 렌더링도 가벼움)
+  const { canvas: pl, ctx: pc } = layer('diamonds', W, H);
+  let any = false;
   for (const d of diamondCache.get(key)) {
     const age = t;
     const life = Math.max(0.3, d.end * endAt);
@@ -193,18 +213,22 @@ export function drawDiamonds(ctx, W, H, t, {
     const x = d.x * W;
     const top = (d.y + d.vy * age) * H - full; // 위쪽 꼭짓점 고정
     const y = top + hh;
-    // 거의 흰 단색 마름모 + 옅은 크림색 빛 번짐 (겹치면 하나의 밝은 덩어리처럼 보임)
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = Math.min(Math.max(hw, hh) * 0.8, H * 0.045); // 아주 큰 입자는 빛 번짐 반경을 제한 (렌더링 부담)
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(x, y - hh);
-    ctx.lineTo(x + hw, y);
-    ctx.lineTo(x, y + hh);
-    ctx.lineTo(x - hw, y);
-    ctx.closePath();
-    ctx.fill();
+    // 거의 흰 단색 마름모
+    pc.fillStyle = color;
+    pc.beginPath();
+    pc.moveTo(x, y - hh);
+    pc.lineTo(x + hw, y);
+    pc.lineTo(x, y + hh);
+    pc.lineTo(x - hw, y);
+    pc.closePath();
+    pc.fill();
+    any = true;
   }
+  if (!any) return;
+  ctx.save();
+  ctx.shadowColor = rgba(glow, 0.95);
+  ctx.shadowBlur = H * glowSize;
+  ctx.drawImage(pl, 0, 0);
   ctx.restore();
 }
 

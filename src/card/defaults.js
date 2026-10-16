@@ -46,7 +46,7 @@ export const DEFAULTS = {
     glowColor: '#ffffff', glowOpacity: 0.95, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
     flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'screen', flareSolid: 0.6,
-    edgeColor: '#6e4526', edgeStrength: 1.2, edgeWidth: 0.6,
+    edgeColor: '#6e4526', edgeStrength: 0.55, edgeWidth: 0.4,
     backShadow: 0.24, backShadowColor: '#1c2733', backShadowSize: 34,
   },
   era: {
@@ -107,6 +107,7 @@ export const DEFAULTS = {
     particleDensity: 1,
     particleColor: '#fffef4',
     particleGlow: '#fff0b8',
+    particleGlowSize: 3,
     particleSquash: 0.45,
     seed: 1,
     riseDensity: 1,

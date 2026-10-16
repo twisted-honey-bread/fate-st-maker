@@ -258,6 +258,7 @@ export const PARTS = [
       when(R('anim.particleDensity', '입자 양', 0, 3, 0.1, '배'), isOutro),
       when(C('anim.particleColor', '정방형 입자 색'), isOutro),
       when(C('anim.particleGlow', '정방형 입자 빛 번짐 색'), isOutro),
+      when(R('anim.particleGlowSize', '정방형 입자 빛 번짐 크기', 0, 8, 0.1, '%H'), isOutro),
       when(R('anim.particleSquash', '작아질 때 찌그러짐 정도', 0, 0.9, 0.01), isOutro),
       when(B('anim.hexGrid', '회로 무늬'), isOutro),
       when(IM('circuitOutro', '회로 무늬 이미지'), s => isOutro(s) && s.anim.hexGrid),
