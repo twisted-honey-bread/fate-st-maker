@@ -160,6 +160,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   drawDiamonds(ctx, W, H, t - BURST, {
     density: A.particleDensity, color: A.particleColor, glow: A.particleGlow, glowSize: A.particleGlowSize / 100, squash: A.particleSquash,
     seed: A.seed, endAt: endStart - BURST, sizeScale: A.diamondSize,
+    inDur: A.diamondInDur, inZoom: A.diamondInZoom, inFromScale: A.diamondInScale, inFade: A.diamondInFade,
   });
   // 위에서 쏟아지는 금빛 입자
   drawFallingGold(ctx, W, H, t, {

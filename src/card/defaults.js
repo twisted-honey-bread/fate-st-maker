@@ -147,6 +147,11 @@ const BASE_DEFAULTS = {
     particleDensity: 1,
     // 입자 크기 배율: 정방형(아웃트로) / 쏟아지는 금빛(아웃트로) / 떠오르는(인트로)
     diamondSize: 1,
+    // 정방형 입자가 터지기 직전의 짧은 등장 (확대·페이드 인 각각 켜고 끔)
+    diamondInDur: 0.25,
+    diamondInZoom: true,
+    diamondInScale: 0.5,
+    diamondInFade: true,
     goldSize: 1,
     riseSize: 1,
     particleColor: '#fffef4',

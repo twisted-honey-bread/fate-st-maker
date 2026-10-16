@@ -209,6 +209,8 @@ const diamondCache = new Map();
 // t: 터진 뒤 경과 시간(초), endAt: 마지막 입자가 사라지는 시각(터진 뒤 기준)
 export function drawDiamonds(ctx, W, H, t, {
   density, color, glow = '#fff0b8', glowSize = 0.022, squash = 0.45, seed = 1, endAt = 3, sizeScale = 1,
+  // 터지기 직전의 짧은 등장: inDur 초 동안 fromScale 배 → 원래 크기로 커지며(zoom) 투명 → 불투명(fade)
+  inDur = 0, inZoom = false, inFromScale = 0.5, inFade = false,
 }) {
   const count = Math.round(44 * density);
   if (count <= 0 || t < 0) return;
@@ -221,6 +223,11 @@ export function drawDiamonds(ctx, W, H, t, {
   // (입자끼리 서로 그림자가 겹치지 않고, 렌더링도 가벼움)
   const { canvas: pl, ctx: pc } = layer('diamonds', W, H);
   let any = false;
+  const inK = inDur > 0 ? Math.min(1, t / inDur) : 1;
+  const inEase = 1 - Math.pow(1 - inK, 3);
+  const inScale = inZoom ? inFromScale + (1 - inFromScale) * inEase : 1;
+  const inAlpha = inFade ? inEase : 1;
+  if (inAlpha <= 0) return;
   for (const d of diamondCache.get(key)) {
     const age = t;
     const life = Math.max(0.3, d.end * endAt);
@@ -231,11 +238,11 @@ export function drawDiamonds(ctx, W, H, t, {
     const full = (d.size * H * sizeScale) / 2; // 처음 크기의 반폭 (sizeScale: 크기 배율)
     const base = full * shrink;
     if (base < 0.3) continue;
-    const hw = base * (1 - d.sx * squash * q); // 가로가 더 빨리 줄어 세로로 긴 마름모
-    const hh = base;
-    const x = d.x * W;
     const top = (d.y + d.vy * age) * H - full; // 위쪽 꼭짓점 고정
-    const y = top + hh;
+    const y = top + base; // 마름모 중심 (등장 확대는 이 중심 기준)
+    const hw = base * (1 - d.sx * squash * q) * inScale; // 가로가 더 빨리 줄어 세로로 긴 마름모
+    const hh = base * inScale;
+    const x = d.x * W;
     // 거의 흰 단색 마름모
     pc.fillStyle = color;
     pc.beginPath();
@@ -248,6 +255,8 @@ export function drawDiamonds(ctx, W, H, t, {
     any = true;
   }
   if (!any) return;
+  ctx.save();
+  ctx.globalAlpha *= inAlpha; // 등장 페이드 인 (빛 번짐 포함)
   if (glowSize > 0) {
     if (FILTER_SUPPORTED) {
       // 빛 번짐은 1/4 해상도에서 흐리게 만든 뒤 확대해 깔아 줌 (전체 해상도 흐림보다 훨씬 가벼움)
@@ -276,6 +285,7 @@ export function drawDiamonds(ctx, W, H, t, {
     }
   }
   ctx.drawImage(pl, 0, 0);
+  ctx.restore();
 }
 
 /* ---------- 위에서 쏟아져 내리는 금빛 입자 (아웃트로) ----------
@@ -488,11 +498,13 @@ function hexCircuitLayer(W, H, seed) {
     const a = ((60 * i - 90) * Math.PI) / 180; // 꼭짓점이 위아래
     return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
   };
-  // 화면을 고르게 덮도록 가로 칸마다 하나씩 + 가운데는 조금 비움
-  const count = 9;
-  for (let n = 0; n < count; n++) {
-    const cx = ((n + 0.2 + rng() * 0.6) / count) * W;
-    const cy = H * (0.1 + rng() * 0.8);
+  // 화면 위·아래 두 줄로 가로 칸마다 하나씩 → 맨 위(화면 밖으로 살짝 넘침)까지 고르게 덮음
+  const count = 8;
+  const rows = [[-0.08, 0.4], [0.45, 0.95]]; // 줄마다 중심 y 범위 (H 비율)
+  for (let n = 0; n < count * rows.length; n++) {
+    const [y0, y1] = rows[Math.floor(n / count)];
+    const cx = (((n % count) + 0.15 + rng() * 0.7) / count) * W;
+    const cy = H * (y0 + rng() * (y1 - y0));
     const r = H * (0.16 + rng() * 0.2);
     const skip = new Set();
     const drop = 1 + Math.floor(rng() * 3);
@@ -516,7 +528,7 @@ function hexCircuitLayer(W, H, seed) {
   }
   // 화면을 가로지르는 긴 가로선·30도 사선 몇 개
   for (let n = 0; n < 4; n++) {
-    const y = H * (0.15 + rng() * 0.7);
+    const y = H * (0.04 + rng() * 0.9);
     const x0 = rng() * W * 0.5;
     const len = W * (0.25 + rng() * 0.4);
     const ang = [0, 0, Math.PI / 6, -Math.PI / 6][Math.floor(rng() * 4)];
