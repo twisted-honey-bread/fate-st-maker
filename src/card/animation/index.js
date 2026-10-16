@@ -7,7 +7,7 @@ import { fontStr } from '../fonts';
 export const ANIMATIONS = {
   intro: { label: '인트로', duration: introDuration, draw: drawIntroFrame },
   outro: { label: '아웃트로', duration: outroDuration, draw: drawOutroFrame },
-  outro2: { label: '아웃트로 2', duration: outro2Duration, draw: drawOutro2Frame },
+  outro2: { label: '아웃트로...?', duration: outro2Duration, draw: drawOutro2Frame },
 };
 
 export const isAnimMode = mode => mode in ANIMATIONS;

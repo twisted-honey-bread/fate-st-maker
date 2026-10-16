@@ -182,7 +182,7 @@ const BASE_DEFAULTS = {
     easeOutroEnd: 'inCubic',
     easeOutroRays: 'outCubic',
     /*
-     * 아웃트로 2 (증명완료 → 증명불가) — 초반·후반의 제목·부제·테마 색을 따로 받음
+     * 아웃트로...? (증명완료 → 증명불가) — 초반·후반의 제목·부제·테마 색을 따로 받음
      * 폰트는 아웃트로와 같은 값(outroFont 등)을 씀. 테마 색은 장면 전체의 색조로 입혀짐
      */
     o2Text1: '증명완료',
@@ -224,6 +224,13 @@ const BASE_DEFAULTS = {
     o2PolySparse: 0.35,
     o2PolyBlend: 'source-over',
     o2PolyOpacity: 0.05,
+    // 후반 위아래 빛구슬: 개수·크기·움직이는 거리 배율, 밝기 / 위아래 가장자리 그라데이션: 세기, 퍼지는 높이(%H)
+    o2OrbDensity: 1,
+    o2OrbSize: 1,
+    o2OrbTravel: 1,
+    o2OrbOpacity: 1,
+    o2EdgeGlow: 0.16,
+    o2EdgeSize: 35,
     easeO2Dark: 'inOutCubic',
     easeO2Shapes: 'outCubic',
     easeO2Text1: 'outCubic',

@@ -8,7 +8,7 @@ import { bell, clamp01, ease, layer, prog } from './util';
 import { stageTime } from './timing';
 
 /*
- * 아웃트로 2 (증명완료 → 증명불가)
+ * 아웃트로...? (증명완료 → 증명불가)
  *  ① 로고에서부터 화면이 어두워짐
  *  ② (①이 끝나갈 때부터) 배경의 사각형·마름모·원 무늬가 돌며 정렬됨
  *  ③ 정렬이 끝나면 초반 제목·부제가 펼쳐지며 빛무리가 생기고, 거의 다 펼쳐질 때 오른쪽 위·왼쪽 아래에 십자 섬광
@@ -119,7 +119,7 @@ function drawPoly(ctx, W, H, A) {
 
 /*
  * ---------- ② 배경 무늬 ----------
- * 두 겹 마름모 → 내접하는 사각형 → 그 사각형에 내접하는 마름모 → 그 마름모에 내접하는 원
+ * 두 겹 마름모 → 그 안에 같은 크기의 사각형 두 개 (하나는 바로, 하나는 마름모 방향으로 45°) → 두 사각형에 모두 내접하는 원
  * 모두 한꺼번에 페이드 인되며, 함께 90° 돌아 제자리에 맞춰짐
  * p: 0~1 (②단계 진행도, 움직임 곡선 적용 후), cx·cy: 중심, dia: 바깥 마름모 중심~꼭짓점(px)
  */
@@ -127,8 +127,8 @@ function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   if (alpha <= 0 || p <= 0) return;
   const gap = H * 0.014; // 두 겹 사이 간격 (선과 선 사이 거리)
   const inner = dia - gap * Math.SQRT2; // 안쪽 겹 마름모의 중심~꼭짓점
-  const sq = inner / 2; // 마름모에 내접하는 사각형의 반폭
-  const r = sq / Math.SQRT2; // 그 사각형에 내접하는 마름모(중심~꼭짓점 = sq)에 내접하는 원
+  const sq = inner / 2; // 마름모에 내접하는 사각형의 반폭 (두 사각형 모두 같은 크기)
+  const r = sq; // 두 사각형에 모두 내접하는 원
   const square = (half, rot) => {
     ctx.save();
     ctx.rotate(rot);
@@ -147,7 +147,7 @@ function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   square(dia / Math.SQRT2, d45);
   square(inner / Math.SQRT2, d45);
   square(sq, 0);
-  square(sq / Math.SQRT2, d45);
+  square(sq, d45);
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.stroke();
@@ -344,13 +344,19 @@ function drawShards(ctx, W, H, t, start, end, seed) {
   ctx.restore();
 }
 
-/* ---------- ⑧ 위아래에서 계속 떨어지는 빛구슬 (위쪽은 아래로, 아래쪽은 위로) ---------- */
+/*
+ * ---------- ⑧ 위아래에서 계속 생기는 빛구슬 (위쪽은 아래로, 아래쪽은 위로) ----------
+ * density: 개수 배율, size: 크기 배율, travel: 움직이는 거리 배율, opacity: 밝기
+ * 입자마다 4.5초 주기로 다시 생겨나 끝날 때까지 이어짐
+ */
 const orbCache = new Map();
-function drawOrbs(ctx, W, H, t, start, seed) {
-  if (t < start) return;
-  if (!orbCache.has(seed)) {
+function drawOrbs(ctx, W, H, t, start, seed, { density = 1, size = 1, travel = 1, opacity = 1 } = {}) {
+  const count = Math.round(90 * density);
+  if (t < start || count <= 0 || opacity <= 0) return;
+  const key = `${seed}:${count}`;
+  if (!orbCache.has(key)) {
     const rng = mulberry32(seed * 7717 + 3);
-    orbCache.set(seed, Array.from({ length: 90 }, (_, i) => ({
+    orbCache.set(key, Array.from({ length: count }, (_, i) => ({
       top: i % 2 === 0,
       x: rng(),
       born: rng() * 10,
@@ -359,20 +365,23 @@ function drawOrbs(ctx, W, H, t, start, seed) {
       r: 0.003 + Math.pow(rng(), 2) * 0.012,
       ph: rng() * 6.28,
     })));
+    if (orbCache.size > 6) orbCache.delete(orbCache.keys().next().value);
   }
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
-  for (const d of orbCache.get(seed)) {
-    const age = t - start - d.born * 0.45;
-    if (age < 0 || age > d.life) continue;
+  for (const d of orbCache.get(key)) {
+    const since = t - start - d.born * 0.45;
+    if (since < 0) continue;
+    const age = since % 4.5;
+    if (age > d.life) continue;
     const k = age / d.life;
-    const a = (k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85) * (0.7 + 0.3 * Math.sin(d.ph + age * 6));
-    const move = d.travel * (1 - Math.pow(1 - k, 2));
+    const a = opacity * (k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85) * (0.7 + 0.3 * Math.sin(d.ph + age * 6));
+    const move = d.travel * travel * (1 - Math.pow(1 - k, 2));
     const y = (d.top ? -0.01 + move : 1.01 - move) * H;
     const x = d.x * W;
-    const r = d.r * H * 3;
+    const r = d.r * H * 3 * size;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, `rgba(255,255,255,${0.85 * a})`);
+    g.addColorStop(0, `rgba(255,255,255,${Math.min(1, 0.85 * a)})`);
     g.addColorStop(0.3, `rgba(255,255,255,${0.35 * a})`);
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
@@ -512,7 +521,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       era: { ...night.era, alpha: 0.7 * oldA },
       title: { ...night.title, alpha: 0.7 * oldA },
       sub: { ...night.sub, alpha: 0.7 * oldA },
-      // 초반: 옅은 실루엣 / 후반: 테마 색으로 빛나다가 ⑧에서 완전히 사라짐
+      // 후반: 테마 색으로 빛나다가 ⑧에서 완전히 사라짐
       logo: part2 ? {
         ...night.logo,
         tintColor: A.o2Color2,
@@ -523,7 +532,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
         glowStrength: 2,
         backShadow: 0,
         edgeStrength: 0,
-      } : { ...night.logo, opacity: 0.1, glowOpacity: 0.1, backShadow: 0, edgeStrength: 0 },
+      } : { ...night.logo, show: false }, // 초반에는 로고 없음
     };
 
     const [wobS, wobE] = T('o2Wobble');
@@ -531,6 +540,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     const gl = part2 ? 0 : clamp01(E('easeO2Glitch', prog(t, ...T('o2Glitch'))));
     const shapeP = clamp01(E('easeO2Shapes', prog(t, shapesS, shapesE)));
     const shapeA = part2 ? 0 : 0.5;
+    const orbS = T('o2Orbs')[0];
     const nebula2 = part2 ? clamp01(E('easeO2Sub2', prog(t, ...T('o2Sub2')))) : 0; // 후반 빛무리는 부제와 함께 나타남
     const rays = part2 ? 1 - clamp01(E('easeO2Rays', prog(t, ...T('o2Rays')))) : 0;
 
@@ -542,13 +552,15 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
         if (part2) {
           // 섬광이 터질 때 화면 가운데가 밝게 (중앙 광선이 사라지며 함께 줄어듦)
           drawHalo(c, w / 2, midY, w * 0.5, h * 0.45, 0.4 * rays);
-          // 후반 빛무리가 나올 때: 가로로 화면 가장자리로 갈수록 테마 색에 가까워짐
-          if (nebula2 > 0) {
-            const g = c.createLinearGradient(0, 0, w, 0);
-            const a = 0.16 * nebula2;
+          // ⑧ 빛구슬과 함께: 위아래 가장자리로 갈수록 테마 색에 가까워짐 (o2EdgeGlow: 세기, o2EdgeSize: 가장자리에서 퍼지는 높이 %H)
+          const edgeK = prog(t, orbS, orbS + 0.8);
+          if (edgeK > 0 && A.o2EdgeGlow > 0) {
+            const g = c.createLinearGradient(0, 0, 0, h);
+            const a = A.o2EdgeGlow * edgeK;
+            const e = Math.min(0.5, A.o2EdgeSize / 100);
             g.addColorStop(0, `rgba(255,255,255,${a})`);
-            g.addColorStop(0.35, 'rgba(255,255,255,0)');
-            g.addColorStop(0.65, 'rgba(255,255,255,0)');
+            g.addColorStop(e, 'rgba(255,255,255,0)');
+            g.addColorStop(1 - e, 'rgba(255,255,255,0)');
             g.addColorStop(1, `rgba(255,255,255,${a})`);
             c.save();
             c.globalCompositeOperation = 'lighter';
@@ -585,13 +597,13 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
       // ⑦ 아웃트로와 같은 육각형 회로 무늬가 아래에서 올라옴 (흰색으로 그려 테마 색이 입혀짐)
       if (A.hexGrid) {
         drawCircuitBand(n, W, H, clamp01(E('easeO2Circuit', prog(t, ...T('o2Circuit')))), {
-          seed: A.seed, color: '#ffffff', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
+          seed: A.seed, color: '#ffffff', opacity: 0.45, band: 0.3, style: 'penta', trail: 0, twinkle: 0.5, t,
           image: images.circuitOutro,
         });
       }
       const [bS, bE] = T('o2Bits');
       drawShards(n, W, H, t, bS, bE, A.seed);
-      drawOrbs(n, W, H, t, T('o2Orbs')[0], A.seed);
+      drawOrbs(n, W, H, t, orbS, A.seed, { density: A.o2OrbDensity, size: A.o2OrbSize, travel: A.o2OrbTravel, opacity: A.o2OrbOpacity });
       const p2 = clamp01(E('easeO2Text2', prog(t, ...T('o2Text2'))));
       drawSpinTitle(n, { ...main, glowOpacity: 0.75 }, W, H, W / 2, ty, p2);
       drawText(n, { ...sub, alpha: nebula2 }, W, H, W / 2, (A.o2SubY / 100) * H, 'center');

@@ -54,7 +54,7 @@ const SIZES = {
   gif: [[480, '480×270'], [640, '640×360'], [960, '960×540']],
 };
 const MIME = { png: 'image/png', jpg: 'image/jpeg' };
-const ANIM_NAMES = { intro: '인트로', outro: '아웃트로', outro2: '아웃트로2' };
+const ANIM_NAMES = { intro: '인트로', outro: '아웃트로', outro2: '아웃트로...' }; // 파일 이름에 ? 는 쓸 수 없음
 
 const safeFileName = s => (s || '').replace(/[\\/:*?"<>|]/g, '').trim() || 'lostbelt';
 

@@ -395,7 +395,7 @@
     "outroText": "공상절제",
     "outroSub": "Cosmos Denial",
     "outroFont": "Noto Serif KR",
-    "outroWeight": 700,
+    "outroWeight": 400,
     "outroSubFont": "Libre Bodoni",
     "outroSubWeight": 400,
     "outroSize": 24.5,
@@ -529,6 +529,62 @@
       "outroEnd": [
         0,
         1.4
+      ],
+      "o2Dark": [
+        0,
+        0.75
+      ],
+      "o2Shapes": [
+        0.55,
+        1.6
+      ],
+      "o2Text1": [
+        1.6,
+        2.6
+      ],
+      "o2Cross": [
+        2.3,
+        3.2
+      ],
+      "o2Wobble": [
+        2.85,
+        3.35
+      ],
+      "o2Glitch": [
+        3.2,
+        3.65
+      ],
+      "o2Rays": [
+        3.65,
+        4.9
+      ],
+      "o2Text2": [
+        3.65,
+        5.25
+      ],
+      "o2Sub2": [
+        3.85,
+        5.25
+      ],
+      "o2Circuit": [
+        4.4,
+        7.3
+      ],
+      "o2Bits": [
+        3.65,
+        5
+      ],
+      "o2Logo": [
+        6.8,
+        8.6
+      ],
+      "o2Orbs": [
+        4.6,
+        null
+      ],
+      "o2End": [
+        0,
+        1.4
       ]
     },
     "syncFlashToText": true,
@@ -548,6 +604,51 @@
     "easeOutroCircuit": "linear",
     "easeOutroEnd": "inCubic",
     "easeOutroRays": "inOutCubic",
+    "o2Text1": "증명완료",
+    "o2Sub1": "Quod Erat Demonstrandum",
+    "o2Color1": "#2f7bff",
+    "o2Text2": "증명불가",
+    "o2Sub2": "Ex Falso Quodlibet",
+    "o2Color2": "#ff1f2e",
+    "o2Size": 26,
+    "o2Y": 61.2,
+    "o2Spacing": 0.305,
+    "o2Spacing2": 0.4,
+    "o2SubSize": 6.3,
+    "o2SubY": 75,
+    "o2SubSpacing": 0.23,
+    "o2SubSpacing2": 0.285,
+    "o2Hold": 1.6,
+    "o2ShapeY": 52.6,
+    "o2DiamondSize": 75.4,
+    "o2NebulaW": 70,
+    "o2NebulaH": 16,
+    "o2Nebula2W": 43,
+    "o2Nebula2H": 18,
+    "o2CrossLenX": 26,
+    "o2CrossLenY": 40,
+    "o2CrossThick": 0.25,
+    "o2CrossBlur": 0.25,
+    "o2CrossOpacity": 0.9,
+    "o2Cross1X": 82.3,
+    "o2Cross1Y": 42,
+    "o2Cross2X": 15.9,
+    "o2Cross2Y": 61.6,
+    "o2PolySize": 16,
+    "o2PolySparse": 0.35,
+    "o2PolyBlend": "screen",
+    "o2PolyOpacity": 0.05,
+    "easeO2Dark": "inOutCubic",
+    "easeO2Shapes": "outCubic",
+    "easeO2Text1": "outCubic",
+    "easeO2Wobble": "inQuad",
+    "easeO2Glitch": "inQuad",
+    "easeO2Rays": "outQuad",
+    "easeO2Text2": "outCubic",
+    "easeO2Sub2": "inOutCubic",
+    "easeO2Logo": "linear",
+    "easeO2Circuit": "linear",
+    "easeO2End": "inCubic",
     "fps": 30,
     "gifFps": 15
   }

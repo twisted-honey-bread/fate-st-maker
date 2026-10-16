@@ -34,7 +34,7 @@ export const MODES = [
   ['still', '정지 이미지'],
   ['intro', '인트로'],
   ['outro', '아웃트로'],
-  ['outro2', '아웃트로 2'],
+  ['outro2', '아웃트로...?'],
 ];
 
 export function ModeSwitch({ mode, onChange }) {

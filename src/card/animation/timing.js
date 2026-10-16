@@ -29,10 +29,10 @@ export const STAGES = {
     { id: 'outroGold', label: '금빛 입자 쏟아짐', ease: null, time: [4.0, null] },
     { id: 'outroEnd', label: '마지막에 완전히 어두워짐 (유지 시간 뒤)', ease: 'easeOutroEnd', time: [0, 1.4], lengthOnly: true },
   ],
-  // 아웃트로 2 (증명완료 → 증명불가)
+  // 아웃트로...? (증명완료 → 증명불가)
   outro2: [
     { id: 'o2Dark', label: '① 화면 암전 (로고에서부터)', ease: 'easeO2Dark', time: [0, 0.75] },
-    { id: 'o2Shapes', label: '② 사각형·원 무늬가 돌며 맞춰짐', ease: 'easeO2Shapes', time: [0.55, 1.6] },
+    { id: 'o2Shapes', label: '② 마름모·사각형·원 무늬가 함께 돌며 맞춰짐', ease: 'easeO2Shapes', time: [0.55, 1.6] },
     { id: 'o2Text1', label: '③ 초반 제목·부제 펼쳐짐 + 빛무리', ease: 'easeO2Text1', time: [1.6, 2.6] },
     { id: 'o2Cross', label: '③ 오른쪽 위·왼쪽 아래 십자 섬광', ease: null, time: [2.3, 3.2] },
     { id: 'o2Wobble', label: '④ 화면 일렁임', ease: 'easeO2Wobble', time: [2.85, 3.35] },
@@ -43,7 +43,7 @@ export const STAGES = {
     { id: 'o2Circuit', label: '⑦ 회로 무늬 상승 (빛무리와 함께)', ease: 'easeO2Circuit', time: [4.05, 6.6] },
     { id: 'o2Bits', label: '⑥~⑦ 세로 사각형·마름모 입자', ease: null, time: [3.65, 5.0] },
     { id: 'o2Logo', label: '⑧ 로고 사라짐', ease: 'easeO2Logo', time: [4.9, 5.7] },
-    { id: 'o2Orbs', label: '⑧ 위아래 빛구슬 떨어짐', ease: null, time: [4.6, null] },
+    { id: 'o2Orbs', label: '⑧ 위아래 빛구슬 + 가장자리 그라데이션', ease: null, time: [4.6, null] },
     { id: 'o2End', label: '⑨ 중앙에서부터 어두워짐 (유지 시간 뒤)', ease: 'easeO2End', time: [0, 1.4], lengthOnly: true },
   ],
 };
