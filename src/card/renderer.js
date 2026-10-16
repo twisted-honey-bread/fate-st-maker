@@ -1,4 +1,5 @@
 import { fontStr } from './fonts';
+import { rightText } from './defaults';
 import { getProceduralBackground } from './background';
 import { stylizeImage } from './stylize';
 import { rgba, mulberry32, FILTER_SUPPORTED } from './utils';
@@ -20,7 +21,7 @@ export function drawCard(ctx, W, H, state, images, hooks = {}) {
   layout.bottomLine = drawLine(ctx, W, H, state.bottomLine);
   layout.logo = drawLogo(ctx, W, H, state.logo, images.logo);
   layout.left = placeText(ctx, state.left, W, H, (state.left.x / 100) * W, (state.left.y / 100) * H, 'left');
-  layout.right = placeText(ctx, state.right, W, H, (state.right.x / 100) * W, (state.right.y / 100) * H, 'right');
+  layout.right = placeText(ctx, { ...state.right, text: rightText(state.right) }, W, H, (state.right.x / 100) * W, (state.right.y / 100) * H, 'right');
   Object.assign(layout, drawTitleGroup(ctx, W, H, state));
   layout.sub = placeText(ctx, state.sub, W, H, (state.sub.x / 100) * W, (state.sub.y / 100) * H, 'center');
   ctx.restore();

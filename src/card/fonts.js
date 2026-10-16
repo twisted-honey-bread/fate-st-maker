@@ -57,7 +57,8 @@ const TEXT_KEYS = ['left', 'right', 'era', 'title', 'sub'];
 export async function ensureFonts(state) {
   await hcrFontReady;
   const list = TEXT_KEYS.map(k => state[k]).filter(s => s.show && s.text);
-  await Promise.all(list.map(s => document.fonts.load(fontStr(s, 48), s.text).catch(() => {})));
+  // after: 오른쪽 위의 '_' 뒤 글자도 함께 로드
+  await Promise.all(list.map(s => document.fonts.load(fontStr(s, 48), `${s.text}_${s.after || ''}`).catch(() => {})));
 }
 
 /*

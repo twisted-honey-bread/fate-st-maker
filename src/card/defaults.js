@@ -33,7 +33,8 @@ export const DEFAULTS = {
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   right: {
-    ...TEXT_BASE, text: '이문심도_D', font: 'Noto Sans KR', weight: 300, size: 4.3,
+    // text = '_' 앞, after = '_' 뒤 (인트로에서 로고와 함께 나타남) — 따로 입력하므로 각 칸에 '_' 가 들어가도 됨
+    ...TEXT_BASE, text: '이문심도', after: 'D', font: 'Noto Sans KR', weight: 300, size: 4.3,
     x: 94.3, y: 10.6, color: '#545961', glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   topLine: {
@@ -145,6 +146,19 @@ export const DEFAULTS = {
     gifFps: 15,
   },
 };
+
+// 오른쪽 위에 실제로 그릴 문자열: 앞 + '_' + 뒤 (뒤가 비면 앞만)
+export const rightText = r => (r.after ? `${r.text}_${r.after}` : r.text);
+
+// 예전 저장값(오른쪽 위를 한 칸에 '이문심도_D' 처럼 입력)을 앞/뒤 두 칸으로 나눔
+export function migrateSettings(src) {
+  const r = src?.right;
+  if (r && typeof r.text === 'string' && r.after === undefined) {
+    const i = r.text.indexOf('_');
+    return { ...src, right: { ...r, text: i >= 0 ? r.text.slice(0, i) : r.text, after: i >= 0 ? r.text.slice(i + 1) : '' } };
+  }
+  return src;
+}
 
 export const clone = o => JSON.parse(JSON.stringify(o));
 

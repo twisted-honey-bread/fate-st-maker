@@ -254,6 +254,7 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
     <Row>
       <label htmlFor={id}>{label}</label>
       {control}
+      {field.type !== 'image' && field.hint && <Hint>{field.hint}</Hint>}
       {field.type === 'image' && (
         <Hint>
           PNG · JPG · WEBP · SVG, 최대 {IMAGE_MAX_MB}MB.

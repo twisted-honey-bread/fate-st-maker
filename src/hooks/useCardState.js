@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DEFAULTS, clone, mergeKnown } from '../card/defaults';
+import { DEFAULTS, clone, mergeKnown, migrateSettings } from '../card/defaults';
 import { setPath } from '../card/schema';
 import { applyColorTheme, resetColorTheme, restoreColors } from '../card/theme';
 import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
@@ -13,7 +13,7 @@ const IMAGE_KEYS = ['bg', 'logo', 'circuitIntro', 'circuitOutro'];
 const EMPTY_IMAGES = Object.fromEntries(IMAGE_KEYS.map(k => [k, null]));
 
 export function useCardState() {
-  const [state, setState] = useState(() => mergeKnown(DEFAULTS, loadSettings()));
+  const [state, setState] = useState(() => mergeKnown(DEFAULTS, migrateSettings(loadSettings())));
   const [images, setImages] = useState(EMPTY_IMAGES);
   const [defaultLogo, setDefaultLogo] = useState(null);
 
@@ -98,7 +98,7 @@ export function useCardState() {
       const url = data?.images?.[k];
       if (url) next[k] = { img: await loadImage(url), url };
     }
-    setState(mergeKnown(DEFAULTS, data?.settings || data));
+    setState(mergeKnown(DEFAULTS, migrateSettings(data?.settings || data)));
     setImages(next);
   }, []);
 

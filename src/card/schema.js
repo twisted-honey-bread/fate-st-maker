@@ -133,7 +133,9 @@ export const PARTS = [
     ],
   },
   { id: 'left', short: '좌상단', title: '왼쪽 위 텍스트', desc: 'Lostbelt No.1', main: textMain('left'), advanced: textAdvanced('left') },
-  { id: 'right', short: '우상단', title: '오른쪽 위 텍스트', desc: '오른쪽 끝 기준 정렬', main: textMain('right'), advanced: textAdvanced('right') },
+  { id: 'right', short: '우상단', title: '오른쪽 위 텍스트', desc: '오른쪽 끝 기준 정렬', main: textMain('right').flatMap(f => (f.k === 'right.text'
+      ? [T('right.text', '_ 앞 텍스트'), { ...T('right.after', '_ 뒤 텍스트'), hint: '인트로에서 로고와 함께 나타납니다. 비워 두면 _ 도 표시하지 않습니다.' }]
+      : [f])), advanced: textAdvanced('right') },
   { id: 'topLine', short: '상단선', title: '상단 구분선', desc: '양 끝이 흐려지는 가로선', main: lineMain('topLine'), advanced: lineAdvanced('topLine') },
   {
     id: 'logo', short: '로고', title: '중앙 로고', desc: '문장(紋章) 이미지',

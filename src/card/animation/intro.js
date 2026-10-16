@@ -25,11 +25,8 @@ function riseAbove(line, H, progress) {
   return { lineY: (line.y / 100) * H, dir: 1, progress, stagger: 0 };
 }
 
-// '_' 뒤 글자의 시작 위치 (없으면 null)
-function tailFrom(text) {
-  const i = [...text].indexOf('_');
-  return i >= 0 ? i + 1 : null;
-}
+// '_' 뒤 글자의 시작 위치 — 앞/뒤를 따로 입력받으므로 문자열을 파싱하지 않음 (뒤가 비면 null)
+const tailFrom = right => (right.after ? [...right.text].length + 1 : null);
 
 const lineRange = (line, W, H) => ({
   x0: (line.left / 100) * W,
@@ -50,7 +47,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
   const lineReveal = Math.min(1, E('easeIntroLine', prog(t, 0.3, 1.5)));
   const headerIn = Math.min(1, E('easeIntroHeader', prog(t, 0.5, 1.3)));
   const logoIn = E('easeIntroLogo', prog(t, 2.4, 3.6));
-  const tailIdx = tailFrom(state.right.text);
+  const tailIdx = tailFrom(state.right);
   const tail = tailIdx !== null ? { from: tailIdx, alpha: Math.min(1, E('easeIntroLogo', prog(t, 2.4, 3.2))) } : undefined;
 
   // 배경: 어두울 때는 흐리고 확대, 밝아진 뒤 흐림이 풀리고 끝까지 천천히 축소
