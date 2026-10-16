@@ -155,7 +155,7 @@ function makeDiamonds(count, seed) {
       y: rng() * 1.05 - 0.02,
       born: Math.pow(rng(), 2.5) * 0.45, // 대부분 터지는 순간에 등장
       end: 0.4 + Math.pow(rng(), 0.7) * 0.6, // 사라지는 시점 (burst~endAt 구간의 비율)
-      size: 0.01 + Math.pow(rng(), 2.4) * 0.17, // 작은 것은 더 작게, 큰 것은 더 크게
+      size: 0.01 + Math.pow(rng(), 2.4) * 0.43, // 작은 것은 작게, 큰 것은 화면 높이의 40% 이상까지
       vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
       sx: 0.45 + rng() * 0.55, // 축소될 때 가로가 추가로 줄어드는 정도
     };
@@ -193,7 +193,7 @@ export function drawDiamonds(ctx, W, H, t, {
     const y = top + hh;
     // 거의 흰 단색 마름모 + 옅은 크림색 빛 번짐 (겹치면 하나의 밝은 덩어리처럼 보임)
     ctx.globalAlpha = Math.min(1, pop * 1.2);
-    ctx.shadowBlur = Math.max(hw, hh) * 1.4;
+    ctx.shadowBlur = Math.min(Math.max(hw, hh) * 1.4, H * 0.08); // 아주 큰 입자는 빛 번짐 반경을 제한 (렌더링 부담)
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(x, y - hh);
