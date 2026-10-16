@@ -10,13 +10,14 @@ import { bell, easeIn, easeInOut, easeOut, flicker, layer, prog } from './util';
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
  *  0.0~0.6  원래 카드
  *  0.6~2.0  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
- *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남, 상단 텍스트가 흐려짐
+ *  0.6~2.0  (어둠이 번진 자리에서는 왼쪽 위·오른쪽 위 텍스트와 상단 선이 보이지 않음)
+ *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남
  *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
  *  3.1~     108도 회로 무늬가 아래에서 반짝이며 올라옴
  *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
- *  입자가 모두 사라지면 중앙부터 어두워지며 암전 (흐리게 남아 있던 왼쪽 위·오른쪽 위 텍스트와 상단 선도 함께 사라짐)
+ *  입자가 모두 사라지면 중앙부터 어두워지며 암전
  */
 const TEXT_END = 4.3;
 const BURST = 3.0;
@@ -81,7 +82,6 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const glowUp = prog(t, 1.8, 2.6);
   const dimOld = easeOut(prog(t, 3.0, 3.8));
   const spread = easeOut(prog(t, 2.95, 3.9)); // 페이드 인과 동시에 중앙에서 펼쳐짐
-  const blackout = easeOut(prog(t, TEXT_END + A.outroHold, TEXT_END + A.outroHold + 0.6));
 
   ctx.save();
   ctx.fillStyle = '#000000';
@@ -99,13 +99,12 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   // 밤 장면 (중심에서 번져 나옴)
   if (ink > 0) {
     const night = toNight(state);
-    const headerAlpha = 1 - 0.75 * glowUp;
     const nightState = {
       ...night,
-      // 흐려진 채로 남아 있다가 암전과 함께 사라짐
-      left: { ...night.left, alpha: headerAlpha * (1 - blackout) },
-      right: { ...night.right, alpha: headerAlpha * (1 - blackout) },
-      topLine: { ...night.topLine, opacity: night.topLine.opacity * headerAlpha * (1 - blackout) },
+      // 어둠이 번지면서 왼쪽 위·오른쪽 위 텍스트와 상단 선은 보이지 않게 됨
+      left: { ...night.left, alpha: 0 },
+      right: { ...night.right, alpha: 0 },
+      topLine: { ...night.topLine, show: false },
       bottomLine: { ...night.bottomLine, opacity: night.bottomLine.opacity * (1 - dimOld) },
       logo: {
         ...night.logo,
