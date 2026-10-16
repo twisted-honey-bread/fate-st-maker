@@ -157,13 +157,13 @@ function RangeField({ id, field, value, onChange }) {
   );
 }
 
-function ImageField({ id, url, onFile, onClear }) {
+function ImageField({ id, url, onFile, onClear, clearLabel = '기본값' }) {
   const inputRef = useRef(null);
   return (
     <ImageWrap>
       <Thumb $url={url} />
       <Button $small type="button" onClick={() => inputRef.current?.click()}>파일 선택</Button>
-      <Button $small type="button" onClick={onClear} disabled={!url}>기본값</Button>
+      <Button $small type="button" onClick={onClear} disabled={!url}>{clearLabel}</Button>
       <input
         ref={inputRef}
         id={id}
@@ -243,7 +243,8 @@ export function Field({ field, value, onChange, imageUrl, onImageFile, onImageCl
       );
       break;
     case 'image':
-      control = <ImageField id={id} url={imageUrl} onFile={onImageFile} onClear={onImageClear} />;
+      // 로고는 기본 이미지가 없으므로 '지우기'
+      control = <ImageField id={id} url={imageUrl} onFile={onImageFile} onClear={onImageClear} clearLabel={field.k === 'logo' ? '지우기' : '기본값'} />;
       break;
     default:
       control = null;

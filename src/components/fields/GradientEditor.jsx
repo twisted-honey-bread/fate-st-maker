@@ -8,7 +8,7 @@ import { Button, ColorInput, NumberInput, Select } from '../ui';
  * - 띠 위의 핀을 끌어 위치 조정, 띠의 빈 곳을 누르면 그 위치의 색으로 지점 추가
  * - 아래 목록에서 위치(%)·색 입력, − 로 삭제 (최소 2개)
  * - 대칭을 켜면 절반(끝 → 가운데)만 편집하고 나머지 절반은 자동으로 거울처럼 채움 (저장은 항상 전체 지점 목록)
- * value: { mode, color, stops, scope, symmetric }  — 없는 항목은 편집기에서 숨김
+ * value: { mode, color, stops, symmetric }  — 없는 항목은 편집기에서 숨김
  * onChange(patch): 바뀐 항목만 넘김
  */
 const Wrap = styled.div`
@@ -20,7 +20,7 @@ const Wrap = styled.div`
   background: var(--surface);
 `;
 
-// 머리줄: [이름 ......... ⇆ 대칭화] / 다음 줄: [단색 | 가로 그라데이션 | 세로 그라데이션]
+// 머리줄: [이름 ......... 대칭화] / 다음 줄: [단색 | 가로 그라데이션 | 세로 그라데이션]
 const Head = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -217,7 +217,7 @@ function HexInput({ value, onChange, id }) {
 }
 
 export function GradientEditor({ id, label, value, modes, onChange }) {
-  const { mode = 'horizontal', color, stops: fullStops = [], scope, symmetric } = value;
+  const { mode = 'horizontal', color, stops: fullStops = [], symmetric } = value;
   const canSym = 'symmetric' in value;
   const sym = canSym && !!symmetric;
   const span = sym ? 0.5 : 1; // 편집하는 범위
@@ -252,7 +252,6 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
     setStops(stops.filter((_, j) => j !== i));
     setSel(0);
   };
-  const reverse = () => setStops(stops.map(([p, c]) => [round(span - p), c]));
   // 대칭 켜기: 지금의 앞쪽 절반을 기준으로 전체를 다시 만듦 / 끄기: 지금 모양 그대로 자유 편집
   const toggleSym = on => {
     setSel(0);
@@ -287,7 +286,6 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
             ))}
           </Seg>
         )}
-        {isGrad && <Icon title="방향 뒤집기" aria-label="방향 뒤집기" onClick={reverse}>⇆</Icon>}
         {isGrad && canSym && (
           <Icon
             role="switch"
@@ -394,20 +392,6 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
               );
             })}
           </List>
-          {scope !== undefined && mode === 'horizontal' && (
-            <Sub>
-              <span>가로 기준</span>
-              <Select
-                aria-label="가로 그라데이션 기준"
-                value={scope}
-                onChange={e => onChange({ scope: e.target.value })}
-                style={{ width: 'auto' }}
-              >
-                <option value="text">글자 폭</option>
-                <option value="canvas">화면 폭</option>
-              </Select>
-            </Sub>
-          )}
         </>
       )}
     </Wrap>

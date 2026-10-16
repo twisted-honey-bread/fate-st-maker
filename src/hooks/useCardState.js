@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DEFAULTS, clone, mergeKnown, migrateSettings } from '../card/defaults';
 import { setPath } from '../card/schema';
 import { applyColorTheme, resetColorTheme, restoreColors } from '../card/theme';
-import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
 import { generateLogo } from '../card/logoGen';
 import { loadImage, readFileAsDataURL } from '../card/utils';
 import { loadSettings, saveSettings } from '../lib/storage';
@@ -15,11 +14,7 @@ const EMPTY_IMAGES = Object.fromEntries(IMAGE_KEYS.map(k => [k, null]));
 export function useCardState() {
   const [state, setState] = useState(() => mergeKnown(DEFAULTS, migrateSettings(loadSettings())));
   const [images, setImages] = useState(EMPTY_IMAGES);
-  const [defaultLogo, setDefaultLogo] = useState(null);
 
-  useEffect(() => {
-    loadImage(DEFAULT_LOGO_URL).then(setDefaultLogo).catch(() => {});
-  }, []);
 
   // 자동 생성 로고: 연대·제목·생성 옵션이 바뀔 때마다 다시 계산 (같은 입력이면 항상 같은 결과)
   const L = state.logo;
@@ -106,11 +101,11 @@ export function useCardState() {
   const renderImages = useMemo(
     () => ({
       bg: images.bg?.img || null,
-      logo: genKey ? genLogo : images.logo?.img || defaultLogo,
+      logo: genKey ? genLogo : images.logo?.img || null, // 직접 업로드에서 올린 이미지가 없으면 로고 없음
       circuitIntro: images.circuitIntro?.img || null,
       circuitOutro: images.circuitOutro?.img || null,
     }),
-    [images, defaultLogo, genKey, genLogo],
+    [images, genKey, genLogo],
   );
 
   const imageUrls = useMemo(

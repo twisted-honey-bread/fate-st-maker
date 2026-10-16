@@ -34,7 +34,6 @@ src/
     ControlPanel.jsx        선택한 파트의 메인/고급 설정 패널
     StructureMap.jsx        카드 구조도 (파트 선택)
     fields/Field.jsx        입력 컨트롤 (text, range, color, select, font, check, image)
-    AnalysisNotes.jsx       원본 효과 분석 노트
     Section.js, Toast.jsx, ui.js
   card/                     React 와 무관한 카드 엔진
     renderer.js             Canvas 2D 렌더러 (미리보기와 다운로드가 같은 함수 사용)
@@ -43,7 +42,6 @@ src/
     fonts.js                폰트 목록, 폰트 로드, 사용자 폰트 등록
     background.js           배경 이미지가 없을 때 쓰는 절차적 설산
     stylize.js              업로드한 배경 사진을 설원 톤으로 변환 (듀오톤 / 단계 분리 / 2치화)
-    defaultLogo.js          임시 로고 SVG
     logoGen.js              연대·제목 해시로 좌우대칭 패턴 로고 생성
     theme.js                색 한 번에 맞추기 (대표색 → 관련 색 자동 설정)
   lib/
@@ -58,6 +56,9 @@ src/
 기존 페이지 주소는 바뀌지 않습니다. 개발 서버에서는 `http://localhost:5173/lostbelt/` 로 엽니다.
 
 ## 화면 구성
+
+- 콘솔에는 자주 바꾸는 항목만 있습니다. 텍스트의 크기·위치, 상단선·하단선, 글자(기울임·자간·장평)·외곽선·그림자·글로우 불투명도, 로고의 배치·불투명도·가장자리 색·뒤쪽 그림자·색 입히기, 렌즈 플레어의 모양(합성·길이·두께 등) 같은 값은 고정값이며 `src/card/defaults.json`(없으면 `defaults.js`)에서 바꿉니다.
+- 로고를 ‘직접 업로드’로 두고 이미지를 올리지 않으면 로고는 그려지지 않습니다 (기본 이미지 없음).
 
 - 오른쪽 콘솔 위쪽의 **카드 구조도**는 실제 렌더링 위치를 축소해 각 부분을 블록으로 보여줍니다.
   블록이나 아래 탭, 또는 미리보기 캔버스에서 해당 부분을 누르면 그 부분의 설정만 표시됩니다.

@@ -31,60 +31,27 @@ const isGen = s => s.logo.source === 'generate';
 const gen = f => when(f, isGen);
 
 // fontGroup: 'korean' 이면 폰트·굵기를 따로, 그 외(left/latin)는 정해진 '폰트 + 굵기' 선택지
-function textMain(p, { x = true, y = true, extra = [], fontGroup = 'korean' } = {}) {
+// 크기·위치는 고정값 (패널에서 뺌)
+function textMain(p, { extra = [], fontGroup = 'korean' } = {}) {
   return [
     B(`${p}.show`, '표시'),
     T(`${p}.text`, '텍스트'),
     ...(fontGroup === 'korean'
       ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
       : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
-    R(`${p}.size`, '크기', 1, 20, 0.1, '%H'),
-    ...(x ? [R(`${p}.x`, 'X 위치', 0, 100, 0.1, '%W')] : []),
-    ...(y ? [R(`${p}.y`, 'Y (기준선)', 0, 100, 0.1, '%H')] : []),
     ...extra,
-    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric`, scope: `${p}.mirrorScope` }, ['solid', 'horizontal', 'vertical']),
+    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal', 'vertical']),
   ];
 }
 
+// 글자·외곽선·그림자·글로우 불투명도는 고정값 — 글로우의 색·번짐·강도만 조절
 function textAdvanced(p, extra = []) {
   return [
     ...extra,
-    HD('글자'),
-    B(`${p}.italic`, '기울임'),
-    R(`${p}.spacing`, '자간', -0.3, 0.8, 0.01, 'em'),
-    R(`${p}.scaleX`, '장평 (글자 폭)', 40, 150, 1, '%'),
-    HD('외곽선'),
-    R(`${p}.strokeWidth`, '두께', 0, 1.5, 0.01, '%H'),
-    when(C(`${p}.strokeColor`, '색'), s => s[p].strokeWidth > 0),
     HD('글로우 (외부 광채)'),
-    R(`${p}.glowOpacity`, '불투명도', 0, 1, 0.01),
     C(`${p}.glowColor`, '색'),
     R(`${p}.glowBlur`, '번짐', 0, 6, 0.05, '%H'),
     R(`${p}.glowStrength`, '강도 (겹침)', 1, 6, 1),
-    HD('그림자'),
-    R(`${p}.shadowOpacity`, '불투명도', 0, 1, 0.01),
-    C(`${p}.shadowColor`, '색'),
-    R(`${p}.shadowBlur`, '번짐', 0, 4, 0.05, '%H'),
-    R(`${p}.shadowX`, 'X 오프셋', -2, 2, 0.05, '%H'),
-    R(`${p}.shadowY`, 'Y 오프셋', -2, 2, 0.05, '%H'),
-  ];
-}
-
-function lineMain(p) {
-  return [
-    B(`${p}.show`, '표시'),
-    R(`${p}.y`, 'Y 위치', 0, 100, 0.1, '%H'),
-    R(`${p}.thickness`, '두께', 0.05, 1.5, 0.01, '%H'),
-    G('채우기 (양 끝 페이드는 고급 설정)', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal']),
-  ];
-}
-
-function lineAdvanced(p) {
-  return [
-    R(`${p}.opacity`, '불투명도', 0, 1, 0.01),
-    R(`${p}.left`, '왼쪽 여백', 0, 50, 0.1, '%W'),
-    R(`${p}.right`, '오른쪽 여백', 0, 50, 0.1, '%W'),
-    R(`${p}.fade`, '양끝 페이드', 0, 50, 0.5, '%'),
   ];
 }
 
@@ -140,7 +107,6 @@ export const PARTS = [
   { id: 'right', short: '우상단', title: '오른쪽 위 텍스트', desc: '오른쪽 끝 기준 정렬', main: textMain('right').flatMap(f => (f.k === 'right.text'
       ? [T('right.text', '_ 앞 텍스트'), { ...T('right.after', '_ 뒤 텍스트'), hint: '인트로에서 로고와 함께 나타납니다. 비워 두면 _ 도 표시하지 않습니다.' }]
       : [f])), advanced: textAdvanced('right') },
-  { id: 'topLine', short: '상단선', title: '상단 구분선', desc: '양 끝이 흐려지는 가로선', main: lineMain('topLine'), advanced: lineAdvanced('topLine') },
   {
     id: 'logo', short: '로고', title: '중앙 로고', desc: '문장(紋章) 이미지',
     main: [
@@ -150,81 +116,40 @@ export const PARTS = [
       B('logo.show', '표시'),
       gen(S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label]))),
       gen(R('logo.genGrid', '분할 수', 3, 21, 2)),
-      gen(R('logo.genDensity', '채움 비율', 0.15, 0.85, 0.01)),
-      gen(R('logo.genGap', '조각 사이 간격', 0, 0.5, 0.01)),
-      gen(B('logo.genFrame', '테두리')),
-      gen(C('logo.genColor', '색')),
       HD('배치'),
-      R('logo.x', 'X 중심', 0, 100, 0.1, '%W'),
-      R('logo.y', 'Y 중심', 0, 100, 0.1, '%H'),
       R('logo.zoom', '크기 배율', 10, 300, 1, '%'),
       B('logo.flare', '렌즈 플레어'),
     ],
     advanced: [
-      R('logo.height', '기준 높이 (배율 100%일 때)', 2, 90, 0.5, '%H'),
-      R('logo.opacity', '불투명도', 0, 1, 0.01),
-      HD('가장자리 탄 듯한 색 (안쪽)'),
-      R('logo.edgeStrength', '진하기', 0, 2, 0.01),
-      C('logo.edgeColor', '색'),
-      R('logo.edgeWidth', '번짐 폭', 0.05, 2, 0.01, '%H'),
-      HD('뒤쪽 그림자 (원형)'),
-      R('logo.backShadow', '진하기', 0, 1, 0.01),
-      C('logo.backShadowColor', '색'),
-      R('logo.backShadowSize', '반경', 2, 80, 0.5, '%H'),
-      HD('색 입히기 (단색 실루엣)'),
-      B('logo.tint', '사용'),
-      when(C('logo.tintColor', '색'), s => s.logo.tint),
       HD('글로우 (외곽 광채)'),
-      R('logo.glowOpacity', '불투명도', 0, 1, 0.01),
       C('logo.glowColor', '색'),
       R('logo.glowBlur', '번짐', 0, 8, 0.05, '%H'),
       R('logo.glowStrength', '강도 (겹침)', 1, 6, 1),
-      HD('렌즈 플레어 (가로 광선)'),
-      C('logo.flareColor', '색'),
-      S('logo.flareBlend', '합성 방식', [['screen', '스크린'], ['lighter', '발광 (더하기)'], ['source-over', '보통']]),
-      R('logo.flareSolid', '바탕 색 진하기 (밝은 배경에서 선명하게)', 0, 1, 0.01),
-      R('logo.flareX', 'X (로고 기준)', -50, 50, 0.1, '%W'),
-      R('logo.flareY', 'Y (로고 기준)', -50, 50, 0.1, '%H'),
-      R('logo.flareLength', '길이', 1, 40, 0.1, '%W'),
-      R('logo.flareThickness', '두께', 0.1, 5, 0.05, '%H'),
-      R('logo.flareAspect', '중심 광원 가로 비율', 0.3, 4, 0.05, '배'),
-      R('logo.flareIntensity', '강도', 0, 1, 0.01),
+      when(HD('렌즈 플레어 (가로 광선)'), s => s.logo.flare),
+      when(C('logo.flareColor', '색'), s => s.logo.flare),
+      when(R('logo.flareX', 'X (로고 기준)', -50, 50, 0.1, '%W'), s => s.logo.flare),
+      when(R('logo.flareY', 'Y (로고 기준)', -50, 50, 0.1, '%H'), s => s.logo.flare),
+      when(R('logo.flareIntensity', '강도', 0, 1, 0.01), s => s.logo.flare),
     ],
   },
   {
     id: 'era', short: '연대', title: '연대', desc: 'A.D.1570?',
-    main: textMain('era', {
-      fontGroup: 'latin',
-      x: false, y: false,
-      extra: [S('era.position', '위치', [['left', '제목 왼쪽'], ['above', '제목 위'], ['hidden', '숨김']])],
-    }),
-    advanced: textAdvanced('era', [
-      HD('배치'),
-      R('era.gap', '제목과 간격', 0, 10, 0.1, '%W'),
-      R('era.offsetY', 'Y 보정', -10, 10, 0.1, '%H'),
-    ]),
+    main: textMain('era', { fontGroup: 'latin' }),
+    advanced: textAdvanced('era'),
   },
   {
     id: 'title', short: '제목', title: '제목', desc: '영구동토제국 아나스타샤',
     main: [...textMain('title'), B('title.flare', '렌즈 플레어 (오른쪽 위)')],
     advanced: textAdvanced('title', [
-      HD('배치'),
-      S('title.anchor', '가운데 기준', [['group', '연대+제목 묶음'], ['title', '제목만']]),
       when(HD('렌즈 플레어 (오른쪽 위)'), s => s.title.flare),
       ...[
         C('title.flareColor', '색'),
-        S('title.flareBlend', '합성 방식', [['screen', '스크린'], ['lighter', '발광 (더하기)'], ['source-over', '보통']]),
-        R('title.flareSolid', '바탕 색 진하기 (밝은 배경에서 선명하게)', 0, 1, 0.01),
         R('title.flareX', 'X (제목 오른쪽 위 기준)', -30, 30, 0.1, '%W'),
         R('title.flareY', 'Y (제목 오른쪽 위 기준)', -30, 30, 0.1, '%H'),
-        R('title.flareLength', '길이', 1, 40, 0.1, '%W'),
-        R('title.flareThickness', '두께', 0.1, 5, 0.05, '%H'),
-        R('title.flareAspect', '중심 광원 가로 비율', 0.3, 4, 0.05, '배'),
         R('title.flareIntensity', '강도', 0, 1, 0.01),
       ].map(f => when(f, s => s.title.flare)),
     ]),
   },
-  { id: 'bottomLine', short: '하단선', title: '하단 구분선', desc: '제목 아래 가로선', main: lineMain('bottomLine'), advanced: lineAdvanced('bottomLine') },
   { id: 'sub', short: '부제', title: '부제', desc: '짐승 나라의 황녀', main: textMain('sub'), advanced: textAdvanced('sub') },
   {
     // 인트로/아웃트로 모드에서만 탭에 표시

@@ -110,7 +110,7 @@ const Hint = styled.p`
 `;
 
 // 클릭 판정 우선순위 (위에 그려지는 것부터)
-const HIT_ORDER = ['sub', 'title', 'era', 'right', 'left', 'logo', 'bottomLine', 'topLine'];
+const HIT_ORDER = ['sub', 'title', 'era', 'right', 'left', 'logo']; // 상단선·하단선은 고정값이라 선택 대상 아님
 
 function normalize(layout, W, H) {
   const out = {};

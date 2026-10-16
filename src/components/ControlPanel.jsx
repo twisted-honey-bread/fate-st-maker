@@ -8,7 +8,6 @@ import { FontField } from './fields/FontField';
 import { StageField } from './fields/StageField';
 import { ANIMATIONS } from '../card/animation';
 import { effectiveTime, stageTime } from '../card/animation/timing';
-import { AnalysisNotes } from './AnalysisNotes';
 import { Section } from './Section';
 import { StructureMap } from './StructureMap';
 import { ThemePicker } from './ThemePicker';
@@ -179,7 +178,6 @@ export function ControlPanel({
         </Advanced>
       </div>
 
-      <AnalysisNotes />
     </Panel>
   );
 }
