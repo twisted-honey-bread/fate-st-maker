@@ -174,10 +174,22 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   if (textIn > 0) {
     const ty = (A.outroY / 100) * H;
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
+    /*
+     * 부제는 제목과 같은 '속도'(px)로 펼쳐짐 — 자간을 같은 비율로 늘리면 글자 수·크기가 달라 펼쳐지는 속도가 달라지므로,
+     * 제목 전체 폭이 지금까지 늘어난 만큼(px)만 부제 폭도 똑같이 늘림.
+     * 부제가 늘어날 총량 = 제목이 늘어나는 총량 (부제 자간을 0 근처까지 좁혀도 모자라면 거기까지만, 다 펼쳐지면 멈춤)
+     */
+    const gaps = s => Math.max(1, [...(s.text || '')].length - 1);
+    const pxOf = s => (s.size / 100) * H;
+    const mainGrowth = gaps(main) * main.spacing * 0.7 * pxOf(main); // 제목 폭이 펼쳐지며 늘어나는 총량 (px)
+    const subRoom = gaps(sub) * Math.max(0, sub.spacing) * 0.9 * pxOf(sub); // 부제가 좁혀질 수 있는 최대 폭 (px)
+    const subGrowth = Math.min(mainGrowth, subRoom);
+    const grown = Math.min(subGrowth, mainGrowth * spread); // 제목과 같은 px 만큼
+    const subSpacing = sub.spacing - (subGrowth - grown) / (gaps(sub) * pxOf(sub));
     drawText(ctx, {
       ...sub,
       alpha: clamp(E('easeOutroText', prog(t, textS + 0.1, textE + 0.1))),
-      spacing: sub.spacing * (0.4 + 0.6 * E('easeOutroSpread', prog(t, textS + 0.1, Math.max(textS + 0.2, textE - 0.1)))),
+      spacing: subSpacing,
     }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 
