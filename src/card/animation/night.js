@@ -36,8 +36,8 @@ export function toNight(state) {
     },
     left: dimText(state.left, '#dfe4ea'),
     right: dimText(state.right, '#c3c9d2'),
-    topLine: { ...state.topLine, color: '#c8d6ea', opacity: Math.max(state.topLine.opacity, 0.7) },
-    bottomLine: { ...state.bottomLine, color: '#5f6b7e' },
+    topLine: { ...state.topLine, fillMode: 'solid', color: '#c8d6ea', opacity: Math.max(state.topLine.opacity, 0.7) },
+    bottomLine: { ...state.bottomLine, fillMode: 'solid', color: '#5f6b7e' },
     logo: {
       ...state.logo,
       tint: true,

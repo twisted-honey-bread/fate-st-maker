@@ -1,5 +1,6 @@
 import { fontStr } from './fonts';
 import { getProceduralBackground } from './background';
+import { stylizeImage } from './stylize';
 import { rgba, mulberry32, FILTER_SUPPORTED } from './utils';
 
 /*
@@ -93,7 +94,7 @@ function paintBackground(ctx, W, H, state, bgImage) {
   ctx.fillRect(0, 0, W, H);
 
   // cover 맞춤 + 확대/위치
-  const src = bgImage || getProceduralBackground(W, H);
+  const src = bgImage ? stylizeImage(bgImage, B) : getProceduralBackground(W, H);
   const iw = src.naturalWidth || src.width;
   const ih = src.naturalHeight || src.height;
   const sc = Math.max(W / iw, H / ih) * (B.zoom / 100);
@@ -183,6 +184,12 @@ function drawLine(ctx, W, H, L) {
   const g = ctx.createLinearGradient(x0, 0, x1, 0);
   g.addColorStop(0, rgba(L.color, 0));
   g.addColorStop(f, rgba(L.color, L.opacity));
+  // 좌우대칭 그라데이션: 가장자리 색(color) → 가운데 색(color2)
+  if (L.fillMode === 'mirror') {
+    const c = Math.max(0, Math.min(0.5 - f - 0.001, L.mirrorCenter ?? 0.15));
+    g.addColorStop(0.5 - c, rgba(L.color2, L.opacity));
+    g.addColorStop(0.5 + c, rgba(L.color2, L.opacity));
+  }
   g.addColorStop(1 - f, rgba(L.color, L.opacity));
   g.addColorStop(1, rgba(L.color, 0));
   // reveal: 0~1, 가운데에서 양옆으로 그려지는 정도 (애니메이션용, 기본 1)
@@ -231,7 +238,9 @@ export function drawText(ctx, s, W, H, x, y, align) {
   let mirrorFill = null;
   if (s.fillMode === 'mirror') {
     const c = Math.max(0, Math.min(0.5, s.mirrorCenter ?? 0.08));
-    mirrorFill = ctx.createLinearGradient(sx, 0, sx + Math.max(1, w), 0);
+    // mirrorScope: 'text' = 글자 폭 기준, 'canvas' = 화면 폭 기준 (화면 가장자리 쪽일수록 가장자리 색)
+    const [gx0, gx1] = s.mirrorScope === 'canvas' ? [0, W] : [sx, sx + Math.max(1, w)];
+    mirrorFill = ctx.createLinearGradient(gx0, 0, gx1, 0);
     mirrorFill.addColorStop(0, s.color);
     mirrorFill.addColorStop(0.5 - c, s.color2);
     mirrorFill.addColorStop(0.5 + c, s.color2);
@@ -354,7 +363,21 @@ function drawLogo(ctx, W, H, L, img) {
   const x = (L.x / 100) * W - w / 2;
   const y = (L.y / 100) * H - h / 2;
   const rect = { x, y, w, h, hidden: !L.show };
-  if (!L.show || !ready) return rect;
+  if (!L.show) return rect;
+
+  // 로고 뒤에 원형으로 퍼지는 옅은 그림자
+  if (L.backShadow > 0) {
+    const cx = (L.x / 100) * W;
+    const cy = (L.y / 100) * H;
+    const r = (L.backShadowSize / 100) * H;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, rgba(L.backShadowColor, L.backShadow * L.opacity));
+    g.addColorStop(0.55, rgba(L.backShadowColor, L.backShadow * 0.55 * L.opacity));
+    g.addColorStop(1, rgba(L.backShadowColor, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  }
+  if (!ready) return rect;
 
   // 단색 실루엣: 알파만 남기고 색으로 채움
   let src = img;
@@ -393,6 +416,10 @@ function drawFlare(ctx, W, H, L) {
   const th = Math.max(1, (L.flareThickness / 100) * H);
   const k = L.flareIntensity;
 
+  // flareBlend: 아래 레이어와 합성하는 방식 (lighter = 더하기 발광, screen = 스크린)
+  ctx.save();
+  ctx.globalCompositeOperation = L.flareBlend || 'source-over';
+
   // 가로로 늘인 타원형 광선
   ctx.save();
   ctx.translate(fx, fy);
@@ -419,6 +446,7 @@ function drawFlare(ctx, W, H, L) {
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
   ctx.restore();
 }
 

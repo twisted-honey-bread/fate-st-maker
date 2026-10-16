@@ -14,7 +14,8 @@ const lineSparks = (() => {
 })();
 
 // reveal: 선이 그려진 정도, revealTime(u): 선 위 위치 u 에 빛이 도달한 시각
-export function drawLineLight(ctx, W, H, line, reveal, t, revealTime, color, alpha) {
+// 양 끝의 빛은 선 끝보다 조금 안쪽(inset, W 비율)에 놓이는 가로로 살짝 긴 마름모
+export function drawLineLight(ctx, W, H, line, reveal, t, revealTime, color, alpha, { inset = 0.025, aspect = 1.5 } = {}) {
   if (alpha <= 0) return;
   const x0 = (line.left / 100) * W;
   const x1 = W - (line.right / 100) * W;
@@ -29,14 +30,25 @@ export function drawLineLight(ctx, W, H, line, reveal, t, revealTime, color, alp
   // 양 끝의 빛
   if (reveal < 1 || t < revealTime(1) + 0.4) {
     const headAlpha = reveal < 1 ? 1 : clamp01(1 - (t - revealTime(1)) / 0.4);
-    for (const x of [mid - half, mid + half]) {
-      const r = H * 0.012;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const inner = Math.min(half, inset * W);
+    for (const x of [mid - half + inner, mid + half - inner]) {
+      const r = H * 0.014;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(aspect, 1);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
       g.addColorStop(0, `rgba(255,255,255,${headAlpha})`);
       g.addColorStop(0.3, rgba(color, headAlpha * 0.8));
       g.addColorStop(1, rgba(color, 0));
       ctx.fillStyle = g;
-      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.lineTo(r, 0);
+      ctx.lineTo(0, r);
+      ctx.lineTo(-r, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
   }
 

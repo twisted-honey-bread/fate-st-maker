@@ -16,6 +16,7 @@ const IM = (k, label) => ({ k, label, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const when = (field, fn) => ({ ...field, when: fn });
 const isIntro = s => s.anim.mode === 'intro';
+const hasStyle = s => s.bg.styleMode !== 'none';
 const isOutro = s => s.anim.mode === 'outro';
 
 function textMain(p, { x = true, y = true, extra = [] } = {}) {
@@ -41,6 +42,7 @@ function textAdvanced(p, extra = []) {
     B(`${p}.italic`, '기울임'),
     R(`${p}.spacing`, '자간', -0.1, 0.8, 0.01, 'em'),
     when(R(`${p}.mirrorCenter`, '대칭 그라데이션 가운데 폭', 0, 0.5, 0.01), s => s[p].fillMode === 'mirror'),
+    when(S(`${p}.mirrorScope`, '대칭 그라데이션 기준', [['text', '글자 폭'], ['canvas', '화면 폭']]), s => s[p].fillMode === 'mirror'),
     HD('외곽선'),
     R(`${p}.strokeWidth`, '두께', 0, 1.5, 0.01, '%H'),
     when(C(`${p}.strokeColor`, '색'), s => s[p].strokeWidth > 0),
@@ -63,12 +65,15 @@ function lineMain(p) {
     B(`${p}.show`, '표시'),
     R(`${p}.y`, 'Y 위치', 0, 100, 0.1, '%H'),
     R(`${p}.thickness`, '두께', 0.05, 1.5, 0.01, '%H'),
-    C(`${p}.color`, '색'),
+    S(`${p}.fillMode`, '채우기', [['solid', '단색'], ['mirror', '좌우대칭 그라데이션']]),
+    C(`${p}.color`, '색 (가장자리)'),
+    when(C(`${p}.color2`, '가운데 색'), s => s[p].fillMode === 'mirror'),
   ];
 }
 
 function lineAdvanced(p) {
   return [
+    when(R(`${p}.mirrorCenter`, '대칭 그라데이션 가운데 폭', 0, 0.5, 0.01), s => s[p].fillMode === 'mirror'),
     R(`${p}.opacity`, '불투명도', 0, 1, 0.01),
     R(`${p}.left`, '왼쪽 여백', 0, 50, 0.1, '%W'),
     R(`${p}.right`, '오른쪽 여백', 0, 50, 0.1, '%W'),
@@ -82,6 +87,7 @@ export const PARTS = [
     id: 'bg', short: '배경', title: '배경', desc: '설원 이미지와 분위기 효과',
     main: [
       IM('bg', '배경 이미지'),
+      S('bg.styleMode', '사진 스타일 변환', [['duotone', '설원 톤 (듀오톤)'], ['poster', '단계 분리'], ['threshold', '2치화'], ['none', '원본 그대로']]),
       R('bg.zoom', '확대', 100, 300, 1, '%'),
       R('bg.posX', '가로 위치', 0, 100, 0.5, '%'),
       R('bg.posY', '세로 위치', 0, 100, 0.5, '%'),
@@ -90,6 +96,15 @@ export const PARTS = [
       B('bg.snow', '눈 입자'),
     ],
     advanced: [
+      when(HD('사진 스타일 변환 (업로드한 이미지에만 적용)'), hasStyle),
+      when(R('bg.styleExposure', '밝게', -0.5, 0.8, 0.01), hasStyle),
+      when(R('bg.styleContrast', '대비', 0.2, 3, 0.05, '배'), hasStyle),
+      when(R('bg.styleLevels', '단계 수', 2, 8, 1), s => s.bg.styleMode === 'poster'),
+      when(R('bg.styleThreshold', '2치화 기준', 0.05, 0.95, 0.01), s => s.bg.styleMode === 'threshold'),
+      when(R('bg.styleEdge', '2치화 경계 부드럽게', 0, 0.3, 0.01), s => s.bg.styleMode === 'threshold'),
+      when(R('bg.styleBlur', '잡티 줄이기 (사전 흐림)', 0, 1, 0.01, '%H'), hasStyle),
+      when(C('bg.styleInk', '어두운 부분 색'), hasStyle),
+      when(C('bg.stylePaper', '밝은 부분 색'), hasStyle),
       HD('보정 필터'),
       R('bg.contrast', '대비', 0, 200, 1, '%'),
       R('bg.saturate', '채도', 0, 200, 1, '%'),
@@ -124,6 +139,10 @@ export const PARTS = [
     ],
     advanced: [
       R('logo.opacity', '불투명도', 0, 1, 0.01),
+      HD('뒤쪽 그림자 (원형)'),
+      R('logo.backShadow', '진하기', 0, 1, 0.01),
+      C('logo.backShadowColor', '색'),
+      R('logo.backShadowSize', '반경', 2, 80, 0.5, '%H'),
       HD('색 입히기 (단색 실루엣)'),
       B('logo.tint', '사용'),
       when(C('logo.tintColor', '색'), s => s.logo.tint),
@@ -134,6 +153,7 @@ export const PARTS = [
       R('logo.glowStrength', '강도 (겹침)', 1, 6, 1),
       HD('렌즈 플레어 (가로 광선)'),
       C('logo.flareColor', '색'),
+      S('logo.flareBlend', '합성 방식', [['lighter', '발광 (더하기)'], ['screen', '스크린'], ['source-over', '보통']]),
       R('logo.flareX', 'X (로고 기준)', -50, 50, 0.1, '%W'),
       R('logo.flareY', 'Y (로고 기준)', -50, 50, 0.1, '%H'),
       R('logo.flareLength', '길이', 1, 40, 0.1, '%W'),
