@@ -143,12 +143,12 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   // 공상절제 문구
   const { main, sub } = outroTextStyles(state);
   // 처음엔 옅게 페이드 인 → 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
-  const textIn = spread;
+  const textIn = easeInOut(prog(t, 2.95, 4.1)); // 펼쳐지는 동안 천천히 페이드 인
   if (textIn > 0) {
     const ty = (A.outroY / 100) * H;
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
     drawText(ctx, {
-      ...sub, alpha: easeOut(prog(t, 3.05, 4.0)), spacing: sub.spacing * (0.4 + 0.6 * easeOut(prog(t, 3.05, 4.0))),
+      ...sub, alpha: easeInOut(prog(t, 3.05, 4.2)), spacing: sub.spacing * (0.4 + 0.6 * easeOut(prog(t, 3.05, 4.0))),
     }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 

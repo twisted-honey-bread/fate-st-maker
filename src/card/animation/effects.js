@@ -157,7 +157,7 @@ function makeDiamonds(count, seed) {
       end: 0.3 + Math.pow(rng(), 0.7) * 0.7, // 사라지는 시점 (burst~endAt 구간의 비율)
       hold: rng() * 0.35, // 작아지기 시작하기 전 그대로 있는 구간 (수명 비율)
       curve: 0.5 + rng() * 2.2, // 작아지는 속도 곡선 (작을수록 초반에 빨리, 클수록 후반에 몰아서)
-      size: 0.01 + Math.pow(rng(), 2.4) * 0.43, // 작은 것은 작게, 큰 것은 화면 높이의 40% 이상까지
+      size: 0.01 + Math.pow(rng(), 2.4) * 0.365, // 작은 것은 작게, 큰 것은 화면 높이의 35% 이상까지
       vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
       sx: 0.45 + rng() * 0.55, // 축소될 때 가로가 추가로 줄어드는 정도
     };
@@ -169,7 +169,7 @@ const diamondCache = new Map();
 export function drawDiamonds(ctx, W, H, t, {
   density, color, glow = '#fff0b8', squash = 0.45, seed = 1, endAt = 3,
 }) {
-  const count = Math.round(34 * density);
+  const count = Math.round(44 * density);
   if (count <= 0 || t < 0) return;
   const key = `${count}:${seed}`;
   if (!diamondCache.has(key)) {
@@ -195,7 +195,7 @@ export function drawDiamonds(ctx, W, H, t, {
     const y = top + hh;
     // 거의 흰 단색 마름모 + 옅은 크림색 빛 번짐 (겹치면 하나의 밝은 덩어리처럼 보임)
     ctx.globalAlpha = 1;
-    ctx.shadowBlur = Math.min(Math.max(hw, hh) * 1.4, H * 0.08); // 아주 큰 입자는 빛 번짐 반경을 제한 (렌더링 부담)
+    ctx.shadowBlur = Math.min(Math.max(hw, hh) * 0.8, H * 0.045); // 아주 큰 입자는 빛 번짐 반경을 제한 (렌더링 부담)
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(x, y - hh);
@@ -204,7 +204,6 @@ export function drawDiamonds(ctx, W, H, t, {
     ctx.lineTo(x - hw, y);
     ctx.closePath();
     ctx.fill();
-    ctx.fill(); // 한 번 더 그려 빛 번짐을 진하게
   }
   ctx.restore();
 }
