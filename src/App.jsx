@@ -48,6 +48,12 @@ const SIZES = {
   gif: [[480, '480×270'], [640, '640×360'], [960, '960×540']],
 };
 const MIME = { png: 'image/png', jpg: 'image/jpeg' };
+// 겹쳐보기용 원본 캡처 (public/reference, 모두 1920×1080)
+const REFERENCES = {
+  'lostbelt-no1': 'reference/lostbelt-no1.jpg',
+  'outro-flash': 'reference/outro-flash.jpg',
+  'outro-text': 'reference/outro-text.jpg',
+};
 const ANIM_NAMES = { intro: '인트로', outro: '공상절제' };
 
 const safeFileName = s => (s || '').replace(/[\\/:*?"<>|]/g, '').trim() || 'lostbelt';
@@ -59,9 +65,10 @@ export default function App() {
   const [sizeByFormat, setSizeByFormat] = useState({ png: 1920, jpg: 1920, mp4: 1920, gif: 640 });
   const [guides, setGuides] = useState(false);
   // 원본 예시 이미지 겹쳐보기 (public/reference 의 이미지)
-  const [reference, setReference] = useState({
-    on: false, opacity: 0.5, difference: false, src: 'reference/lostbelt-no1.jpg',
-  });
+  const [reference, setReference] = useState({ on: false, opacity: 0.5, difference: false, which: 'auto' });
+  const referenceSrc = REFERENCES[
+    reference.which === 'auto' ? (state.anim.mode === 'outro' ? 'outro-text' : 'lostbelt-no1') : reference.which
+  ];
   const [progress, setProgress] = useState(null); // null = 대기, 0~1 = 만드는 중
   const abortRef = useRef(null);
   const [fontList, setFontList] = useState(FONT_LIST);
@@ -213,7 +220,7 @@ export default function App() {
             onLayout={setLayout}
             onSelect={setSelected}
             onModeChange={handleModeChange}
-            reference={reference}
+            reference={{ ...reference, src: referenceSrc }}
             exporting={progress !== null}
             onDropImage={file => handleImageFile('bg', file)}
           />

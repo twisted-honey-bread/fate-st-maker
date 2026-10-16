@@ -98,6 +98,18 @@ export function Toolbar({
         </Inline>
         {reference.on && (
           <>
+            <Select
+              id="refWhich"
+              aria-label="겹쳐볼 원본"
+              value={reference.which}
+              onChange={e => onReference({ which: e.target.value })}
+              style={{ width: 'auto' }}
+            >
+              <option value="auto">자동 (모드에 맞춤)</option>
+              <option value="lostbelt-no1">정지 카드</option>
+              <option value="outro-flash">아웃트로 · 섬광</option>
+              <option value="outro-text">아웃트로 · 문구</option>
+            </Select>
             <RefRange
               id="refOpacity"
               aria-label="원본 불투명도"

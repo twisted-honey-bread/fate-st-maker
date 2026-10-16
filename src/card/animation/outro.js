@@ -34,7 +34,7 @@ function outroTextStyles(state) {
     font: A.outroFont,
     weight: A.outroWeight,
     size: A.outroSize,
-    spacing: 0.42,
+    spacing: A.outroSpacing,
     fillMode: 'gradient',
     color: A.outroColor,
     color2: A.outroColor2,
@@ -56,8 +56,8 @@ function outroTextStyles(state) {
     text: A.outroSub,
     font: A.outroSubFont,
     weight: 500,
-    size: A.outroSize * 0.28,
-    spacing: 0.85,
+    size: A.outroSubSize,
+    spacing: A.outroSubSpacing,
     color: '#f2ede2',
     glowColor: A.outroGlow,
     glowOpacity: 0.4,
@@ -148,7 +148,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
     drawText(ctx, {
       ...sub, alpha: easeOut(prog(t, 3.05, 4.0)), spacing: sub.spacing * (0.4 + 0.6 * easeOut(prog(t, 3.05, 4.0))),
-    }, W, H, W / 2, ty + (A.outroSize / 100) * H * 0.62, 'center');
+    }, W, H, W / 2, (A.outroSubY / 100) * H, 'center');
   }
 
   // 정방형 입자 (모두 사라지는 시점 = 암전 시작)
