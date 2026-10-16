@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { GlobalStyle } from './styles/GlobalStyle';
 import { useCardState } from './hooks/useCardState';
@@ -11,6 +11,7 @@ import { drawCard } from './card/renderer';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from './card/animation';
+import { applyColorTheme } from './card/theme';
 import { DownloadBar } from './components/DownloadBar';
 import { IMAGE_MAX_MB } from './card/utils';
 
@@ -73,7 +74,9 @@ export default function App() {
   const [fontVersion, setFontVersion] = useState(0);
   const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
   const [bgDraft, setBgDraft] = useState(null); // 배경 직접 조정 중인 값 { zoom, posX, posY } (적용 전)
-  const viewState = bgDraft ? { ...state, bg: { ...state.bg, ...bgDraft } } : state;
+  const [themePreview, setThemePreview] = useState(null); // 테마 색을 고르는 중인 색 (적용 전 미리보기)
+  const themed = useMemo(() => (themePreview ? applyColorTheme(state, themePreview).next : state), [state, themePreview]);
+  const viewState = bgDraft ? { ...themed, bg: { ...themed.bg, ...bgDraft } } : themed;
 
   useEffect(() => {
     hcrFontReady.then(setHcrAvailable);
@@ -258,6 +261,7 @@ export default function App() {
               const { zoom, posX, posY } = state.bg;
               setBgDraft({ zoom, posX, posY });
             }}
+            onPreviewTheme={setThemePreview}
             onApplyTheme={hex => {
               setThemeUndo(card.applyTheme(hex));
               notify('대표색에 맞춰 색을 바꿨습니다. 마음에 들지 않으면 되돌리기를 누르세요.');

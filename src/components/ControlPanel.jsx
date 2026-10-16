@@ -121,7 +121,7 @@ function advancedHint(part, state) {
 
 export function ControlPanel({
   state, onField, uploadedFonts, onFontUpload, imageUrls, onImageFile, onImageClear,
-  layout, selected, onSelect, hcrAvailable, onApplyTheme, onResetTheme, canUndoTheme, onUndoTheme, onAction,
+  layout, selected, onSelect, hcrAvailable, onApplyTheme, onResetTheme, canUndoTheme, onUndoTheme, onAction, onPreviewTheme,
 }) {
   const part = PART_BY_ID[selected] || PART_BY_ID.title;
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -199,7 +199,7 @@ export function ControlPanel({
 
   return (
     <Panel aria-label="입력 콘솔">
-      <ThemePicker state={state} onApply={onApplyTheme} canUndo={canUndoTheme} onUndo={onUndoTheme} onReset={onResetTheme} />
+      <ThemePicker state={state} onApply={onApplyTheme} canUndo={canUndoTheme} onUndo={onUndoTheme} onReset={onResetTheme} onPreview={onPreviewTheme} />
       <StructureMap layout={layout} selected={part.id} onSelect={onSelect} animMode={state.anim.mode !== 'still'} />
 
       <div role="tabpanel" aria-labelledby={`tab_${part.id}`}>

@@ -110,7 +110,7 @@ const same = (a, b) => {
   return x.length === y.length && x.every((c, i) => near(c, y[i]));
 };
 
-export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
+export function ThemePicker({ state, onApply, canUndo, onUndo, onReset, onPreview }) {
   const primary = state.title.color;
   const [color, setColor] = useState(primary);
   useEffect(() => setColor(primary), [primary]);
@@ -119,6 +119,11 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
   const next = useMemo(() => themeColors(state, color), [state, color]);
   // 대표색을 실제로 바꿨고, 그 결과 바뀌는 색이 있을 때만 미리보기·적용 버튼을 보여줌
   const pending = !same(color, primary) && THEME_GROUPS.some(g => g.paths.some(p => !same(now[p], next[p])));
+  // 고르는 중인 색을 미리보기 캔버스에 바로 반영 (적용 전, 설정은 바뀌지 않음)
+  useEffect(() => {
+    onPreview?.(pending ? color : null);
+  }, [pending, color, onPreview]);
+  useEffect(() => () => onPreview?.(null), [onPreview]);
 
   return (
     <Wrap aria-labelledby="themeHead">
@@ -128,7 +133,7 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
           <input type="color" id="themeColor" aria-label="대표색 (제목 위쪽 색)" value={color} onChange={e => setColor(e.target.value)} />
         </Pick>
       </Head>
-      <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 글자와 배치는 그대로입니다.</Lead>
+      <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 고르는 동안 미리보기에 바로 보이고, ‘이 색으로 바꾸기’를 눌러야 적용됩니다.</Lead>
       {pending && (
         <Changes aria-label="바뀌는 색 (지금 → 적용 후)">
           <Change aria-hidden="true">
@@ -151,6 +156,7 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
         {pending && (
           <Button type="button" $primary onClick={() => onApply(color)} style={{ flex: 1 }}>이 색으로 바꾸기</Button>
         )}
+        {pending && <Button type="button" onClick={() => setColor(primary)}>취소</Button>}
         {canUndo && !pending && <Button type="button" onClick={onUndo}>되돌리기</Button>}
         <Button type="button" onClick={onReset} title="테마 색이 바꾸는 색들만 처음 기본값으로" style={{ marginLeft: 'auto' }}>초기 색으로</Button>
       </Actions>
