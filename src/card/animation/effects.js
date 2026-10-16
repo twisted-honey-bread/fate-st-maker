@@ -1,4 +1,4 @@
-import { mulberry32, rgba } from '../utils';
+import { FILTER_SUPPORTED, mulberry32, rgba } from '../utils';
 import { clamp01, layer } from './util';
 
 /* ---------- 라인 드로잉: 양 끝의 빛 + 흩날리는 푸른 입자 (인트로) ---------- */
@@ -225,11 +225,34 @@ export function drawDiamonds(ctx, W, H, t, {
     any = true;
   }
   if (!any) return;
-  ctx.save();
-  ctx.shadowColor = rgba(glow, 0.95);
-  ctx.shadowBlur = H * glowSize;
+  if (glowSize > 0) {
+    if (FILTER_SUPPORTED) {
+      // 빛 번짐은 1/4 해상도에서 흐리게 만든 뒤 확대해 깔아 줌 (전체 해상도 흐림보다 훨씬 가벼움)
+      const sw = Math.max(1, Math.round(W / 4));
+      const sh = Math.max(1, Math.round(H / 4));
+      const { canvas: sc, ctx: sx } = layer('diamond-glow-src', sw, sh);
+      sx.drawImage(pl, 0, 0, sw, sh);
+      sx.globalCompositeOperation = 'source-in';
+      sx.fillStyle = rgba(glow, 0.95);
+      sx.fillRect(0, 0, sw, sh);
+      const { canvas: bc, ctx: bx } = layer('diamond-glow', sw, sh);
+      bx.filter = `blur(${(H * glowSize) / 4 / 2}px)`;
+      bx.drawImage(sc, 0, 0);
+      bx.filter = 'none';
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(bc, 0, 0, W, H);
+      ctx.drawImage(bc, 0, 0, W, H); // 두 번 깔아 밝기를 그림자 방식과 비슷하게
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.shadowColor = rgba(glow, 0.95);
+      ctx.shadowBlur = H * glowSize;
+      ctx.drawImage(pl, 0, 0);
+      ctx.restore();
+    }
+  }
   ctx.drawImage(pl, 0, 0);
-  ctx.restore();
 }
 
 /* ---------- 위에서 쏟아져 내리는 금빛 입자 (아웃트로) ----------
