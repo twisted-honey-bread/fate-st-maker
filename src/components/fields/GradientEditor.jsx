@@ -20,8 +20,10 @@ const Wrap = styled.div`
   background: var(--surface);
 `;
 
+// 머리줄: [이름 ......... ⇆ 대칭화] / 다음 줄: [단색 | 가로 그라데이션 | 세로 그라데이션]
 const Head = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 
@@ -33,7 +35,11 @@ const Head = styled.div`
 `;
 
 const Seg = styled.div`
-  display: inline-flex;
+  order: 3;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  width: 100%;
   gap: 2px;
   padding: 2px;
   border: 1px solid var(--line);
@@ -41,9 +47,10 @@ const Seg = styled.div`
   background: var(--surface-2);
 
   button {
-    padding: 3px 9px;
+    padding: 4px 6px;
     border: 0;
     border-radius: 4px;
+    white-space: nowrap;
     background: transparent;
     color: var(--muted);
     font-size: 12px;
@@ -177,7 +184,7 @@ const Sub = styled.div`
   color: var(--muted);
 `;
 
-const MODE_LABEL = { solid: '단색', horizontal: '가로', vertical: '세로' };
+const MODE_LABEL = { solid: '단색', horizontal: '가로 그라데이션', vertical: '세로 그라데이션' };
 const clamp01 = v => Math.max(0, Math.min(1, v));
 const round = v => Math.round(v * 1000) / 1000;
 
@@ -289,7 +296,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
             $primary={sym}
             onClick={() => toggleSym(!sym)}
           >
-            ◇ 대칭
+            ◇ 대칭화
           </Icon>
         )}
       </Head>

@@ -28,7 +28,7 @@ export function FontField({ id, label, group, value, withWeight, presetWeights =
   const g = FONT_GROUPS[group];
   const preset = g.presets.find(([f]) => f === value.font);
   const options = [
-    ...g.presets.map(([f], i) => ({ font: f, text: `${fontLabel(f)}${withWeight ? ` · ${presetWeights[f]}` : ''}${i === 0 ? ' (기본)' : ''}` })),
+    ...g.presets.map(([f], i) => ({ font: f, text: `${fontLabel(f)}${i === 0 ? ' (기본)' : ''}` })),
     ...uploaded.map(f => ({ font: f, text: `${f} (업로드)` })),
   ];
   const known = options.some(o => o.font === value.font);
@@ -79,7 +79,7 @@ export function FontField({ id, label, group, value, withWeight, presetWeights =
             style={{ gridColumn: '2 / 4' }}
           >
             {!weights.includes(value.weight) && <option value={String(value.weight)}>{value.weight}</option>}
-            {weights.map(w => <option key={w} value={String(w)}>{w}{preset && w === presetWeights[value.font] ? ' (이 폰트 기본)' : ''}</option>)}
+            {weights.map(w => <option key={w} value={String(w)}>{w}{preset && w === presetWeights[value.font] ? ' (기본)' : ''}</option>)}
           </Select>
         </Row>
       )}

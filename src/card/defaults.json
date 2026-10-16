@@ -1,1 +1,457 @@
-{}
+{
+  "fontWeights": {
+    "left": {
+      "Spectral": 600,
+      "Cormorant Garamond": 700,
+      "Bodoni Moda": 600
+    },
+    "latin": {
+      "Libre Bodoni": 400,
+      "Old Standard TT": 700,
+      "Playfair Display": 600
+    }
+  },
+  "bg": {
+    "styleMode": "duotone",
+    "styleExposure": 0.22,
+    "styleContrast": 1.15,
+    "styleLevels": 4,
+    "styleThreshold": 0.5,
+    "styleEdge": 0.08,
+    "styleBlur": 0.1,
+    "styleInk": "#56636f",
+    "stylePaper": "#f3f7fa",
+    "zoom": 100,
+    "posX": 50,
+    "posY": 50,
+    "brightness": 112,
+    "contrast": 78,
+    "saturate": 55,
+    "blur": 0,
+    "washColor": "#ffffff",
+    "washOpacity": 0.35,
+    "fogBottom": 0.55,
+    "vignetteColor": "#ffffff",
+    "vignette": 0.8,
+    "vignetteSize": 45,
+    "glowColor": "#ffffff",
+    "glowOpacity": 0.6,
+    "glowRadius": 24,
+    "snow": true,
+    "snowCount": 160,
+    "snowOpacity": 0.75
+  },
+  "left": {
+    "show": true,
+    "text": "Lostbelt No.1",
+    "font": "Spectral",
+    "weight": 600,
+    "italic": false,
+    "size": 6,
+    "spacing": 0.06,
+    "scaleX": 100,
+    "x": 6,
+    "y": 11.5,
+    "fillMode": "horizontal",
+    "color": "#3f78b5",
+    "stops": [
+      [
+        0,
+        "#3f78b5"
+      ],
+      [
+        0.162,
+        "#262c34"
+      ],
+      [
+        1,
+        "#3f78b5"
+      ],
+      [
+        0.838,
+        "#262c34"
+      ]
+    ],
+    "symmetric": true,
+    "mirrorScope": "canvas",
+    "strokeWidth": 0,
+    "strokeColor": "#ffffff",
+    "glowColor": "#9ad8ff",
+    "glowOpacity": 0.85,
+    "glowBlur": 0.45,
+    "glowStrength": 2,
+    "shadowColor": "#000000",
+    "shadowOpacity": 0,
+    "shadowBlur": 0.35,
+    "shadowX": 0,
+    "shadowY": 0.15
+  },
+  "right": {
+    "show": true,
+    "text": "이문심도",
+    "font": "Noto Sans KR",
+    "weight": 300,
+    "italic": false,
+    "size": 5.2,
+    "spacing": -0.1,
+    "scaleX": 100,
+    "x": 94.4,
+    "y": 11.1,
+    "fillMode": "solid",
+    "color": "#545961",
+    "stops": [
+      [
+        0,
+        "#545961"
+      ],
+      [
+        1,
+        "#2b2f35"
+      ]
+    ],
+    "symmetric": false,
+    "mirrorScope": "text",
+    "strokeWidth": 0,
+    "strokeColor": "#ffffff",
+    "glowColor": "#9ad8ff",
+    "glowOpacity": 0.85,
+    "glowBlur": 0.45,
+    "glowStrength": 2,
+    "shadowColor": "#000000",
+    "shadowOpacity": 0,
+    "shadowBlur": 0.4,
+    "shadowX": 0,
+    "shadowY": 0.15,
+    "after": "D"
+  },
+  "topLine": {
+    "show": true,
+    "y": 12.6,
+    "thickness": 0.22,
+    "fillMode": "horizontal",
+    "color": "#4f86bf",
+    "stops": [
+      [
+        0,
+        "#4f86bf"
+      ],
+      [
+        0.35,
+        "#2c3138"
+      ],
+      [
+        0.65,
+        "#2c3138"
+      ],
+      [
+        1,
+        "#4f86bf"
+      ]
+    ],
+    "symmetric": true,
+    "opacity": 0.85,
+    "left": 3,
+    "right": 1.8,
+    "fade": 10
+  },
+  "logo": {
+    "show": true,
+    "x": 50.3,
+    "y": 40,
+    "height": 33,
+    "zoom": 100,
+    "opacity": 1,
+    "source": "generate",
+    "genShape": "shield",
+    "genGrid": 9,
+    "genDensity": 0.5,
+    "genGap": 0.12,
+    "genFrame": true,
+    "genColor": "#1d2127",
+    "tint": false,
+    "tintColor": "#1d2127",
+    "glowColor": "#ffffff",
+    "glowOpacity": 0.3,
+    "glowBlur": 2.5,
+    "glowStrength": 2,
+    "flare": true,
+    "flareColor": "#4fb8ff",
+    "flareX": 8.9,
+    "flareY": -6.7,
+    "flareLength": 9,
+    "flareThickness": 0.9,
+    "flareIntensity": 0.9,
+    "flareAspect": 1.5,
+    "flareBlend": "screen",
+    "flareSolid": 0.6,
+    "edgeColor": "#6e4526",
+    "edgeStrength": 0.36,
+    "edgeWidth": 0.4,
+    "backShadow": 0.24,
+    "backShadowColor": "#1c2733",
+    "backShadowSize": 34
+  },
+  "era": {
+    "show": true,
+    "text": "A.D.1570?",
+    "font": "Libre Bodoni",
+    "weight": 400,
+    "italic": false,
+    "size": 4.4,
+    "spacing": 0.07,
+    "scaleX": 100,
+    "x": 50,
+    "y": 50,
+    "fillMode": "horizontal",
+    "color": "#2b78c2",
+    "stops": [
+      [
+        0,
+        "#2b78c2"
+      ],
+      [
+        0.45,
+        "#0b1626"
+      ],
+      [
+        0.55,
+        "#0b1626"
+      ],
+      [
+        1,
+        "#2b78c2"
+      ]
+    ],
+    "symmetric": true,
+    "mirrorScope": "text",
+    "strokeWidth": 0,
+    "strokeColor": "#ffffff",
+    "glowColor": "#9ad8ff",
+    "glowOpacity": 0.9,
+    "glowBlur": 0.45,
+    "glowStrength": 2,
+    "shadowColor": "#000000",
+    "shadowOpacity": 0,
+    "shadowBlur": 0.4,
+    "shadowX": 0,
+    "shadowY": 0.15,
+    "position": "left",
+    "gap": 2,
+    "offsetY": -1.6
+  },
+  "title": {
+    "show": true,
+    "text": "영구동토제국 아나스타샤",
+    "font": "HCR Batang",
+    "weight": 600,
+    "italic": false,
+    "size": 10,
+    "spacing": 0.11,
+    "scaleX": 100,
+    "x": 50,
+    "y": 72.4,
+    "fillMode": "horizontal",
+    "color": "#2f9fe8",
+    "stops": [
+      [
+        0,
+        "#2f9fe8"
+      ],
+      [
+        0.44,
+        "#0b1626"
+      ],
+      [
+        0.56,
+        "#0b1626"
+      ],
+      [
+        1,
+        "#2f9fe8"
+      ]
+    ],
+    "symmetric": true,
+    "mirrorScope": "text",
+    "strokeWidth": 0,
+    "strokeColor": "#ffffff",
+    "glowColor": "#9ad8ff",
+    "glowOpacity": 0.85,
+    "glowBlur": 0.55,
+    "glowStrength": 2,
+    "shadowColor": "#000000",
+    "shadowOpacity": 0,
+    "shadowBlur": 0.4,
+    "shadowX": 0,
+    "shadowY": 0.15,
+    "anchor": "group"
+  },
+  "bottomLine": {
+    "show": true,
+    "y": 77.6,
+    "thickness": 0.14,
+    "fillMode": "solid",
+    "color": "#7d838b",
+    "stops": [
+      [
+        0,
+        "#7d838b"
+      ],
+      [
+        0.35,
+        "#4a4f56"
+      ],
+      [
+        0.65,
+        "#4a4f56"
+      ],
+      [
+        1,
+        "#7d838b"
+      ]
+    ],
+    "symmetric": true,
+    "opacity": 0.8,
+    "left": 6,
+    "right": 6,
+    "fade": 18
+  },
+  "sub": {
+    "show": true,
+    "text": "짐승 나라의 황녀",
+    "font": "HCR Batang",
+    "weight": 400,
+    "italic": false,
+    "size": 7.5,
+    "spacing": -0.1,
+    "scaleX": 95,
+    "x": 50,
+    "y": 89,
+    "fillMode": "horizontal",
+    "color": "#7a828d",
+    "stops": [
+      [
+        0,
+        "#7a828d"
+      ],
+      [
+        0.42,
+        "#33383f"
+      ],
+      [
+        0.58,
+        "#33383f"
+      ],
+      [
+        1,
+        "#7a828d"
+      ]
+    ],
+    "symmetric": true,
+    "mirrorScope": "text",
+    "strokeWidth": 0,
+    "strokeColor": "#ffffff",
+    "glowColor": "#ffffff",
+    "glowOpacity": 0.8,
+    "glowBlur": 0.4,
+    "glowStrength": 1,
+    "shadowColor": "#000000",
+    "shadowOpacity": 0,
+    "shadowBlur": 0.4,
+    "shadowX": 0,
+    "shadowY": 0.15
+  },
+  "anim": {
+    "mode": "still",
+    "introSpeed": 1,
+    "outroSpeed": 1,
+    "nightTint": "#0d1626",
+    "introHold": 2,
+    "introLineColor": "#8fd0ff",
+    "introFlash": false,
+    "introZoom": 1.06,
+    "introBlur": 0.5,
+    "nightVignette": 0.97,
+    "nightVignetteSize": 28,
+    "introCornerVignette": 0.9,
+    "introCornerSize": 38,
+    "fogOpacity": 0.25,
+    "fogCoverage": 0.35,
+    "fogScale": 1,
+    "fogColor": "#b9c2cc",
+    "circuit": true,
+    "circuitColor": "#8b949e",
+    "circuitOpacity": 0.4,
+    "outroText": "공상절제",
+    "outroSub": "Cosmos Denial",
+    "outroFont": "HCR Batang",
+    "outroWeight": 700,
+    "outroSubFont": "Libre Bodoni",
+    "outroSubWeight": 400,
+    "outroSize": 24.5,
+    "outroY": 60,
+    "outroSpacing": 0.42,
+    "outroScaleX": 100,
+    "outroSubSize": 7,
+    "outroSubSpacing": 0.72,
+    "outroSubScaleX": 100,
+    "outroSubY": 75.1,
+    "outroStops": [
+      [
+        0,
+        "#ffffff"
+      ],
+      [
+        0.6,
+        "#d8bd88"
+      ],
+      [
+        0.72,
+        "#d8bd88"
+      ],
+      [
+        1,
+        "#cfe2f5"
+      ]
+    ],
+    "outroSymmetric": false,
+    "outroGlow": "#ffd98a",
+    "outroHold": 3.5,
+    "flareColor": "#ffd27a",
+    "rayCount": 6,
+    "rayAngle": 90,
+    "rayLength": 40,
+    "rayWidthStart": 2,
+    "rayWidthEnd": 10,
+    "rayOpacity": 0.15,
+    "rayFade": 0.3,
+    "rayStartLength": 0.6,
+    "outroLogoColor": "#ffffff",
+    "outroLogoDark": "#14161b",
+    "particleDensity": 1,
+    "particleColor": "#fffef4",
+    "particleGlow": "#fff0b8",
+    "particleGlowSize": 3,
+    "particleSquash": 0.45,
+    "seed": 1,
+    "riseDensity": 1,
+    "hexGrid": true,
+    "easeIntroFade": "outCubic",
+    "easeIntroLine": "outCubic",
+    "easeIntroHeader": "outCubic",
+    "easeIntroLogo": "outCubic",
+    "easeIntroReveal": "inOutCubic",
+    "easeIntroTitle": "outCubic",
+    "easeIntroSub": "outCubic",
+    "easeIntroZoom": "linear",
+    "easeIntroCircuit": "linear",
+    "easeOutroInk": "inOutCubic",
+    "easeOutroDarken": "inOutCubic",
+    "easeOutroSpread": "outCubic",
+    "easeOutroText": "inOutCubic",
+    "easeOutroCircuit": "linear",
+    "easeOutroEnd": "inCubic",
+    "easeOutroRays": "outCubic",
+    "fps": 30,
+    "gifFps": 15
+  }
+}

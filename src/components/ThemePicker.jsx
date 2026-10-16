@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { THEME_GROUPS, currentThemeColors, themeColors } from '../card/theme';
 import { cssGradient } from '../card/gradient';
-import { Button, ColorInput } from './ui';
+import { Button } from './ui';
 
 /*
  * 테마 색 — 대표색 하나를 고르면 같은 색조로 강조색들을 한 번에 바꿈
@@ -34,21 +34,40 @@ const Lead = styled.p`
   color: var(--muted);
 `;
 
-const Pick = styled.div`
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 8px;
-  align-items: center;
+// 머리줄 오른쪽의 색 견본 (누르면 색 선택기)
+const Pick = styled.label`
+  flex: none;
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: pointer;
+
+  input {
+    width: 64px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    cursor: pointer;
+  }
+  input::-webkit-color-swatch-wrapper { padding: 0; }
+  input::-webkit-color-swatch { border: 0; border-radius: 3px; }
+  input::-moz-color-swatch { border: 0; border-radius: 3px; }
 `;
 
 const Changes = styled.ul`
   display: grid;
-  gap: 4px;
+  gap: 6px;
   margin: 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   list-style: none;
-  border-radius: 6px;
-  background: var(--surface-2);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
 `;
 
 const Change = styled.li`
@@ -99,40 +118,42 @@ export function ThemePicker({ state, onApply, canUndo, onUndo, onReset }) {
 
   const now = currentThemeColors(state);
   const next = useMemo(() => themeColors(state, color), [state, color]);
-  const pending = THEME_GROUPS.some(g => g.paths.some(p => !same(now[p], next[p])));
+  // 대표색을 실제로 바꿨고, 그 결과 바뀌는 색이 있을 때만 미리보기·적용 버튼을 보여줌
+  const pending = !same(color, primary) && THEME_GROUPS.some(g => g.paths.some(p => !same(now[p], next[p])));
 
   return (
     <Wrap aria-labelledby="themeHead">
       <Head>
         <h2 id="themeHead">테마 색</h2>
-        <Button $small type="button" onClick={onReset} title="테마 색이 바꾸는 색들만 처음 기본값으로">초기 색으로</Button>
+        <Pick title="대표색 (제목 위쪽 색) 고르기">
+          <input type="color" id="themeColor" aria-label="대표색 (제목 위쪽 색)" value={color} onChange={e => setColor(e.target.value)} />
+        </Pick>
       </Head>
       <Lead>대표색 하나를 고르면 아래 색들이 같은 색조로 함께 바뀝니다. 글자·배치·배경 사진은 그대로입니다.</Lead>
-      <Pick>
-        <ColorInput id="themeColor" aria-label="대표색 (제목 위쪽 색)" value={color} onChange={e => setColor(e.target.value)} />
-        <Lead>대표색 = 제목 위쪽 색</Lead>
-      </Pick>
-      <Changes aria-label="바뀌는 색 (지금 → 적용 후)">
-        <Change aria-hidden="true">
-          <span />
-          <span>지금</span>
-          <i />
-          <span>적용 후</span>
-        </Change>
-        {THEME_GROUPS.map(g => (
-          <Change key={g.label}>
-            <span>{g.label}</span>
-            <Swatches>{g.paths.map(p => <Swatch key={p} $c={now[p]} />)}</Swatches>
-            <i aria-hidden="true">→</i>
-            <Swatches>{g.paths.map(p => <Swatch key={p} $c={next[p]} />)}</Swatches>
+      {pending && (
+        <Changes aria-label="바뀌는 색 (지금 → 적용 후)">
+          <Change aria-hidden="true">
+            <span />
+            <span>지금</span>
+            <i />
+            <span>적용 후</span>
           </Change>
-        ))}
-      </Changes>
+          {THEME_GROUPS.map(g => (
+            <Change key={g.label}>
+              <span>{g.label}</span>
+              <Swatches>{g.paths.map(p => <Swatch key={p} $c={now[p]} />)}</Swatches>
+              <i aria-hidden="true">→</i>
+              <Swatches>{g.paths.map(p => <Swatch key={p} $c={next[p]} />)}</Swatches>
+            </Change>
+          ))}
+        </Changes>
+      )}
       <Actions>
-        <Button type="button" $primary disabled={!pending} onClick={() => onApply(color)} style={{ flex: 1 }}>
-          {pending ? '이 색으로 바꾸기' : '지금 적용된 색입니다'}
-        </Button>
-        {canUndo && <Button type="button" onClick={onUndo}>되돌리기</Button>}
+        {pending && (
+          <Button type="button" $primary onClick={() => onApply(color)} style={{ flex: 1 }}>이 색으로 바꾸기</Button>
+        )}
+        {canUndo && !pending && <Button type="button" onClick={onUndo}>되돌리기</Button>}
+        <Button type="button" onClick={onReset} title="테마 색이 바꾸는 색들만 처음 기본값으로" style={{ marginLeft: 'auto' }}>초기 색으로</Button>
       </Actions>
     </Wrap>
   );
