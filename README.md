@@ -48,6 +48,13 @@ src/
     storage.js              localStorage 래퍼
 ```
 
+## 배포 (GitHub Pages)
+
+`main` 에 push 하면 `.github/workflows/deploy.yml` 이 빌드해서 GitHub Pages 로 배포합니다.
+
+- 주소: https://twisted-honey-bread.github.io/fate-st-maker/ (메이커 목록), https://twisted-honey-bread.github.io/fate-st-maker/lostbelt/ (이문대 카드)
+- 처음 한 번만: 저장소 **Settings → Pages → Build and deployment → Source** 를 **GitHub Actions** 로 바꾸고, Actions 탭에서 이 워크플로를 다시 실행
+
 ## 페이지 경로
 
 메이커마다 하위 경로를 하나씩 씁니다. 이 메이커는 `/lostbelt/` 이고, 루트(`/`)는 메이커 목록입니다.
