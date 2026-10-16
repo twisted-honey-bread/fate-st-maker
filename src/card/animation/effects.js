@@ -307,3 +307,113 @@ export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, coun
   }
   ctx.restore();
 }
+
+/* ---------- 원형 비네트: 네 귀퉁이를 검게 (인트로의 어두운 장면) ---------- */
+export function drawCornerVignette(ctx, W, H, strength) {
+  if (strength <= 0) return;
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(W / H, 1);
+  const outer = (H / 2) * 1.42;
+  const g = ctx.createRadialGradient(0, 0, outer * 0.38, 0, 0, outer);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.6, `rgba(0,0,0,${strength * 0.6})`);
+  g.addColorStop(1, `rgba(0,0,0,${strength})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(-H / 2, -H / 2, H, H);
+  ctx.restore();
+}
+
+/* ---------- 전자 회로 무늬 (인트로의 밝은 장면) ----------
+ * 직선·45도 대각선으로 꺾이는 회로선과 끝점 원으로 이루어진 무늬를 시드로 생성해 캐시
+ * 평소에는 보이지 않고, 가로 띠 모양 영역만 회색으로 드러난 채 아래에서 위로 올라감
+ */
+const circuitCache = new Map();
+function circuitLayer(W, H, seed) {
+  const key = `${W}x${H}:${seed}`;
+  if (circuitCache.has(key)) return circuitCache.get(key);
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d');
+  const rng = mulberry32(seed * 104729 + 3);
+  const step = H * 0.028;
+  const cols = Math.ceil(W / step);
+  const rows = Math.ceil(H / step);
+  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]];
+  g.strokeStyle = '#ffffff';
+  g.fillStyle = '#ffffff';
+  g.lineWidth = Math.max(1, H * 0.0016);
+  g.lineCap = 'square';
+  const node = (x, y, filled) => {
+    g.beginPath();
+    g.arc(x, y, step * 0.28, 0, Math.PI * 2);
+    if (filled) g.fill();
+    else g.stroke();
+  };
+  for (let n = 0; n < 90; n++) {
+    let gx = Math.floor(rng() * cols);
+    let gy = Math.floor(rng() * rows);
+    let [dx, dy] = rng() < 0.5 ? [1, 0] : [0, -1];
+    g.beginPath();
+    g.moveTo(gx * step, gy * step);
+    const start = [gx * step, gy * step];
+    const segs = 2 + Math.floor(rng() * 4);
+    for (let i = 0; i < segs; i++) {
+      const len = 2 + Math.floor(rng() * 7);
+      gx += dx * len;
+      gy += dy * len;
+      g.lineTo(gx * step, gy * step);
+      // 다음 방향: 45도씩만 꺾음
+      const idx = dirs.findIndex(d => d[0] === dx && d[1] === dy);
+      const turn = rng() < 0.5 ? 1 : -1;
+      const near = dirs.filter(d => Math.abs(d[0] - dx) + Math.abs(d[1] - dy) === 1 || (d[0] === dx && d[1] === dy));
+      [dx, dy] = near[Math.floor(rng() * near.length)] || dirs[(idx + turn + 8) % 8];
+    }
+    g.stroke();
+    node(start[0], start[1], rng() < 0.4);
+    node(gx * step, gy * step, rng() < 0.4);
+  }
+  // 평행한 버스 선
+  for (let n = 0; n < 8; n++) {
+    const y0 = Math.floor(rng() * rows) * step;
+    const x0 = Math.floor(rng() * cols * 0.7) * step;
+    const len = (6 + Math.floor(rng() * 14)) * step;
+    const lanes = 2 + Math.floor(rng() * 3);
+    for (let l = 0; l < lanes; l++) {
+      g.beginPath();
+      g.moveTo(x0, y0 + l * step * 0.6);
+      g.lineTo(x0 + len, y0 + l * step * 0.6);
+      g.stroke();
+    }
+  }
+  if (circuitCache.size > 6) circuitCache.delete(circuitCache.keys().next().value);
+  circuitCache.set(key, c);
+  return c;
+}
+
+// p: 0 = 띠가 화면 아래 밖, 1 = 화면 위 밖. band: 띠 높이 (H 비율)
+export function drawCircuitBand(ctx, W, H, p, { seed, color, opacity, band = 0.22 }) {
+  if (p <= 0 || p >= 1 || opacity <= 0) return;
+  const pattern = circuitLayer(W, H, seed);
+  const { canvas, ctx: m } = layer('circuit', W, H);
+  m.drawImage(pattern, 0, 0);
+  m.globalCompositeOperation = 'source-in';
+  m.fillStyle = color;
+  m.fillRect(0, 0, W, H);
+  // 띠 영역만 남김
+  m.globalCompositeOperation = 'destination-in';
+  const cy = H * (1 + band) - p * H * (1 + band * 2);
+  const half = (band * H) / 2;
+  const gr = m.createLinearGradient(0, cy - half, 0, cy + half);
+  gr.addColorStop(0, 'rgba(0,0,0,0)');
+  gr.addColorStop(0.35, 'rgba(0,0,0,1)');
+  gr.addColorStop(0.65, 'rgba(0,0,0,1)');
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  m.fillStyle = gr;
+  m.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(canvas, 0, 0);
+  ctx.restore();
+}

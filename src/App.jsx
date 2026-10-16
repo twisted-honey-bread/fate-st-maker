@@ -214,6 +214,7 @@ export default function App() {
             onSelect={setSelected}
             onModeChange={handleModeChange}
             reference={reference}
+            exporting={progress !== null}
             onDropImage={file => handleImageFile('bg', file)}
           />
           <ControlPanel

@@ -6,13 +6,15 @@ import { rgba, mulberry32, FILTER_SUPPORTED } from './utils';
  * 카드 렌더러 — React 와 무관한 순수 Canvas 2D 코드
  * 미리보기와 다운로드가 같은 함수를 쓰므로 결과가 항상 동일함
  * images: { bg, logo } — HTMLImageElement 또는 null (logo 는 기본 로고가 들어옴)
+ * hooks.afterBackground(ctx, W, H): 배경과 나머지 요소 사이에 그릴 것 (애니메이션 효과용)
  * 반환: 파트별 영역 { [partId]: { x, y, w, h, hidden } } (px) — 구조도와 클릭 선택에 사용
  */
-export function drawCard(ctx, W, H, state, images) {
+export function drawCard(ctx, W, H, state, images, hooks = {}) {
   const layout = { bg: { x: 0, y: 0, w: W, h: H, hidden: false } };
   ctx.save();
   ctx.clearRect(0, 0, W, H);
   drawBackground(ctx, W, H, state, images.bg);
+  hooks.afterBackground?.(ctx, W, H);
   layout.topLine = drawLine(ctx, W, H, state.topLine);
   layout.bottomLine = drawLine(ctx, W, H, state.bottomLine);
   layout.logo = drawLogo(ctx, W, H, state.logo, images.logo);
@@ -36,8 +38,13 @@ const imageId = img => {
   return imageIds.get(img);
 };
 
-function drawBackground(ctx, W, H, state, bgImage) {
-  const key = [W, H, imageId(bgImage), state.logo.x, state.logo.y, JSON.stringify(state.bg)].join('|');
+/*
+ * 애니메이션용 배경 변형 (캐시와 무관하게 그릴 때만 적용)
+ * bg.animScale: 화면 중심 기준 확대 배율 (기본 1), bg.animBlur: 흐림 (%H, 기본 0)
+ */
+export function drawBackground(ctx, W, H, state, bgImage) {
+  const { animScale = 1, animBlur = 0, ...bgKey } = state.bg;
+  const key = [W, H, imageId(bgImage), state.logo.x, state.logo.y, JSON.stringify(bgKey)].join('|');
   let layer = bgCache.get(key);
   if (!layer) {
     layer = document.createElement('canvas');
@@ -47,7 +54,37 @@ function drawBackground(ctx, W, H, state, bgImage) {
     bgCache.set(key, layer);
     if (bgCache.size > 6) bgCache.delete(bgCache.keys().next().value);
   }
-  ctx.drawImage(layer, 0, 0);
+  if (animScale === 1 && !animBlur) {
+    ctx.drawImage(layer, 0, 0);
+    return;
+  }
+  // 흐림은 무거우므로 같은 값이 반복되면(어두운 장면처럼) 결과를 재사용
+  if (animBlur > 0) {
+    const tkey = `${key}|${animScale}|${animBlur}`;
+    let t = blurCache.get(tkey);
+    if (!t) {
+      t = document.createElement('canvas');
+      t.width = W;
+      t.height = H;
+      paintTransformed(t.getContext('2d'), W, H, layer, animScale, animBlur);
+      blurCache.set(tkey, t);
+      if (blurCache.size > 3) blurCache.delete(blurCache.keys().next().value);
+    }
+    ctx.drawImage(t, 0, 0);
+    return;
+  }
+  paintTransformed(ctx, W, H, layer, animScale, 0);
+}
+
+const blurCache = new Map();
+
+function paintTransformed(ctx, W, H, layer, scale, blur) {
+  ctx.save();
+  if (blur > 0 && FILTER_SUPPORTED) ctx.filter = `blur(${(blur / 100) * H}px)`;
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(scale, scale);
+  ctx.drawImage(layer, -W / 2, -H / 2);
+  ctx.restore();
 }
 
 function paintBackground(ctx, W, H, state, bgImage) {

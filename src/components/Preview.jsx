@@ -128,7 +128,7 @@ const ANIM_H = 720;
 
 export function Preview({
   state, images, showGuides, fontVersion, layout, selected,
-  onLayout, onSelect, onDropImage, onModeChange, reference,
+  onLayout, onSelect, onDropImage, onModeChange, reference, exporting,
 }) {
   const canvasRef = useRef(null);
   const renderId = useRef(0);
@@ -217,9 +217,9 @@ export function Preview({
     return () => { alive = false; };
   }, [animMode, state, fontVersion]);
 
-  // 재생 루프
+  // 재생 루프 (파일을 만드는 동안은 멈춰서 렌더링 자원을 양보)
   useEffect(() => {
-    if (!animMode || !playing) return undefined;
+    if (!animMode || !playing || exporting) return undefined;
     let raf = 0;
     let last = performance.now();
     const step = now => {
@@ -244,7 +244,7 @@ export function Preview({
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [animMode, playing, drawFrame]);
+  }, [animMode, playing, exporting, drawFrame]);
 
   // 일시정지 중에는 설정이 바뀔 때 현재 프레임만 다시 그림
   useEffect(() => {
