@@ -369,7 +369,7 @@ function drawLogo(ctx, W, H, L, img) {
   const x = (L.x / 100) * W - w / 2;
   const y = (L.y / 100) * H - h / 2;
   const rect = { x, y, w, h, hidden: !L.show };
-  if (!L.show) return rect;
+  if (!L.show || L.opacity <= 0) return rect; // 애니메이션에서 등장 전에는 그림자·글로우까지 전부 생략
 
   // 로고 뒤에 원형으로 퍼지는 옅은 그림자
   if (L.backShadow > 0) {

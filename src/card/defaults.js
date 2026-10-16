@@ -113,7 +113,7 @@ export const DEFAULTS = {
     rayOpacity: 0.15,
     rayFade: 0.3,
     rayStartLength: 0.6, // 처음 나타날 때의 길이 비율 (0.6 = 60% 길이에서 시작해 100%까지)
-    outroLogoColor: '#c3cad3',
+    outroLogoColor: '#ffffff', // 암전과 함께 순백 실루엣
     outroLogoDark: '#14161b',
     particleDensity: 1,
     particleColor: '#fffef4',
