@@ -147,8 +147,6 @@ function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   const d45 = Math.PI / 4;
   square(dia / Math.SQRT2, d45);
   square(inner / Math.SQRT2, d45);
-  // 안쪽 사각형 두 개와 원은 마름모보다 옅게 (0.2배)
-  ctx.globalAlpha *= 0.2;
   square(sq, 0);
   square(sq, d45);
   ctx.beginPath();
@@ -177,45 +175,61 @@ function drawHalo(ctx, cx, cy, rx, ry, k) {
 }
 
 /*
- * 성운 같은 빛무리 — 크고 작은 빛 덩어리와 가로로 긴 줄기를 겹치고 군데군데 파낸 무늬 (시드 고정)
+ * 성운 같은 빛무리 — 크고 작은 빛 덩어리와 가로로 긴 줄기를 겹치고 군데군데 파낸 무늬
+ * 덩어리·파낸 자리마다 정해진(시드 고정) 위치를 중심으로 제각각 다른 속도로 떠다니고,
+ * 밝기·크기도 천천히 오르내려 시간이 지날수록 모양이 계속 바뀜 (매 프레임 다시 그림)
  * dense: 후반용 — 더 조밀하고 가장자리가 덜 흐려짐
  */
-const nebulaCache = new Map();
-function nebulaLayer(dense) {
-  if (nebulaCache.has(dense)) return nebulaCache.get(dense);
-  const NW = 640;
-  const NH = 320;
-  const c = document.createElement('canvas');
-  c.width = NW;
-  c.height = NH;
-  const g = c.getContext('2d');
+const NW = 640;
+const NH = 320;
+const nebulaPuffs = new Map();
+function nebulaPuffList(dense) {
+  if (nebulaPuffs.has(dense)) return nebulaPuffs.get(dense);
   const rng = mulberry32(dense ? 5113 : 2087);
   const gauss = () => (rng() + rng() + rng() - 1.5) / 1.5; // -1~1, 가운데에 몰림
-  const puff = (x, y, r, a, sx = 1, sy = 1) => {
+  // 움직임: 중심 둘레를 가로·세로 각각 다른 속도로 오가고, 밝기·크기가 숨 쉬듯 바뀜
+  const motion = () => ({
+    ax: (0.02 + rng() * 0.06) * NW, ay: (0.03 + rng() * 0.08) * NH,
+    wx: 0.25 + rng() * 0.7, wy: 0.2 + rng() * 0.6, wa: 0.4 + rng() * 1.1, ph: rng() * 6.28,
+  });
+  const spread = dense ? 0.75 : 1;
+  const list = [];
+  // 빛 덩어리
+  for (let i = 0; i < (dense ? 260 : 200); i++) {
+    list.push({ x: NW / 2 + gauss() * NW * 0.42 * spread, y: NH / 2 + gauss() * NH * 0.38 * spread,
+      r: 8 + Math.pow(rng(), 2) * (dense ? 45 : 60), a: (dense ? 0.05 : 0.04) + rng() * 0.08, sx: 1 + rng() * 0.8, sy: 1, ...motion() });
+  }
+  // 가로로 조금 뻗은 옅은 줄기
+  for (let i = 0; i < 24; i++) {
+    list.push({ x: NW / 2 + gauss() * NW * 0.35, y: NH / 2 + gauss() * NH * 0.35,
+      r: 12 + rng() * 25, a: 0.03 + rng() * 0.05, sx: 2 + rng() * 2, sy: 0.6 + rng() * 0.4, ...motion() });
+  }
+  // 군데군데 파내 구름 결을 만듦 (파낸 자리도 움직여 결이 계속 바뀜)
+  for (let i = 0; i < (dense ? 40 : 70); i++) {
+    list.push({ x: rng() * NW, y: rng() * NH, r: 8 + rng() * 30, a: 0.12 + rng() * 0.25, sx: 1.5 + rng(), sy: 1, carve: true, ...motion() });
+  }
+  nebulaPuffs.set(dense, list);
+  return list;
+}
+
+function nebulaLayer(dense, t) {
+  const { canvas: c, ctx: g } = layer(dense ? 'o2-nebula2' : 'o2-nebula', NW, NH);
+  for (const p of nebulaPuffList(dense)) {
+    const x = p.x + p.ax * Math.sin(t * p.wx + p.ph);
+    const y = p.y + p.ay * Math.sin(t * p.wy + p.ph * 1.7);
+    const breath = Math.sin(t * p.wa + p.ph * 2.3);
+    const a = p.a * (1 + 0.45 * breath);
+    const r = p.r * (1 + 0.15 * breath);
+    g.globalCompositeOperation = p.carve ? 'destination-out' : 'source-over';
     g.save();
     g.translate(x, y);
-    g.scale(sx, sy);
+    g.scale(p.sx, p.sy);
     const rg = g.createRadialGradient(0, 0, 0, 0, 0, r);
     rg.addColorStop(0, `rgba(255,255,255,${a})`);
     rg.addColorStop(1, 'rgba(255,255,255,0)');
     g.fillStyle = rg;
     g.fillRect(-r, -r, r * 2, r * 2);
     g.restore();
-  };
-  const spread = dense ? 0.75 : 1;
-  // 빛 덩어리
-  for (let i = 0; i < (dense ? 260 : 200); i++) {
-    puff(NW / 2 + gauss() * NW * 0.42 * spread, NH / 2 + gauss() * NH * 0.38 * spread,
-      8 + Math.pow(rng(), 2) * (dense ? 45 : 60), (dense ? 0.05 : 0.04) + rng() * 0.08, 1 + rng() * 0.8, 1);
-  }
-  // 가로로 조금 뻗은 옅은 줄기
-  for (let i = 0; i < 24; i++) {
-    puff(NW / 2 + gauss() * NW * 0.35, NH / 2 + gauss() * NH * 0.35, 12 + rng() * 25, 0.03 + rng() * 0.05, 2 + rng() * 2, 0.6 + rng() * 0.4);
-  }
-  // 군데군데 파내 구름 결을 만듦
-  g.globalCompositeOperation = 'destination-out';
-  for (let i = 0; i < (dense ? 40 : 70); i++) {
-    puff(rng() * NW, rng() * NH, 8 + rng() * 30, 0.12 + rng() * 0.25, 1.5 + rng(), 1);
   }
   // 전체 윤곽: 타원 모양으로 가장자리를 흐림 (후반은 더 또렷하게)
   g.globalCompositeOperation = 'destination-in';
@@ -229,39 +243,19 @@ function nebulaLayer(dense) {
   g.fillStyle = edge;
   g.fillRect(-NH / 2, -NH / 2, NH, NH);
   g.restore();
-  nebulaCache.set(dense, c);
+  g.globalCompositeOperation = 'source-over';
   return c;
 }
 
-// rx·ry: 반폭·반높이(px), k: 밝기 (1 넘으면 한 번 더 겹침)
+// rx·ry: 반폭·반높이(px), k: 밝기 (1 넘으면 한 번 더 겹침), t: 시간(초) — 무늬가 시간에 따라 바뀜
 function drawNebula(ctx, cx, cy, rx, ry, k, t, dense) {
   if (k <= 0) return;
-  const tex = nebulaLayer(dense);
-  /*
-   * 일렁임: 같은 무늬를 세 장 겹치되 장마다 다른 속도로 조금씩 움직이고 숨 쉬듯 커졌다 작아짐
-   * (한 장은 좌우를 뒤집어 겹친 모양이 계속 달라짐). 세 장의 밝기 합은 일정하게 유지
-   */
-  const LAYERS = [
-    { sx: 0.43, sy: 0.31, ph: 0, flip: false },
-    { sx: 0.29, sy: 0.47, ph: 2.1, flip: true },
-    { sx: 0.37, sy: 0.23, ph: 4.4, flip: false },
-  ];
+  const tex = nebulaLayer(dense, t);
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   for (let left = k; left > 0; left -= 1) {
-    const a = Math.min(1, left);
-    LAYERS.forEach((l, i) => {
-      const w = 0.75 + 0.25 * Math.sin(t * (0.9 + i * 0.3) + l.ph); // 장마다 밝기가 천천히 오르내림
-      const dx = Math.sin(t * l.sx + l.ph) * rx * 0.05;
-      const dy = Math.cos(t * l.sy + l.ph) * ry * 0.12;
-      const sc = 1 + 0.06 * Math.sin(t * (l.sx + l.sy) + l.ph);
-      ctx.save();
-      ctx.globalAlpha = (a * w) / 2.25;
-      ctx.translate(cx + dx, cy + dy);
-      ctx.scale(l.flip ? -sc : sc, sc);
-      ctx.drawImage(tex, -rx, -ry, rx * 2, ry * 2);
-      ctx.restore();
-    });
+    ctx.globalAlpha = Math.min(1, left);
+    ctx.drawImage(tex, cx - rx, cy - ry, rx * 2, ry * 2);
   }
   ctx.restore();
 }
@@ -560,7 +554,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     const wob = part2 ? 0 : clamp01(E('easeO2Wobble', prog(t, wobS, wobE)));
     const gl = part2 ? 0 : clamp01(E('easeO2Glitch', prog(t, ...T('o2Glitch'))));
     const shapeP = clamp01(E('easeO2Shapes', prog(t, shapesS, shapesE)));
-    const shapeA = part2 ? 0 : 0.5;
+    const shapeA = part2 ? 0 : 0.1; // 마름모·사각형·원 모두 옅게
     const orbS = T('o2Orbs')[0];
     const nebula2 = part2 ? clamp01(E('easeO2Sub2', prog(t, ...T('o2Sub2')))) : 0; // 후반 빛무리는 부제와 함께 나타남
     const rays = part2 ? 1 - clamp01(E('easeO2Rays', prog(t, ...T('o2Rays')))) : 0;
