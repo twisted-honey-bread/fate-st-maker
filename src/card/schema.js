@@ -26,6 +26,8 @@ const when = (field, fn) => ({ ...field, when: fn });
 const isIntro = s => s.anim.mode === 'intro';
 const hasStyle = s => s.bg.styleMode !== 'none';
 const isOutro = s => s.anim.mode === 'outro';
+const isO2 = s => s.anim.mode === 'outro2';
+const hasOutroFont = s => isOutro(s) || isO2(s);
 const isGen = s => s.logo.source === 'generate';
 const gen = f => when(f, isGen);
 
@@ -139,13 +141,21 @@ export const PARTS = [
     main: [
       when(T('anim.outroText', '제목'), isOutro),
       when(T('anim.outroSub', '부제'), isOutro),
+      when(HD('초반 (증명완료)'), isO2),
+      when(T('anim.o2Text1', '제목'), isO2),
+      when(T('anim.o2Sub1', '부제'), isO2),
+      when(C('anim.o2Color1', '테마 색'), isO2),
+      when(HD('후반 (증명불가)'), isO2),
+      when(T('anim.o2Text2', '제목'), isO2),
+      when(T('anim.o2Sub2', '부제'), isO2),
+      when(C('anim.o2Color2', '테마 색'), isO2),
     ],
     // 재생 속도·시드·유지 시간·안개·비네트·회로·광선·입자·제목 색·크기·위치 등은 고정값 (defaults.json)
     advanced: [
-      when(HD('폰트'), isOutro),
-      when(F('anim.outroFont', '제목 폰트'), isOutro),
-      when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
-      when({ ...F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), weightLabel: '부제 폰트 굵기' }, isOutro),
+      when(HD('폰트'), hasOutroFont),
+      when(F('anim.outroFont', '제목 폰트'), hasOutroFont),
+      when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), hasOutroFont),
+      when({ ...F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), weightLabel: '부제 폰트 굵기' }, hasOutroFont),
       when(HD('자간 (다 펼쳐졌을 때)'), isOutro),
       when(R('anim.outroSpacing', '제목 자간', 0, 1.2, 0.005, 'em'), isOutro),
       when(R('anim.outroSubSpacing', '부제 자간', 0, 1.5, 0.005, 'em'), isOutro),
@@ -154,6 +164,11 @@ export const PARTS = [
       when(HD('움직임 곡선 · 재생 시간'), isOutro),
       when(B('anim.syncFlashToText', '섬광을 제목이 다 나타날 때 함께 끝내기'), isOutro),
       ...STAGES.outro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isOutro)),
+      when(HD('삼각형 무늬 (배경 위)'), isO2),
+      when(R('anim.o2PolySize', '크기', 6, 40, 0.5, '%W'), isO2),
+      when(R('anim.o2PolySparse', '성김', 0, 0.9, 0.01), isO2),
+      when(HD('움직임 곡선 · 재생 시간'), isO2),
+      ...STAGES.outro2.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isO2)),
     ],
   },
 ];

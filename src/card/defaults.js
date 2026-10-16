@@ -90,7 +90,7 @@ const BASE_DEFAULTS = {
   },
   // 애니메이션 (인트로 / 아웃트로·공상절제)
   anim: {
-    mode: 'still', // still | intro | outro
+    mode: 'still', // still | intro | outro | outro2
     introSpeed: 1, // 재생 속도 (1 = 기본, 작을수록 느림)
     outroSpeed: 1,
     nightTint: '#0d1626',
@@ -181,6 +181,36 @@ const BASE_DEFAULTS = {
     easeOutroCircuit: 'linear',
     easeOutroEnd: 'inCubic',
     easeOutroRays: 'outCubic',
+    /*
+     * 아웃트로 2 (증명완료 → 증명불가) — 초반·후반의 제목·부제·테마 색을 따로 받음
+     * 폰트는 아웃트로와 같은 값(outroFont 등)을 씀. 테마 색은 장면 전체의 색조로 입혀짐
+     */
+    o2Text1: '증명완료',
+    o2Sub1: 'Quod Erat Demonstrandum',
+    o2Color1: '#2f7bff',
+    o2Text2: '증명불가',
+    o2Sub2: 'Ex Falso Quodlibet',
+    o2Color2: '#ff1f2e',
+    o2Size: 17,
+    o2Y: 62,
+    o2Spacing: 1,
+    o2SubSize: 6.3,
+    o2SubY: 75,
+    o2SubSpacing: 0.25,
+    o2Hold: 1.6,
+    // 배경 위 삼각형 무늬: 크기(%W, 삼각형 한 변 정도), 성김(0 = 빽빽, 1 = 거의 없음). 모양(시드)은 고정
+    o2PolySize: 16,
+    o2PolySparse: 0.35,
+    easeO2Dark: 'inOutCubic',
+    easeO2Shapes: 'outCubic',
+    easeO2Text1: 'outCubic',
+    easeO2Wobble: 'inQuad',
+    easeO2Glitch: 'inQuad',
+    easeO2Rays: 'outQuad',
+    easeO2Text2: 'outCubic',
+    easeO2Sub2: 'inOutQuad',
+    easeO2Logo: 'inOutQuad',
+    easeO2End: 'inCubic',
     fps: 30,
     gifFps: 15,
   },

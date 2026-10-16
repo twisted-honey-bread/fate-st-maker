@@ -29,10 +29,26 @@ export const STAGES = {
     { id: 'outroGold', label: '금빛 입자 쏟아짐', ease: null, time: [4.0, null] },
     { id: 'outroEnd', label: '마지막에 완전히 어두워짐 (유지 시간 뒤)', ease: 'easeOutroEnd', time: [0, 1.4], lengthOnly: true },
   ],
+  // 아웃트로 2 (증명완료 → 증명불가)
+  outro2: [
+    { id: 'o2Dark', label: '① 화면 암전 (로고에서부터)', ease: 'easeO2Dark', time: [0, 0.75] },
+    { id: 'o2Shapes', label: '② 사각형·원 무늬가 돌며 맞춰짐', ease: 'easeO2Shapes', time: [0.55, 1.6] },
+    { id: 'o2Text1', label: '③ 초반 제목·부제 펼쳐짐 + 빛무리', ease: 'easeO2Text1', time: [1.6, 2.6] },
+    { id: 'o2Cross', label: '③ 오른쪽 위·왼쪽 아래 십자 섬광', ease: null, time: [2.3, 3.2] },
+    { id: 'o2Wobble', label: '④ 화면 일렁임', ease: 'easeO2Wobble', time: [2.85, 3.35] },
+    { id: 'o2Glitch', label: '⑤ 글리치 (왼쪽으로 쪼개지며 날아감)', ease: 'easeO2Glitch', time: [3.2, 3.65] },
+    { id: 'o2Rays', label: '⑥ 테마 색 바뀜 + 중앙 십자 광선 (점점 사라짐)', ease: 'easeO2Rays', time: [3.65, 4.9] },
+    { id: 'o2Text2', label: '⑥ 후반 제목이 돌며 나타남', ease: 'easeO2Text2', time: [3.65, 4.25] },
+    { id: 'o2Sub2', label: '⑦ 후반 부제 페이드 인', ease: 'easeO2Sub2', time: [4.05, 4.7] },
+    { id: 'o2Bits', label: '⑥~⑦ 세로 사각형·마름모 입자', ease: null, time: [3.65, 5.0] },
+    { id: 'o2Logo', label: '⑧ 로고 어두워짐', ease: 'easeO2Logo', time: [4.9, 5.7] },
+    { id: 'o2Orbs', label: '⑧ 위아래 빛구슬 떨어짐', ease: null, time: [4.6, null] },
+    { id: 'o2End', label: '⑨ 중앙에서부터 어두워짐 (유지 시간 뒤)', ease: 'easeO2End', time: [0, 1.4], lengthOnly: true },
+  ],
 };
 
 export const DEFAULT_TIMES = Object.fromEntries(
-  [...STAGES.intro, ...STAGES.outro].filter(s => s.time).map(s => [s.id, s.time]),
+  [...STAGES.intro, ...STAGES.outro, ...STAGES.outro2].filter(s => s.time).map(s => [s.id, s.time]),
 );
 
 // 설정에서 단계 시간 읽기 (없으면 기본값)
