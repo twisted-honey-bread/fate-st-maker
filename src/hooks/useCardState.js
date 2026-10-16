@@ -41,6 +41,12 @@ export function useCardState() {
   }, [state]);
   const undoTheme = useCallback(previous => setState(s => restoreColors(s, previous)), []);
 
+  // 만들어진 이미지(dataURL)를 업로드한 것처럼 지정
+  const setImageUrl = useCallback(async (key, url) => {
+    const img = await loadImage(url);
+    setImages(prev => ({ ...prev, [key]: { img, url } }));
+  }, []);
+
   const clearImage = useCallback(key => setImages(prev => ({ ...prev, [key]: null })), []);
 
   const reset = useCallback(() => {
@@ -85,6 +91,6 @@ export function useCardState() {
 
   return {
     state, setField, renderImages, imageUrls, setImageFile, clearImage, reset, exportData, importData,
-    applyTheme, undoTheme,
+    applyTheme, undoTheme, setImageUrl,
   };
 }

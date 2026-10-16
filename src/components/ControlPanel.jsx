@@ -74,7 +74,7 @@ function advancedHint(part, state) {
 
 export function ControlPanel({
   state, onField, fontList, imageUrls, onImageFile, onImageClear,
-  layout, selected, onSelect, hcrAvailable, onApplyTheme, canUndoTheme, onUndoTheme,
+  layout, selected, onSelect, hcrAvailable, onApplyTheme, canUndoTheme, onUndoTheme, onAction,
 }) {
   const part = PART_BY_ID[selected] || PART_BY_ID.title;
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -84,12 +84,13 @@ export function ControlPanel({
       <Field
         key={f.k || `h${i}-${f.label}`}
         field={f}
-        value={f.k && f.type !== 'image' ? getPath(state, f.k) : undefined}
+        value={f.k && f.type !== 'image' && f.type !== 'button' ? getPath(state, f.k) : undefined}
         onChange={v => onField(f.k, v)}
         fontList={fontList}
         imageUrl={f.type === 'image' ? imageUrls[f.k] : undefined}
         onImageFile={file => onImageFile(f.k, file)}
         onImageClear={() => onImageClear(f.k)}
+        onAction={onAction}
       />
     ));
 

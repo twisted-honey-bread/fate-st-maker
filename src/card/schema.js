@@ -1,4 +1,5 @@
 import { WEIGHTS } from './fonts';
+import { LOGO_CELLS, LOGO_SHAPES } from './logoGen';
 
 /*
  * 파트 스키마 — 캔버스의 각 구성 요소(파트)마다 메인 설정과 고급 설정을 정의
@@ -15,6 +16,7 @@ const F = (k, label) => ({ k, label, type: 'font' });
 const IM = (k, label) => ({ k, label, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
+const BTN = (action, label, text) => ({ k: `action.${action}`, action, label, text, type: 'button' });
 const when = (field, fn) => ({ ...field, when: fn });
 const isIntro = s => s.anim.mode === 'intro';
 const hasStyle = s => s.bg.styleMode !== 'none';
@@ -133,6 +135,15 @@ export const PARTS = [
     main: [
       IM('logo', '로고 이미지'),
       B('logo.show', '표시'),
+      HD('임시 로고 만들기 (연대·제목으로 생성)'),
+      S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label])),
+      S('logo.genCell', '칸 모양', Object.entries(LOGO_CELLS)),
+      R('logo.genGrid', '격자 크기', 5, 21, 2, '칸'),
+      R('logo.genDensity', '채움 비율', 0.15, 0.85, 0.01),
+      B('logo.genFrame', '테두리'),
+      C('logo.genColor', '색'),
+      BTN('generateLogo', '', '연대·제목으로 로고 생성하기'),
+      HD('배치'),
       R('logo.x', 'X 중심', 0, 100, 0.1, '%W'),
       R('logo.y', 'Y 중심', 0, 100, 0.1, '%H'),
       R('logo.height', '높이', 2, 90, 0.5, '%H'),

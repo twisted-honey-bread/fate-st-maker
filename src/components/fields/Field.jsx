@@ -131,7 +131,7 @@ function ImageField({ id, url, onFile, onClear }) {
   );
 }
 
-export function Field({ field, value, onChange, fontList, imageUrl, onImageFile, onImageClear }) {
+export function Field({ field, value, onChange, fontList, imageUrl, onImageFile, onImageClear, onAction }) {
   if (field.type === 'heading') return <Subhead>{field.label}</Subhead>;
 
   const id = fieldId(field.k);
@@ -169,6 +169,11 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
       );
       break;
     }
+    case 'button':
+      control = (
+        <Button type="button" $primary id={id} onClick={() => onAction?.(field.action)}>{field.text}</Button>
+      );
+      break;
     case 'ease':
       control = (
         <EaseWrap>
