@@ -4,15 +4,16 @@ import { toNight } from './night';
 import {
   drawBlot, drawCircuitBand, drawDiamonds, drawFallingGold, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
-import { bell, easeIn, easeInOut, easeOut, flicker, layer, prog } from './util';
+import { bell, easeIn, easeInOut, easeOut, flicker, layer, mixHex, prog } from './util';
 
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
  *  0.0~0.6  원래 카드
  *  0.6~2.0  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
  *  0.6~2.0  (어둠이 번진 자리에서는 왼쪽 위·오른쪽 위 텍스트와 상단 선이 보이지 않음)
- *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남
- *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선
+ *           로고는 스스로 빛나지 않는 옅은 회색 실루엣
+ *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선, 로고가 함께 살짝 밝아짐
+ *  3.0~3.7  섬광이 사라지며 로고가 검은 실루엣으로 어두워짐
  *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
  *  2.95~3.9 섬광이 사라지기 전에 '공상절제' / 'Cosmos Denial' 이 페이드 인과 동시에 중앙에서 펼쳐지며 등장
  *  3.1~     108도 회로 무늬가 아래에서 반짝이며 올라옴
@@ -79,7 +80,8 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const endStart = TEXT_END + A.outroHold;
 
   const ink = easeInOut(prog(t, 0.6, 2.0));
-  const glowUp = prog(t, 1.8, 2.6);
+  const flashK = bell(t, 2.55, 2.8, 3.4); // 중앙 섬광 세기
+  const darken = easeInOut(prog(t, 3.0, 3.7)); // 섬광이 사라지며 로고가 검게 어두워짐
   const dimOld = easeOut(prog(t, 3.0, 3.8));
   const spread = easeOut(prog(t, 2.95, 3.9)); // 페이드 인과 동시에 중앙에서 펼쳐짐
 
@@ -106,12 +108,15 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
       right: { ...night.right, alpha: 0 },
       topLine: { ...night.topLine, show: false },
       bottomLine: { ...night.bottomLine, opacity: night.bottomLine.opacity * (1 - dimOld) },
+      // 로고는 스스로 빛나지 않음: 옅은 회색 실루엣 → 섬광과 함께 살짝 밝아짐 → 섬광이 사라지면 검게 어두워짐
       logo: {
         ...night.logo,
-        opacity: 1 - 0.8 * dimOld,
-        glowOpacity: 0.3 + 0.7 * glowUp,
-        glowBlur: 0.8 + 2.4 * glowUp,
-        glowStrength: 2,
+        tintColor: mixHex(mixHex(A.outroLogoColor, '#ffffff', flashK), A.outroLogoDark, darken),
+        opacity: 1,
+        glowOpacity: 0.35 * flashK,
+        glowBlur: 1.2,
+        glowStrength: 1,
+        backShadow: 0,
       },
       era: { ...night.era, alpha: 0.7 * (1 - 0.6 * dimOld) },
       title: { ...night.title, alpha: 0.7 * (1 - 0.6 * dimOld) },

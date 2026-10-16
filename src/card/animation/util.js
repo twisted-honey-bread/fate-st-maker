@@ -36,3 +36,12 @@ export function layer(name, W, H) {
 // 렌즈 플레어 깜빡임 (0.55~1 사이를 불규칙하게 오감)
 export const flicker = t =>
   0.78 + 0.22 * (0.5 * Math.sin(t * 17.3) + 0.3 * Math.sin(t * 29.1 + 1.3) + 0.2 * Math.sin(t * 7.7 + 0.4));
+
+// 두 hex 색을 k(0~1) 비율로 섞음
+export function mixHex(a, b, k) {
+  const pa = parseInt(a.replace('#', ''), 16);
+  const pb = parseInt(b.replace('#', ''), 16);
+  const ch = (p, sh) => (p >> sh) & 255;
+  const m = sh => Math.round(ch(pa, sh) + (ch(pb, sh) - ch(pa, sh)) * Math.max(0, Math.min(1, k)));
+  return `#${((m(16) << 16) | (m(8) << 8) | m(0)).toString(16).padStart(6, '0')}`;
+}
