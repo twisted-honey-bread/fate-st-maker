@@ -6,19 +6,22 @@ import { rgba, mulberry32, FILTER_SUPPORTED } from './utils';
  * 카드 렌더러 — React 와 무관한 순수 Canvas 2D 코드
  * 미리보기와 다운로드가 같은 함수를 쓰므로 결과가 항상 동일함
  * images: { bg, logo } — HTMLImageElement 또는 null (logo 는 기본 로고가 들어옴)
+ * 반환: 파트별 영역 { [partId]: { x, y, w, h, hidden } } (px) — 구조도와 클릭 선택에 사용
  */
 export function drawCard(ctx, W, H, state, images) {
+  const layout = { bg: { x: 0, y: 0, w: W, h: H, hidden: false } };
   ctx.save();
   ctx.clearRect(0, 0, W, H);
   drawBackground(ctx, W, H, state, images.bg);
-  drawLine(ctx, W, H, state.topLine);
-  drawLine(ctx, W, H, state.bottomLine);
-  drawLogo(ctx, W, H, state.logo, images.logo);
-  drawText(ctx, state.left, W, H, (state.left.x / 100) * W, (state.left.y / 100) * H, 'left');
-  drawText(ctx, state.right, W, H, (state.right.x / 100) * W, (state.right.y / 100) * H, 'right');
-  drawTitleGroup(ctx, W, H, state);
-  drawText(ctx, state.sub, W, H, (state.sub.x / 100) * W, (state.sub.y / 100) * H, 'center');
+  layout.topLine = drawLine(ctx, W, H, state.topLine);
+  layout.bottomLine = drawLine(ctx, W, H, state.bottomLine);
+  layout.logo = drawLogo(ctx, W, H, state.logo, images.logo);
+  layout.left = placeText(ctx, state.left, W, H, (state.left.x / 100) * W, (state.left.y / 100) * H, 'left');
+  layout.right = placeText(ctx, state.right, W, H, (state.right.x / 100) * W, (state.right.y / 100) * H, 'right');
+  Object.assign(layout, drawTitleGroup(ctx, W, H, state));
+  layout.sub = placeText(ctx, state.sub, W, H, (state.sub.x / 100) * W, (state.sub.y / 100) * H, 'center');
   ctx.restore();
+  return layout;
 }
 
 /* ---------- 배경 ---------- */
@@ -108,31 +111,41 @@ function drawBackground(ctx, W, H, state, bgImage) {
 
 /* ---------- 구분선 (양 끝 페이드) ---------- */
 function drawLine(ctx, W, H, L) {
-  if (!L.show || L.opacity <= 0) return;
   const x0 = (L.left / 100) * W;
   const x1 = W - (L.right / 100) * W;
   const len = x1 - x0;
-  if (len <= 0) return;
+  const t = Math.max(1, (L.thickness / 100) * H);
+  const rect = { x: x0, y: (L.y / 100) * H - t / 2, w: Math.max(0, len), h: t, hidden: !L.show };
+  if (!L.show || L.opacity <= 0 || len <= 0) return rect;
   const f = Math.min(0.49, L.fade / 100);
   const g = ctx.createLinearGradient(x0, 0, x1, 0);
   g.addColorStop(0, rgba(L.color, 0));
   g.addColorStop(f, rgba(L.color, L.opacity));
   g.addColorStop(1 - f, rgba(L.color, L.opacity));
   g.addColorStop(1, rgba(L.color, 0));
-  const t = Math.max(1, (L.thickness / 100) * H);
   ctx.fillStyle = g;
-  ctx.fillRect(x0, (L.y / 100) * H - t / 2, len, t);
+  ctx.fillRect(rect.x, rect.y, len, t);
+  return rect;
 }
 
 /* ---------- 텍스트 ---------- */
 export function measureText(ctx, s, H) {
-  if (!s.show || !s.text) return 0;
+  if (!s.text) return 0;
   const px = (s.size / 100) * H;
   ctx.font = fontStr(s, px);
   const sp = s.spacing * px;
   const chars = [...s.text];
   if (!sp) return ctx.measureText(s.text).width;
   return chars.reduce((w, c) => w + ctx.measureText(c).width, 0) + sp * (chars.length - 1);
+}
+
+// 텍스트 영역 계산 (숨김 상태여도 위치는 계산) 후 그리기
+function placeText(ctx, s, W, H, x, y, align) {
+  const px = (s.size / 100) * H;
+  const w = Math.max(measureText(ctx, s, H), W * 0.04);
+  const sx = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+  drawText(ctx, s, W, H, x, y, align);
+  return { x: sx, y: y - px * 0.92, w, h: px * 1.12, hidden: !s.show || !s.text };
 }
 
 // 그림자 → 글로우 → 외곽선 → 채우기 순으로 레이어링
@@ -199,11 +212,11 @@ function drawText(ctx, s, W, H, x, y, align) {
   return w;
 }
 
-// 연대 + 제목 배치
+// 연대 + 제목 배치. 반환: { era, title } 영역
 function drawTitleGroup(ctx, W, H, state) {
   const T = state.title;
   const E = state.era;
-  const tW = measureText(ctx, T, H);
+  const tW = T.show ? measureText(ctx, T, H) : 0;
   const eOn = E.show && E.text && E.position !== 'hidden';
   const eW = eOn ? measureText(ctx, E, H) : 0;
   const ty = (T.y / 100) * H;
@@ -211,23 +224,31 @@ function drawTitleGroup(ctx, W, H, state) {
   const gap = (E.gap / 100) * W;
   const eyOff = (E.offsetY / 100) * H;
 
-  if (eOn && E.position === 'left') {
-    const tx = T.anchor === 'group' && tW ? cx - (eW + gap + tW) / 2 + eW + gap : cx - tW / 2;
-    drawText(ctx, E, W, H, tx - gap, ty + eyOff, 'right');
-    drawText(ctx, T, W, H, tx, ty, 'left');
+  const eraDraw = eOn ? E : { ...E, show: false }; // 위치 '숨김'이면 그리지 않음
+  let era;
+  let title;
+  if (E.position === 'above') {
+    era = placeText(ctx, eraDraw, W, H, cx, ty - (T.size / 100) * H * 1.05 + eyOff, 'center');
+    title = placeText(ctx, T, W, H, cx, ty, 'center');
   } else {
-    if (eOn) drawText(ctx, E, W, H, cx, ty - (T.size / 100) * H * 1.05 + eyOff, 'center');
-    drawText(ctx, T, W, H, cx, ty, 'center');
+    // 'left' 또는 'hidden' — 숨김이어도 구조도에는 제목 왼쪽 자리에 표시
+    const tx = eOn && T.anchor === 'group' && tW ? cx - (eW + gap + tW) / 2 + eW + gap : cx - tW / 2;
+    era = placeText(ctx, eraDraw, W, H, tx - gap, ty + eyOff, 'right');
+    title = placeText(ctx, T, W, H, tx, ty, 'left');
   }
+  if (!eOn) era.hidden = true;
+  return { era, title };
 }
 
 /* ---------- 로고 ---------- */
 function drawLogo(ctx, W, H, L, img) {
-  if (!L.show || !img || !img.naturalWidth) return;
+  const ready = img && img.naturalWidth;
   const h = (L.height / 100) * H;
-  const w = (h * img.naturalWidth) / img.naturalHeight;
+  const w = ready ? (h * img.naturalWidth) / img.naturalHeight : h;
   const x = (L.x / 100) * W - w / 2;
   const y = (L.y / 100) * H - h / 2;
+  const rect = { x, y, w, h, hidden: !L.show };
+  if (!L.show || !ready) return rect;
 
   // 단색 실루엣: 알파만 남기고 색으로 채움
   let src = img;
@@ -256,6 +277,7 @@ function drawLogo(ctx, W, H, L, img) {
   ctx.restore();
 
   if (L.flare && L.flareIntensity > 0) drawFlare(ctx, W, H, L);
+  return rect;
 }
 
 function drawFlare(ctx, W, H, L) {

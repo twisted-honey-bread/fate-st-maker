@@ -7,7 +7,7 @@ import { Preview } from './components/Preview';
 import { ControlPanel } from './components/ControlPanel';
 import { Toast } from './components/Toast';
 import { CARD_HEIGHT, CARD_WIDTH } from './card/defaults';
-import { FONT_LIST, ensureFonts, registerFontFile } from './card/fonts';
+import { FONT_LIST, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
 import { drawCard } from './card/renderer';
 import { canvasToBlob, saveBlob } from './lib/download';
 
@@ -46,6 +46,14 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [fontList, setFontList] = useState(FONT_LIST);
   const [toast, setToast] = useState(null);
+  const [selected, setSelected] = useState('title');
+  const [layout, setLayout] = useState(null);
+  const [hcrAvailable, setHcrAvailable] = useState(null);
+  const [fontVersion, setFontVersion] = useState(0);
+
+  useEffect(() => {
+    hcrFontReady.then(setHcrAvailable);
+  }, []);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -95,7 +103,13 @@ export default function App() {
 
   const handleAddFont = async file => {
     try {
-      const family = await registerFontFile(file);
+      const { family, isHcr } = await registerFontFile(file);
+      setFontVersion(v => v + 1);
+      if (isHcr) {
+        setHcrAvailable(true);
+        notify('함초롬바탕을 적용했습니다.');
+        return;
+      }
       setFontList(list => (list.some(f => f.family === family) ? list : [...list, { family, label: `${family} (업로드)` }]));
       notify(`"${family}" 폰트를 추가했습니다. 각 텍스트의 폰트 목록에서 고르세요.`);
     } catch {
@@ -134,6 +148,11 @@ export default function App() {
             state={state}
             images={renderImages}
             showGuides={guides}
+            fontVersion={fontVersion}
+            layout={layout}
+            selected={selected}
+            onLayout={setLayout}
+            onSelect={setSelected}
             onDropImage={file => handleImageFile('bg', file)}
           />
           <ControlPanel
@@ -143,6 +162,10 @@ export default function App() {
             imageUrls={card.imageUrls}
             onImageFile={handleImageFile}
             onImageClear={card.clearImage}
+            layout={layout}
+            selected={selected}
+            onSelect={setSelected}
+            hcrAvailable={hcrAvailable}
           />
         </Main>
       </Shell>

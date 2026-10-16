@@ -10,6 +10,8 @@ export const GlobalStyle = createGlobalStyle`
     --surface: #f6f8fa;
     --surface-2: #ffffff;
     --line: #d0d9e0;
+    --line-strong: #9fb0bf;
+    --accent-soft: rgba(27, 108, 179, 0.14);
     --fg: #17202b;
     --muted: #586776;
     --accent: #1b6cb3;
@@ -27,6 +29,8 @@ export const GlobalStyle = createGlobalStyle`
       --surface: #161b21;
       --surface-2: #1e242c;
       --line: #2b333d;
+      --line-strong: #4a5764;
+      --accent-soft: rgba(93, 178, 242, 0.18);
       --fg: #e3e8ed;
       --muted: #91a0ae;
       --accent: #5db2f2;
@@ -42,6 +46,8 @@ export const GlobalStyle = createGlobalStyle`
     --surface: #161b21;
     --surface-2: #1e242c;
     --line: #2b333d;
+    --line-strong: #4a5764;
+    --accent-soft: rgba(93, 178, 242, 0.18);
     --fg: #e3e8ed;
     --muted: #91a0ae;
     --accent: #5db2f2;

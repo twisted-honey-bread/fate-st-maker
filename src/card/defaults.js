@@ -47,7 +47,7 @@ export const DEFAULTS = {
     position: 'left', gap: 1.6, offsetY: -0.6,
   },
   title: {
-    ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'Noto Sans KR', weight: 800, size: 8.4, spacing: 0.16,
+    ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
     fillMode: 'gradient', color: '#45c0ee', color2: '#0b4f9a',
     strokeWidth: 0.28, strokeColor: '#ffffff',
@@ -55,7 +55,7 @@ export const DEFAULTS = {
   },
   bottomLine: { show: true, y: 77.6, thickness: 0.14, color: '#7d838b', opacity: 0.8, left: 6, right: 6, fade: 18 },
   sub: {
-    ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'Noto Sans KR', weight: 400, size: 5.4,
+    ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
     x: 50, y: 89.4, color: '#4b4f56', glowOpacity: 0.8, glowBlur: 0.4,
   },
 };
