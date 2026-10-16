@@ -50,6 +50,17 @@ const Canvas = styled.canvas`
   outline-offset: 4px;
 `;
 
+// 원본 이미지 겹쳐보기 (미리보기 전용 — 다운로드에는 포함되지 않음)
+const Reference = styled.img`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: fill;
+  pointer-events: none;
+`;
+
 // 선택한 파트 표시 (미리보기 전용 — 다운로드 이미지에는 포함되지 않음)
 const Outline = styled.div`
   position: absolute;
@@ -117,7 +128,7 @@ const ANIM_H = 720;
 
 export function Preview({
   state, images, showGuides, fontVersion, layout, selected,
-  onLayout, onSelect, onDropImage, onModeChange,
+  onLayout, onSelect, onDropImage, onModeChange, reference,
 }) {
   const canvasRef = useRef(null);
   const renderId = useRef(0);
@@ -288,6 +299,13 @@ export function Preview({
             if (f) onDropImage(f);
           }}
         />
+        {reference.on && (
+          <Reference
+            src={reference.src}
+            alt=""
+            style={{ opacity: reference.opacity, mixBlendMode: reference.difference ? 'difference' : 'normal' }}
+          />
+        )}
         {sel && (
           <Outline
             data-below={sel.y < 9 ? '' : undefined}

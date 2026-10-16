@@ -8,7 +8,7 @@ export const CARD_HEIGHT = 1080;
 export const TEXT_BASE = {
   show: true, text: '', font: 'Noto Sans KR', weight: 400, italic: false,
   size: 5, spacing: 0, x: 50, y: 50,
-  fillMode: 'solid', color: '#333333', color2: '#000000',
+  fillMode: 'solid', color: '#333333', color2: '#000000', mirrorCenter: 0.08,
   strokeWidth: 0, strokeColor: '#ffffff',
   glowColor: '#ffffff', glowOpacity: 0, glowBlur: 0.5, glowStrength: 1,
   shadowColor: '#000000', shadowOpacity: 0, shadowBlur: 0.4, shadowX: 0, shadowY: 0.15,
@@ -43,20 +43,21 @@ export const DEFAULTS = {
   },
   era: {
     ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,
-    color: '#1f3d6b', glowOpacity: 1, glowBlur: 0.5, glowStrength: 2,
+    fillMode: 'mirror', color: '#2b78c2', color2: '#0b1626', mirrorCenter: 0.05,
+    glowColor: '#9ad8ff', glowOpacity: 0.9, glowBlur: 0.45, glowStrength: 2,
     position: 'left', gap: 1.6, offsetY: -0.6,
   },
   title: {
     ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
-    fillMode: 'gradient', color: '#45c0ee', color2: '#0b4f9a',
-    strokeWidth: 0.28, strokeColor: '#ffffff',
-    glowColor: '#0a2a50', glowOpacity: 0.35, glowBlur: 0.7,
+    fillMode: 'mirror', color: '#2f9fe8', color2: '#0b1626', mirrorCenter: 0.06,
+    glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.55, glowStrength: 2,
   },
   bottomLine: { show: true, y: 77.6, thickness: 0.14, color: '#7d838b', opacity: 0.8, left: 6, right: 6, fade: 18 },
   sub: {
     ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
-    x: 50, y: 89.4, color: '#4b4f56', glowOpacity: 0.8, glowBlur: 0.4,
+    x: 50, y: 89.4, fillMode: 'mirror', color: '#7a828d', color2: '#33383f', mirrorCenter: 0.08,
+    glowOpacity: 0.8, glowBlur: 0.4,
   },
   // 애니메이션 (인트로 / 아웃트로·공상절제)
   anim: {
@@ -80,6 +81,8 @@ export const DEFAULTS = {
     flareColor: '#ffd27a',
     particleDensity: 1,
     particleAspect: 1.8,
+    seed: 1,
+    riseDensity: 1,
     hexGrid: true,
     fps: 30,
     gifFps: 15,

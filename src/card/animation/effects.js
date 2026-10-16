@@ -261,3 +261,49 @@ export function drawBlot(ctx, W, H, cx, cy, p) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }
+
+/* ---------- 선 위로 떠오르는 입자 (인트로) ----------
+ * 시드로 위치·속도를 정해 매번 같은 모양이 나오게 함 (시드를 바꾸면 다른 배치)
+ * x0~x1: 선 범위(px), y: 선 위치(px), start: 시작 시각, span: 입자가 생겨나는 기간
+ */
+const risingCache = new Map();
+function makeRising(seed, count) {
+  const key = `${seed}:${count}`;
+  if (risingCache.has(key)) return risingCache.get(key);
+  const rng = mulberry32(seed * 7919 + 17);
+  const list = Array.from({ length: count }, () => ({
+    u: rng(),
+    born: rng(),
+    life: 0.7 + rng() * 0.9,
+    speed: 0.035 + rng() * 0.09, // H/초
+    size: 0.7 + rng() * 1.8,
+    phase: rng() * Math.PI * 2,
+    sway: (rng() - 0.5) * 0.006,
+  }));
+  if (risingCache.size > 20) risingCache.delete(risingCache.keys().next().value);
+  risingCache.set(key, list);
+  return list;
+}
+
+export function drawRisingParticles(ctx, W, H, t, { x0, x1, y, start, span, count, color, seed, lighter = false }) {
+  if (count <= 0 || t < start) return;
+  ctx.save();
+  if (lighter) ctx.globalCompositeOperation = 'lighter';
+  ctx.shadowColor = rgba(color, 0.9);
+  for (const p of makeRising(seed, count)) {
+    const age = t - (start + p.born * span);
+    if (age < 0 || age > p.life) continue;
+    const k = age / p.life;
+    const a = k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8;
+    const x = x0 + (x1 - x0) * p.u + Math.sin(age * 3 + p.phase) * p.sway * W;
+    const py = y - p.speed * age * H;
+    const r = (p.size / 1080) * H;
+    ctx.globalAlpha = a;
+    ctx.shadowBlur = r * 4;
+    ctx.fillStyle = rgba(color, 1);
+    ctx.beginPath();
+    ctx.arc(x, py, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}

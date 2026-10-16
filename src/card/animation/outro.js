@@ -4,7 +4,7 @@ import { toNight } from './night';
 import {
   drawBlot, drawDiamonds, drawDust, drawHexGrid, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
-import { bell, easeIn, easeInOut, easeOut, layer, prog } from './util';
+import { bell, easeIn, easeInOut, easeOut, flicker, layer, prog } from './util';
 
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
@@ -83,7 +83,9 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   // 원래 카드
   if (ink < 1) {
     const { canvas, ctx: d } = layer('outro-day', W, H);
-    drawCard(d, W, H, state, images);
+    // 렌즈 플레어 깜빡임
+    const dayState = { ...state, logo: { ...L, flareIntensity: L.flareIntensity * flicker(t) } };
+    drawCard(d, W, H, dayState, images);
     ctx.drawImage(canvas, 0, 0);
   }
 

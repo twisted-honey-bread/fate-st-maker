@@ -58,6 +58,10 @@ export default function App() {
   const [formatByKind, setFormatByKind] = useState({ still: 'png', anim: 'mp4' });
   const [sizeByFormat, setSizeByFormat] = useState({ png: 1920, jpg: 1920, mp4: 1920, gif: 640 });
   const [guides, setGuides] = useState(false);
+  // 원본 예시 이미지 겹쳐보기 (public/reference 의 이미지)
+  const [reference, setReference] = useState({
+    on: false, opacity: 0.5, difference: false, src: 'reference/lostbelt-no1.jpg',
+  });
   const [progress, setProgress] = useState(null); // null = 대기, 0~1 = 만드는 중
   const abortRef = useRef(null);
   const [fontList, setFontList] = useState(FONT_LIST);
@@ -191,6 +195,8 @@ export default function App() {
           guides={guides}
           onGuides={setGuides}
           guidesEnabled={!animMode}
+          reference={reference}
+          onReference={patch => setReference(r => ({ ...r, ...patch }))}
           onAddFont={handleAddFont}
           onExport={handleExport}
           onImport={handleImport}
@@ -207,6 +213,7 @@ export default function App() {
             onLayout={setLayout}
             onSelect={setSelected}
             onModeChange={handleModeChange}
+            reference={reference}
             onDropImage={file => handleImageFile('bg', file)}
           />
           <ControlPanel

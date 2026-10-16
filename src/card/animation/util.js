@@ -32,3 +32,7 @@ export function layer(name, W, H) {
   ctx.clearRect(0, 0, W, H);
   return { canvas: c, ctx };
 }
+
+// 렌즈 플레어 깜빡임 (0.55~1 사이를 불규칙하게 오감)
+export const flicker = t =>
+  0.78 + 0.22 * (0.5 * Math.sin(t * 17.3) + 0.3 * Math.sin(t * 29.1 + 1.3) + 0.2 * Math.sin(t * 7.7 + 0.4));

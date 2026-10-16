@@ -28,9 +28,9 @@ function textMain(p, { x = true, y = true, extra = [] } = {}) {
     ...(x ? [R(`${p}.x`, 'X 위치', 0, 100, 0.1, '%W')] : []),
     ...(y ? [R(`${p}.y`, 'Y (기준선)', 0, 100, 0.1, '%H')] : []),
     ...extra,
-    S(`${p}.fillMode`, '채우기', [['solid', '단색'], ['gradient', '세로 그라데이션']]),
-    C(`${p}.color`, '색 (상단)'),
-    when(C(`${p}.color2`, '색 (하단)'), s => s[p].fillMode === 'gradient'),
+    S(`${p}.fillMode`, '채우기', [['solid', '단색'], ['gradient', '세로 그라데이션'], ['mirror', '좌우대칭 그라데이션']]),
+    C(`${p}.color`, '색 1 (상단 · 가장자리)'),
+    when(C(`${p}.color2`, '색 2 (하단 · 가운데)'), s => s[p].fillMode !== 'solid'),
   ];
 }
 
@@ -40,6 +40,7 @@ function textAdvanced(p, extra = []) {
     HD('글자'),
     B(`${p}.italic`, '기울임'),
     R(`${p}.spacing`, '자간', -0.1, 0.8, 0.01, 'em'),
+    when(R(`${p}.mirrorCenter`, '대칭 그라데이션 가운데 폭', 0, 0.5, 0.01), s => s[p].fillMode === 'mirror'),
     HD('외곽선'),
     R(`${p}.strokeWidth`, '두께', 0, 1.5, 0.01, '%H'),
     when(C(`${p}.strokeColor`, '색'), s => s[p].strokeWidth > 0),
@@ -173,6 +174,7 @@ export const PARTS = [
       when(R('anim.outroHold', '문구 유지 시간', 0.5, 10, 0.1, '초'), isOutro),
       when(R('anim.introHold', '마지막 정지 시간', 0, 10, 0.1, '초'), isIntro),
       R('anim.speed', '재생 속도', 0.5, 2, 0.05, '배'),
+      R('anim.seed', '입자 시드', 1, 999, 1),
       S('anim.fps', 'MP4 프레임', [[24, '24 fps'], [30, '30 fps'], [60, '60 fps']]),
       S('anim.gifFps', 'GIF 프레임', [[10, '10 fps'], [12, '12 fps'], [15, '15 fps'], [20, '20 fps']]),
     ],
@@ -182,6 +184,7 @@ export const PARTS = [
       when(HD('인트로'), isIntro),
       when(C('anim.introLineColor', '라인 빛 색'), isIntro),
       when(B('anim.introFlash', '전환 섬광'), isIntro),
+      when(R('anim.riseDensity', '떠오르는 입자 양', 0, 3, 0.1, '배'), isIntro),
       when(HD('공상절제 문구'), isOutro),
       when(S('anim.outroWeight', '굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
       when(R('anim.outroSize', '크기', 4, 30, 0.1, '%H'), isOutro),

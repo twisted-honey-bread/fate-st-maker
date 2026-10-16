@@ -190,7 +190,18 @@ export function drawText(ctx, s, W, H, x, y, align) {
   ctx.lineJoin = 'round';
   ctx.miterLimit = 2;
 
+  // 좌우대칭 그라데이션: 가장자리 색(color) → 가운데 색(color2) → 가장자리 색, 텍스트 폭 기준
+  let mirrorFill = null;
+  if (s.fillMode === 'mirror') {
+    const c = Math.max(0, Math.min(0.5, s.mirrorCenter ?? 0.08));
+    mirrorFill = ctx.createLinearGradient(sx, 0, sx + Math.max(1, w), 0);
+    mirrorFill.addColorStop(0, s.color);
+    mirrorFill.addColorStop(0.5 - c, s.color2);
+    mirrorFill.addColorStop(0.5 + c, s.color2);
+    mirrorFill.addColorStop(1, s.color);
+  }
   const fillAt = dy => {
+    if (mirrorFill) return mirrorFill;
     if (s.fillMode !== 'gradient') return s.color;
     const g = ctx.createLinearGradient(0, y + dy - px * 0.85, 0, y + dy + px * 0.1);
     g.addColorStop(0, s.color);
@@ -222,7 +233,11 @@ export function drawText(ctx, s, W, H, x, y, align) {
     };
   }
 
+  // tail: 애니메이션용 — from 번째 글자부터 alpha 로 그림 (자리는 차지)
+  const tail = s.tail && s.tail.alpha < 1 ? s.tail : null;
+
   const paint = () => {
+    const baseAlpha = ctx.globalAlpha;
     const one = (c, cx, dy = 0) => {
       if (sw > 0) {
         ctx.lineWidth = sw * 2;
@@ -232,15 +247,17 @@ export function drawText(ctx, s, W, H, x, y, align) {
       ctx.fillStyle = dy ? fillAt(dy) : fill;
       ctx.fillText(c, cx, y + dy);
     };
-    if (!sp && !rise) {
+    if (!sp && !rise && !tail) {
       one(s.text, sx);
       return;
     }
     let cx = sx;
     chars.forEach((c, i) => {
-      one(c, cx, charOffset(i));
+      ctx.globalAlpha = tail && i >= tail.from ? baseAlpha * tail.alpha : baseAlpha;
+      if (ctx.globalAlpha > 0) one(c, cx, charOffset(i));
       cx += ctx.measureText(c).width + sp;
     });
+    ctx.globalAlpha = baseAlpha;
   };
 
   if (s.shadowOpacity > 0) {
@@ -295,7 +312,7 @@ function drawTitleGroup(ctx, W, H, state) {
 /* ---------- 로고 ---------- */
 function drawLogo(ctx, W, H, L, img) {
   const ready = img && img.naturalWidth;
-  const h = (L.height / 100) * H;
+  const h = (L.height / 100) * H * (L.scale ?? 1); // scale: 애니메이션용 확대 (기본 1)
   const w = ready ? (h * img.naturalWidth) / img.naturalHeight : h;
   const x = (L.x / 100) * W - w / 2;
   const y = (L.y / 100) * H - h / 2;
