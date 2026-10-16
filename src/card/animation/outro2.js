@@ -218,7 +218,8 @@ function nebulaLayer(dense, t) {
     const x = p.x + p.ax * Math.sin(t * p.wx + p.ph);
     const y = p.y + p.ay * Math.sin(t * p.wy + p.ph * 1.7);
     const breath = Math.sin(t * p.wa + p.ph * 2.3);
-    const a = p.a * Math.max(0, 1 + 1.2 * breath); // 거의 사라졌다가 두 배 넘게 밝아짐
+    // 거의 사라졌다가 두 배 넘게 밝아짐. 덩어리를 크게 한 만큼 빛 덩어리는 옅게 해 전체 밝기를 맞춤 (파낸 자리는 그대로)
+    const a = p.a * (p.carve ? 1 : dense ? 0.3 : 0.44) * Math.max(0, 1 + 1.2 * breath);
     const r = p.r * 2 * (1 + 0.45 * breath); // 덩어리 하나하나를 크게
     g.globalCompositeOperation = p.carve ? 'destination-out' : 'source-over';
     g.save();
