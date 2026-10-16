@@ -201,10 +201,9 @@ const BASE_DEFAULTS = {
     o2SubSpacing: 0.2,
     o2SubSpacing2: 0.3,
     o2Hold: 1.6,
-    // 초반 배경 무늬: 중심 높이(%H), 사각형 반폭(%H), 마름모 중심~꼭짓점(%H)
+    // 초반 배경 무늬: 중심 높이(%H), 바깥 마름모 중심~꼭짓점(%H) — 안쪽 도형은 차례로 내접
     o2ShapeY: 51,
-    o2ShapeSize: 36.5,
-    o2DiamondSize: 82,
+    o2DiamondSize: 75,
     // 제목 뒤 성운 빛무리 반폭(%W)·반높이(%H) — 초반 / 후반
     o2NebulaW: 42,
     o2NebulaH: 17,

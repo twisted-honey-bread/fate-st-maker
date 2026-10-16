@@ -179,8 +179,7 @@ export const PARTS = [
       when(HD('초반 배경 무늬'), isO2),
       ...[
         R('anim.o2ShapeY', '중심 높이', 20, 80, 0.1, '%H'),
-        R('anim.o2ShapeSize', '사각형 크기 (반폭)', 10, 60, 0.1, '%H'),
-        R('anim.o2DiamondSize', '마름모 크기 (중심~꼭짓점)', 20, 120, 0.1, '%H'),
+        R('anim.o2DiamondSize', '크기 (바깥 마름모 중심~꼭짓점)', 20, 120, 0.1, '%H'),
       ].map(f => when(f, isO2)),
       when(HD('빛무리 (성운)'), isO2),
       ...[

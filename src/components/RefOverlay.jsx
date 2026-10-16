@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { Button, Checkbox, Range } from './ui';
 
@@ -6,8 +5,13 @@ import { Button, Checkbox, Range } from './ui';
  * 참고 이미지 겹쳐 보기 — 원본 화면 캡처를 미리보기 위에 반투명하게 겹쳐 크기·위치를 맞출 때 씀
  * 미리보기 전용 (다운로드에는 포함되지 않음, 설정에도 저장되지 않음)
  * 기본은 높이에 맞춰 가운데 정렬 — 양옆에 검은 띠가 있는 휴대폰 화면 캡처도 그대로 맞음
+ * 겹칠 이미지는 src/refs/ 폴더의 파일 (파일 이름이 버튼 이름, 앞의 '숫자-' 는 순서용). 폴더를 비우면 이 막대도 사라짐
  * value: { url, show, opacity, scale(%), x(%), y(%) }
  */
+const REFS = Object.entries(import.meta.glob('../refs/*.{jpg,jpeg,png,webp}', { eager: true, import: 'default' }))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([path, url]) => ({ url, label: path.split('/').pop().replace(/\.[^.]+$/, '').replace(/^\d+-/, '') }));
+
 export const REF_DEFAULT = { url: null, show: true, opacity: 0.5, scale: 100, x: 0, y: 0 };
 
 const Layer = styled.div`
@@ -64,7 +68,6 @@ const Head = styled.div`
 
   b { color: var(--fg); font-weight: 600; margin-right: auto; }
   label { display: inline-flex; align-items: center; gap: 5px; }
-  input[type='file'] { display: none; }
 `;
 
 const Sliders = styled.div`
@@ -89,17 +92,8 @@ const SLIDERS = [
 ];
 
 export function RefOverlayBar({ value, onChange }) {
-  const fileRef = useRef(null);
+  if (!REFS.length) return null;
   const set = patch => onChange({ ...value, ...patch });
-
-  // 다른 이미지로 바꾸거나 지우면 이전 주소 해제
-  useEffect(() => () => { if (value.url) URL.revokeObjectURL(value.url); }, [value.url]);
-
-  const pick = e => {
-    const f = e.target.files?.[0];
-    e.target.value = '';
-    if (f) set({ url: URL.createObjectURL(f), show: true });
-  };
 
   return (
     <Bar>
@@ -111,9 +105,17 @@ export function RefOverlayBar({ value, onChange }) {
             보이기
           </label>
         )}
-        <input ref={fileRef} type="file" accept="image/*" onChange={pick} />
-        <Button type="button" onClick={() => fileRef.current?.click()}>{value.url ? '다른 이미지' : '이미지 고르기'}</Button>
-        {value.url && <Button type="button" onClick={() => onChange(REF_DEFAULT)}>지우기</Button>}
+        {REFS.map(r => (
+          <Button
+            key={r.url}
+            type="button"
+            aria-pressed={value.url === r.url}
+            style={value.url === r.url ? { background: 'var(--accent)', color: 'var(--accent-fg)' } : undefined}
+            onClick={() => set({ url: value.url === r.url ? null : r.url, show: true })}
+          >
+            {r.label}
+          </Button>
+        ))}
       </Head>
       {value.url && (
         <Sliders>

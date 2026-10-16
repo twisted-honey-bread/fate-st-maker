@@ -119,47 +119,38 @@ function drawPoly(ctx, W, H, A) {
 
 /*
  * ---------- ② 배경 무늬 ----------
- * 순서대로 나타남: 두 겹 마름모(바깥) → 90° 돌며 안쪽 사각형 → 90° 돌며 그 안쪽 사각형 → 앞 사각형에 내접하는 원
- * p: 0~1 (②단계 진행도, 움직임 곡선 적용 전), cx·cy: 중심, sq: 사각형 반폭(px), dia: 마름모 중심~꼭짓점(px)
+ * 두 겹 마름모 → 내접하는 사각형 → 그 사각형에 내접하는 마름모 → 그 마름모에 내접하는 원
+ * 모두 한꺼번에 페이드 인되며, 함께 90° 돌아 제자리에 맞춰짐
+ * p: 0~1 (②단계 진행도, 움직임 곡선 적용 후), cx·cy: 중심, dia: 바깥 마름모 중심~꼭짓점(px)
  */
-function drawShapes(ctx, H, cx, cy, p, alpha, sq, dia, curve) {
+function drawShapes(ctx, H, cx, cy, p, alpha, dia) {
   if (alpha <= 0 || p <= 0) return;
-  const part = (a, b) => curve(clamp01((p - a) / (b - a)));
-  const gap = H * 0.014; // 두 겹 사이 간격
+  const gap = H * 0.014; // 두 겹 사이 간격 (선과 선 사이 거리)
+  const inner = dia - gap * Math.SQRT2; // 안쪽 겹 마름모의 중심~꼭짓점
+  const sq = inner / 2; // 마름모에 내접하는 사각형의 반폭
+  const r = sq / Math.SQRT2; // 그 사각형에 내접하는 마름모(중심~꼭짓점 = sq)에 내접하는 원
+  const square = (half, rot) => {
+    ctx.save();
+    ctx.rotate(rot);
+    ctx.strokeRect(-half, -half, half * 2, half * 2);
+    ctx.restore();
+  };
   ctx.save();
-  ctx.globalAlpha = alpha;
+  ctx.globalAlpha = alpha * Math.min(1, p / 0.4);
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = Math.max(1, H * 0.0024);
   ctx.shadowColor = 'rgba(255,255,255,0.7)';
   ctx.shadowBlur = H * 0.006;
   ctx.translate(cx, cy);
-  const square = (half, k, rot) => {
-    if (k <= 0) return;
-    ctx.save();
-    ctx.globalAlpha = alpha * Math.min(1, k * 1.5);
-    ctx.rotate(rot);
-    ctx.strokeRect(-half, -half, half * 2, half * 2);
-    ctx.restore();
-  };
-  // 두 겹 마름모: 살짝 크게 시작해 제자리로
-  const a = part(0, 0.35);
-  const grow = 1 + 0.06 * (1 - a);
-  const m = dia / Math.SQRT2;
-  square(m * grow, a, Math.PI / 4);
-  square((m - gap) * grow, a, Math.PI / 4);
-  // 안쪽 사각형 두 개: 각각 90° 돌며 나타남
-  const b = part(0.2, 0.6);
-  square(sq, b, (-Math.PI / 2) * (1 - b));
-  const c = part(0.4, 0.8);
-  const inner = sq - gap;
-  square(inner, c, (Math.PI / 2) * (1 - c));
-  // 내접하는 원: 위에서부터 한 바퀴 그려짐
-  const d = part(0.6, 1);
-  if (d > 0) {
-    ctx.beginPath();
-    ctx.arc(0, 0, inner, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * d);
-    ctx.stroke();
-  }
+  ctx.rotate((-Math.PI / 2) * (1 - p));
+  const d45 = Math.PI / 4;
+  square(dia / Math.SQRT2, d45);
+  square(inner / Math.SQRT2, d45);
+  square(sq, 0);
+  square(sq / Math.SQRT2, d45);
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -538,7 +529,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     const [wobS, wobE] = T('o2Wobble');
     const wob = part2 ? 0 : clamp01(E('easeO2Wobble', prog(t, wobS, wobE)));
     const gl = part2 ? 0 : clamp01(E('easeO2Glitch', prog(t, ...T('o2Glitch'))));
-    const shapeP = prog(t, shapesS, shapesE);
+    const shapeP = clamp01(E('easeO2Shapes', prog(t, shapesS, shapesE)));
     const shapeA = part2 ? 0 : 0.5;
     const nebula2 = part2 ? clamp01(E('easeO2Sub2', prog(t, ...T('o2Sub2')))) : 0; // 후반 빛무리는 부제와 함께 나타남
     const rays = part2 ? 1 - clamp01(E('easeO2Rays', prog(t, ...T('o2Rays')))) : 0;
@@ -547,7 +538,7 @@ export function drawOutro2Frame(ctx, W, H, state, images, time) {
     drawCard(n, W, H, nightState, images, {
       afterBackground: (c, w, h) => {
         poly(c, w, h);
-        drawShapes(c, h, w / 2, (A.o2ShapeY / 100) * h, shapeP, shapeA, (A.o2ShapeSize / 100) * h, (A.o2DiamondSize / 100) * h, p => ease(A.easeO2Shapes, p));
+        drawShapes(c, h, w / 2, (A.o2ShapeY / 100) * h, shapeP, shapeA, (A.o2DiamondSize / 100) * h);
         if (part2) {
           // 섬광이 터질 때 화면 가운데가 밝게 (중앙 광선이 사라지며 함께 줄어듦)
           drawHalo(c, w / 2, midY, w * 0.5, h * 0.45, 0.4 * rays);
