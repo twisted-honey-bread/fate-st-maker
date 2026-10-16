@@ -141,7 +141,8 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
 }
 
 /* ---------- 정방형(45도 회전한 정사각형) 입자: 양옆 가장자리에서 터져 나옴 (아웃트로) ----------
- * 정방형으로 나타난 뒤 서로 다른 속도로 작아지며 조금씩 위로 올라가고, endAt 까지 모두 사라짐
+ * 터지는 순간 각자의 위치에 정방형으로 바로 나타나고(등장 애니메이션 없음),
+ * 입자마다 다른 대기 시간·속도 곡선·종료 시점으로 작아지며 조금씩 위로 올라가고, endAt 까지 모두 사라짐
  * 작아질 때는 위쪽 꼭짓점(가로 중앙, 맨 위)을 기준점으로 줄어들고,
  * 가로가 더 빨리 줄어 항상 세로로 긴 마름모가 됨 (squash: 0 = 끝까지 정방형)
  */
@@ -153,8 +154,9 @@ function makeDiamonds(count, seed) {
     return {
       x: left ? edge : 1 - edge,
       y: rng() * 1.05 - 0.02,
-      born: Math.pow(rng(), 2.5) * 0.45, // 대부분 터지는 순간에 등장
-      end: 0.4 + Math.pow(rng(), 0.7) * 0.6, // 사라지는 시점 (burst~endAt 구간의 비율)
+      end: 0.3 + Math.pow(rng(), 0.7) * 0.7, // 사라지는 시점 (burst~endAt 구간의 비율)
+      hold: rng() * 0.35, // 작아지기 시작하기 전 그대로 있는 구간 (수명 비율)
+      curve: 0.5 + rng() * 2.2, // 작아지는 속도 곡선 (작을수록 초반에 빨리, 클수록 후반에 몰아서)
       size: 0.01 + Math.pow(rng(), 2.4) * 0.43, // 작은 것은 작게, 큰 것은 화면 높이의 40% 이상까지
       vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
       sx: 0.45 + rng() * 0.55, // 축소될 때 가로가 추가로 줄어드는 정도
@@ -177,22 +179,22 @@ export function drawDiamonds(ctx, W, H, t, {
   ctx.save();
   ctx.shadowColor = rgba(glow, 0.95);
   for (const d of diamondCache.get(key)) {
-    const age = t - d.born;
-    const life = Math.max(0.3, d.end * endAt - d.born);
+    const age = t;
+    const life = Math.max(0.3, d.end * endAt);
     if (age < 0 || age > life) continue;
     const p = age / life;
-    const pop = Math.min(1, age / 0.12); // 빠르게 커지며 등장
-    const shrink = 1 - p * p * (3 - 2 * p); // 부드럽게 작아짐
-    const full = (d.size * H * pop) / 2; // 처음 크기의 반폭
+    const q = Math.max(0, (p - d.hold) / (1 - d.hold));
+    const shrink = 1 - Math.pow(q, d.curve); // 입자마다 다른 속도로 작아짐
+    const full = (d.size * H) / 2; // 처음 크기의 반폭
     const base = full * shrink;
     if (base < 0.3) continue;
-    const hw = base * (1 - d.sx * squash * p); // 가로가 더 빨리 줄어 세로로 긴 마름모
+    const hw = base * (1 - d.sx * squash * q); // 가로가 더 빨리 줄어 세로로 긴 마름모
     const hh = base;
     const x = d.x * W;
     const top = (d.y + d.vy * age) * H - full; // 위쪽 꼭짓점 고정
     const y = top + hh;
     // 거의 흰 단색 마름모 + 옅은 크림색 빛 번짐 (겹치면 하나의 밝은 덩어리처럼 보임)
-    ctx.globalAlpha = Math.min(1, pop * 1.2);
+    ctx.globalAlpha = 1;
     ctx.shadowBlur = Math.min(Math.max(hw, hh) * 1.4, H * 0.08); // 아주 큰 입자는 빛 번짐 반경을 제한 (렌더링 부담)
     ctx.fillStyle = color;
     ctx.beginPath();
