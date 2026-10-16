@@ -6,7 +6,7 @@ import { Toolbar } from './components/Toolbar';
 import { Preview } from './components/Preview';
 import { ControlPanel } from './components/ControlPanel';
 import { Toast } from './components/Toast';
-import { HCR_FAMILY, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
+import { ensureFonts, registerFontFile } from './card/fonts';
 import { drawCard } from './card/renderer';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
@@ -70,7 +70,6 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [selected, setSelected] = useState('title');
   const [layout, setLayout] = useState(null);
-  const [hcrAvailable, setHcrAvailable] = useState(null);
   const [fontVersion, setFontVersion] = useState(0);
   const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
   const [bgDraft, setBgDraft] = useState(null); // 배경 직접 조정 중인 값 { zoom, posX, posY } (적용 전)
@@ -78,9 +77,6 @@ export default function App() {
   const themed = useMemo(() => (themePreview ? applyColorTheme(state, themePreview).next : state), [state, themePreview]);
   const viewState = bgDraft ? { ...themed, bg: { ...themed.bg, ...bgDraft } } : themed;
 
-  useEffect(() => {
-    hcrFontReady.then(setHcrAvailable);
-  }, []);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -161,17 +157,11 @@ export default function App() {
     }
   };
 
-  // 폰트 칸의 '업로드': 그 칸의 목록에 추가하고 바로 적용 (한글 칸에 함초롬바탕을 올리면 기본 이름으로 등록)
+  // 폰트 칸의 '업로드': 그 칸의 목록에 추가하고 바로 적용
   const handleFontUpload = async (field, file) => {
     try {
-      const { family, isHcr } = await registerFontFile(file, { allowHcr: field.group === 'korean' });
+      const { family } = await registerFontFile(file);
       setFontVersion(v => v + 1);
-      if (isHcr) {
-        setHcrAvailable(true);
-        card.setField(field.k, HCR_FAMILY);
-        notify('함초롬바탕을 적용했습니다.');
-        return;
-      }
       setUploadedFonts(prev => ({
         ...prev,
         [field.group]: prev[field.group].includes(family) ? prev[field.group] : [...prev[field.group], family],
@@ -255,7 +245,6 @@ export default function App() {
             layout={layout}
             selected={selected}
             onSelect={setSelected}
-            hcrAvailable={hcrAvailable}
             onAction={action => {
               if (action !== 'bgEdit') return;
               const { zoom, posX, posY } = state.bg;

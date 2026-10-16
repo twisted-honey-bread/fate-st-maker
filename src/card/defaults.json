@@ -242,7 +242,7 @@
   "title": {
     "show": true,
     "text": "영구동토제국 아나스타샤",
-    "font": "HCR Batang",
+    "font": "Noto Serif KR",
     "weight": 700,
     "italic": false,
     "size": 10,
@@ -328,7 +328,7 @@
   "sub": {
     "show": true,
     "text": "짐승 나라의 황녀",
-    "font": "HCR Batang",
+    "font": "Noto Serif KR",
     "weight": 400,
     "italic": false,
     "size": 7.5,
@@ -394,7 +394,7 @@
     "circuitOpacity": 0.2,
     "outroText": "공상절제",
     "outroSub": "Cosmos Denial",
-    "outroFont": "HCR Batang",
+    "outroFont": "Noto Serif KR",
     "outroWeight": 700,
     "outroSubFont": "Libre Bodoni",
     "outroSubWeight": 400,

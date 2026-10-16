@@ -71,7 +71,7 @@ const BASE_DEFAULTS = {
     position: 'left', gap: 1.6, offsetY: -0.6,
   },
   title: {
-    ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
+    ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'Noto Serif KR', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
     // 오른쪽 위 렌즈 플레어 (flareX·Y 는 제목 영역 오른쪽 위 모서리 기준)
     flare: true, flareColor: '#4fb8ff', flareX: -0.5, flareY: 1, flareLength: 12, flareThickness: 0.8,
@@ -84,7 +84,7 @@ const BASE_DEFAULTS = {
     opacity: 0.8, left: 6, right: 6, fade: 18,
   },
   sub: {
-    ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
+    ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'Noto Serif KR', weight: 400, size: 5.4,
     x: 50, y: 89.4, fillMode: 'horizontal', color: '#7a828d', stops: mirrorStops('#7a828d', '#33383f', 0.08), symmetric: true, mirrorScope: 'text',
     glowOpacity: 0.8, glowBlur: 0.4,
   },
@@ -115,7 +115,7 @@ const BASE_DEFAULTS = {
     circuitOpacity: 0.4,
     outroText: '공상절제',
     outroSub: 'Cosmos Denial',
-    outroFont: 'HCR Batang',
+    outroFont: 'Noto Serif KR',
     outroWeight: 700,
     outroSubFont: 'Libre Bodoni',
     outroSubWeight: 400,
@@ -227,6 +227,11 @@ export function migrateSettings(src) {
   keepFont('left', 'font', 'weight', 'left');
   keepFont('era', 'font', 'weight', 'latin');
   keepFont('anim', 'outroSubFont', 'outroSubWeight', 'latin');
+  // 함초롬바탕은 없어짐 → Noto Serif KR
+  for (const k of ['left', 'right', 'era', 'title', 'sub']) {
+    if (out[k]?.font === 'HCR Batang') out[k] = { ...out[k], font: 'Noto Serif KR' };
+  }
+  if (out.anim?.outroFont === 'HCR Batang') out.anim = { ...out.anim, outroFont: 'Noto Serif KR' };
   // '단계 분리' 스타일 변환은 없어짐 → 듀오톤
   if (out.bg?.styleMode === 'poster') out.bg = { ...out.bg, styleMode: 'duotone' };
   const A = out.anim;

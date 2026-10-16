@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { PART_BY_ID, getPath } from '../card/schema';
-import { HCR_FAMILY } from '../card/fonts';
 import { Field } from './fields/Field';
 import { GradientEditor } from './fields/GradientEditor';
 import { FontField } from './fields/FontField';
@@ -90,16 +89,6 @@ const Body = styled.div`
   padding: 6px 16px 16px;
 `;
 
-const Notice = styled.p`
-  margin: 4px 16px 0;
-  padding: 8px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: var(--surface-2);
-  font-size: 12px;
-  color: var(--muted);
-`;
-
 const Advanced = styled(Section)`
   border-top: 1px solid var(--line);
 `;
@@ -121,7 +110,7 @@ function advancedHint(part, state) {
 
 export function ControlPanel({
   state, onField, uploadedFonts, onFontUpload, imageUrls, onImageFile, onImageClear,
-  layout, selected, onSelect, hcrAvailable, onApplyTheme, onResetTheme, canUndoTheme, onUndoTheme, onAction, onPreviewTheme,
+  layout, selected, onSelect, onApplyTheme, onResetTheme, canUndoTheme, onUndoTheme, onAction, onPreviewTheme,
 }) {
   const part = PART_BY_ID[selected] || PART_BY_ID.title;
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -194,8 +183,6 @@ export function ControlPanel({
       />
     )));
 
-  const partFont = part.id === 'anim' ? state.anim.mode === 'outro' && state.anim.outroFont : state[part.id]?.font;
-  const usesMissingHcr = hcrAvailable === false && partFont === HCR_FAMILY;
 
   return (
     <Panel aria-label="입력 콘솔">
@@ -218,12 +205,6 @@ export function ControlPanel({
             </Switch>
           )}
         </PartHeader>
-        {usesMissingHcr && (
-          <Notice>
-            이 기기에 함초롬바탕이 없어 Noto Serif KR로 대신 표시하고 있습니다.
-            폰트 칸의 ‘업로드’로 함초롬바탕 TTF/OTF 파일을 올리면 바로 적용됩니다.
-          </Notice>
-        )}
         <Body>{renderFields(part.main)}</Body>
 
         <Advanced open={advancedOpen} onToggle={e => setAdvancedOpen(e.currentTarget.open)}>

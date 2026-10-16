@@ -27,6 +27,5 @@ npm run build   # dist/ 에 정적 파일 생성
 ## 저작권 · 라이선스
 
 - 이 프로젝트는 비공식 팬 제작물입니다. *Fate/Grand Order* 및 관련 명칭·디자인의 권리는 TYPE-MOON / FGO PROJECT 에 있습니다. 공식 이미지·로고는 포함하지 않습니다.
-- **함초롬바탕**: 저작권 ㈜한글과컴퓨터. 한컴이 무료로 배포하는 글꼴로, 이 저장소는 글꼴 파일을 포함하지 않고 [눈누](https://noonnu.cc)가 제공하는 jsDelivr CDN 에서 불러옵니다. 사용 조건은 한글과컴퓨터의 함초롬체 라이선스를 따릅니다.
-- **그 밖의 글꼴**: Noto Sans KR, Noto Serif KR, Noto Serif, 나눔고딕, 나눔명조, 검은고딕, 도현, 고운바탕, Cinzel, Cormorant Garamond, EB Garamond, Playfair Display, Spectral, Bodoni Moda, Libre Bodoni, Old Standard TT — Google Fonts 에서 불러오며 [SIL Open Font License 1.1](https://openfontlicense.org) 을 따릅니다.
+- **글꼴**: Noto Sans KR, Noto Serif KR, Noto Serif, 나눔고딕, 나눔명조, 검은고딕, 도현, 고운바탕, Cinzel, Cormorant Garamond, EB Garamond, Playfair Display, Spectral, Bodoni Moda, Libre Bodoni, Old Standard TT — Google Fonts 에서 불러오며 [SIL Open Font License 1.1](https://openfontlicense.org) 을 따릅니다.
 - **사용한 라이브러리**: React, styled-components, Vite, gifenc (MIT), Mediabunny (MPL-2.0).

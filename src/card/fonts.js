@@ -1,8 +1,7 @@
 // 폰트 목록. fallback 은 해당 폰트가 없을 때 캔버스가 대신 쓰는 글꼴
 export const FONT_LIST = [
-  { family: 'HCR Batang', label: '함초롬바탕', fallback: '"Noto Serif KR", serif' },
-  { family: 'Noto Sans KR', label: 'Noto Sans KR (고딕)' },
   { family: 'Noto Serif KR', label: 'Noto Serif KR (명조)', fallback: 'serif' },
+  { family: 'Noto Sans KR', label: 'Noto Sans KR (고딕)' },
   { family: 'Nanum Gothic', label: '나눔고딕' },
   { family: 'Nanum Myeongjo', label: '나눔명조', fallback: 'serif' },
   { family: 'Black Han Sans', label: '검은고딕 (Black Han Sans)' },
@@ -42,7 +41,7 @@ export const FONT_GROUPS = {
   },
   korean: {
     slot: 'korean',
-    presets: FONT_LIST.filter(f => /KR|HCR|Nanum|Han|Hyeon|Gowun/.test(f.family)).map(f => [f.family, null, null]),
+    presets: FONT_LIST.filter(f => /KR|Nanum|Han|Hyeon|Gowun/.test(f.family)).map(f => [f.family, null, null]),
   },
 };
 
@@ -66,57 +65,23 @@ export const fontLabel = family => FONT_LIST.find(f => f.family === family)?.lab
 export const fontStr = (s, px) =>
   `${s.italic ? 'italic ' : ''}${s.weight} ${px}px "${s.font}", ${FALLBACKS.get(s.font) || 'sans-serif'}`;
 
-/*
- * 함초롬바탕(HCR Batang)은 한컴 저작권 폰트라 레포에 포함하지 않음
- * 1) 기기에 설치된 폰트(local)  2) 눈누 CDN(jsDelivr)의 함초롬바탕 woff 순으로 찾고,
- * 둘 다 없으면 Noto Serif KR 로 대신 그려짐 (한글 폰트 칸의 ‘업로드’로 TTF 를 올려도 됨)
- */
-export const HCR_FAMILY = 'HCR Batang';
-const HCR_SOURCES = {
-  400: { local: ['HCR Batang', '함초롬바탕', 'HCRBatang', 'HCR Batang Regular'], url: 'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/HANBatang.woff' },
-  700: { local: ['HCR Batang Bold', '함초롬바탕 Bold', 'HCRBatang-Bold', 'HCRBatangBold'], url: 'https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/HANBatangB.woff' },
-};
-
-async function loadHcrFace(weight, { local, url }) {
-  // 기기에 설치된 폰트가 있으면 그것을, 없으면 눈누(jsDelivr) CDN 의 함초롬바탕 woff 를 씀
-  const src = [...local.map(n => `local("${n}")`), `url("${url}") format("woff")`].join(', ');
-  try {
-    const face = new FontFace(HCR_FAMILY, src, { weight: String(weight) });
-    await face.load();
-    document.fonts.add(face);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// 함초롬바탕을 찾았는지 여부 (true/false)
-export const hcrFontReady = Promise.all(
-  Object.entries(HCR_SOURCES).map(([w, s]) => loadHcrFace(w, s)),
-).then(([regular, bold]) => regular || bold);
-
 const TEXT_KEYS = ['left', 'right', 'era', 'title', 'sub'];
 
 // 캔버스는 폰트가 로드되기 전에 그리면 대체 폰트로 그려지므로, 그리기 전에 필요한 글자만 미리 로드
 export async function ensureFonts(state) {
-  await hcrFontReady;
   const list = TEXT_KEYS.map(k => state[k]).filter(s => s.show && s.text);
   // after: 오른쪽 위의 '_' 뒤 글자도 함께 로드
   await Promise.all(list.map(s => document.fonts.load(fontStr(s, 48), `${s.text}_${s.after || ''}`).catch(() => {})));
 }
 
 /*
- * 사용자가 올린 폰트 파일 등록
- * 파일 이름이 함초롬바탕이면 기본값과 같은 'HCR Batang' 이름으로 등록해 바로 적용되게 함
- * 반환: { family, isHcr }
+ * 사용자가 올린 폰트 파일 등록 — 파일 이름(확장자 제외)을 폰트 이름으로 씀
+ * 반환: { family }
  */
-export async function registerFontFile(file, { allowHcr = true } = {}) {
-  const base = file.name.replace(/\.[^.]+$/, '');
-  const isHcr = allowHcr && /hcr|함초롬|hamchorom/i.test(base);
-  const family = isHcr ? HCR_FAMILY : base;
-  const weight = isHcr && /bold|-b$|볼드/i.test(base) ? '700' : '400';
-  const face = new FontFace(family, await file.arrayBuffer(), isHcr ? { weight } : undefined);
+export async function registerFontFile(file) {
+  const family = file.name.replace(/\.[^.]+$/, '');
+  const face = new FontFace(family, await file.arrayBuffer());
   await face.load();
   document.fonts.add(face);
-  return { family, isHcr };
+  return { family };
 }
