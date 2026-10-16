@@ -140,42 +140,51 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
   ctx.restore();
 }
 
-/* ---------- 다이아몬드 입자: 양옆 가장자리에서 나타나 위로 떠오름 (아웃트로) ----------
- * 세로로 긴 마름모, y축으로만 이동
+/* ---------- 정방형(45도 회전한 정사각형) 입자: 양옆 가장자리에서 터져 나옴 (아웃트로) ----------
+ * 크게 나타난 뒤 서로 다른 속도로 작아지며 조금씩 위로 올라가고, endAt 까지 모두 사라짐
+ * aspect: 세로 비율 (1 = 정방형)
  */
-function makeDiamonds(count) {
-  const rng = mulberry32(99);
+function makeDiamonds(count, seed) {
+  const rng = mulberry32(seed * 7907 + 99);
   return Array.from({ length: count }, (_, i) => {
     const left = i % 2 === 0;
     const edge = Math.pow(rng(), 1.8) * 0.2; // 가장자리에 몰리도록
     return {
       x: left ? edge : 1 - edge,
-      y: 0.05 + rng() * 1.0,
-      born: Math.pow(rng(), 2.2) * 1.6,
-      life: 0.8 + rng() * 2.0,
-      size: 0.01 + Math.pow(rng(), 1.8) * 0.06,
-      vy: -(0.03 + rng() * 0.12), // 위로 떠오르는 속도 (H/초)
+      y: rng() * 1.05 - 0.02,
+      born: Math.pow(rng(), 2.5) * 0.45, // 대부분 터지는 순간에 등장
+      end: 0.4 + Math.pow(rng(), 0.7) * 0.6, // 사라지는 시점 (burst~endAt 구간의 비율)
+      size: 0.022 + Math.pow(rng(), 1.3) * 0.09,
+      vy: -(0.008 + rng() * 0.035), // 천천히 위로 (H/초)
     };
   });
 }
 const diamondCache = new Map();
 
-export function drawDiamonds(ctx, W, H, t, density, color, aspect = 1.8) {
+// t: 터진 뒤 경과 시간(초), endAt: 마지막 입자가 사라지는 시각(터진 뒤 기준)
+export function drawDiamonds(ctx, W, H, t, { density, color, aspect = 1, seed = 1, endAt = 3 }) {
   const count = Math.round(90 * density);
   if (count <= 0 || t < 0) return;
-  if (!diamondCache.has(count)) diamondCache.set(count, makeDiamonds(count));
+  const key = `${count}:${seed}`;
+  if (!diamondCache.has(key)) {
+    diamondCache.set(key, makeDiamonds(count, seed));
+    if (diamondCache.size > 6) diamondCache.delete(diamondCache.keys().next().value);
+  }
   ctx.save();
   ctx.shadowColor = rgba(color, 0.9);
-  for (const d of diamondCache.get(count)) {
+  for (const d of diamondCache.get(key)) {
     const age = t - d.born;
-    if (age < 0 || age > d.life) continue;
-    const p = age / d.life;
-    const a = p < 0.12 ? p / 0.12 : 1 - (p - 0.12) / 0.88;
-    const hw = (d.size * H * (0.55 + 0.45 * Math.min(1, p * 5))) / 2; // 가로 반폭
-    const hh = hw * aspect; // 세로 반높이
+    const life = Math.max(0.3, d.end * endAt - d.born);
+    if (age < 0 || age > life) continue;
+    const p = age / life;
+    const pop = Math.min(1, age / 0.12); // 빠르게 커지며 등장
+    const shrink = 1 - p * p * (3 - 2 * p); // 부드럽게 작아짐
+    const hw = (d.size * H * pop * shrink) / 2;
+    if (hw < 0.3) continue;
+    const hh = hw * aspect;
     const x = d.x * W;
     const y = (d.y + d.vy * age) * H;
-    ctx.globalAlpha = a;
+    ctx.globalAlpha = Math.min(1, pop * 1.2);
     ctx.shadowBlur = hw * 2.2;
     const g = ctx.createLinearGradient(x, y - hh, x, y + hh);
     g.addColorStop(0, '#ffffff');
@@ -193,62 +202,40 @@ export function drawDiamonds(ctx, W, H, t, density, color, aspect = 1.8) {
   ctx.restore();
 }
 
-/* ---------- 반짝이는 먼지 입자 ---------- */
-const dust = (() => {
-  const rng = mulberry32(7);
-  return Array.from({ length: 140 }, () => ({
-    x: rng(),
-    y: Math.pow(rng(), 1.5) * 0.55,
-    r: 0.6 + rng() * 1.4,
-    phase: rng() * Math.PI * 2,
-    speed: 1.5 + rng() * 3,
-    fall: 0.005 + rng() * 0.015,
-  }));
-})();
-
-export function drawDust(ctx, W, H, t, alpha, color) {
-  if (alpha <= 0) return;
-  ctx.save();
-  for (const d of dust) {
-    const tw = 0.5 + 0.5 * Math.sin(d.phase + t * d.speed);
-    ctx.fillStyle = rgba(color, alpha * tw * 0.9);
-    const y = ((d.y + d.fall * t) % 1) * H;
-    ctx.beginPath();
-    ctx.arc(d.x * W, y, (d.r / 1080) * H, 0, Math.PI * 2);
-    ctx.fill();
+/* ---------- 위에서 쏟아져 내리는 금빛 입자 (아웃트로) ---------- */
+const fallCache = new Map();
+export function drawFallingGold(ctx, W, H, t, { start, seed = 1, count = 160, color }) {
+  if (t < start || count <= 0) return;
+  const key = `${seed}:${count}`;
+  if (!fallCache.has(key)) {
+    const rng = mulberry32(seed * 6151 + 5);
+    fallCache.set(key, Array.from({ length: count }, () => ({
+      x: rng(),
+      born: Math.pow(rng(), 1.3) * 3.5,
+      speed: 0.04 + Math.pow(rng(), 2) * 0.22, // H/초
+      life: 1.2 + rng() * 2.5,
+      r: 0.5 + rng() * 1.6,
+      phase: rng() * Math.PI * 2,
+      tw: 4 + rng() * 8,
+    })));
+    if (fallCache.size > 6) fallCache.delete(fallCache.keys().next().value);
   }
-  ctx.restore();
-}
-
-/* ---------- 육각형 격자 (중앙에서 바깥으로 갈수록 흐려짐) ---------- */
-export function drawHexGrid(ctx, W, H, alpha, color) {
-  if (alpha <= 0) return;
-  const R = H * 0.17;
-  const dx = Math.sqrt(3) * R;
-  const dy = 1.5 * R;
-  const cx = W / 2;
-  const cy = H / 2;
-  const maxD = Math.hypot(cx, cy);
   ctx.save();
-  ctx.lineWidth = Math.max(1, H * 0.0012);
-  for (let row = -1; row * dy < H + R; row++) {
-    for (let col = -1; col * dx < W + dx; col++) {
-      const x = col * dx + (row % 2 ? dx / 2 : 0);
-      const y = row * dy;
-      const fade = 1 - Math.hypot(x - cx, y - cy) / maxD;
-      if (fade <= 0) continue;
-      ctx.strokeStyle = rgba(color, alpha * fade * fade);
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const ang = Math.PI / 6 + (i * Math.PI) / 3;
-        const px = x + R * Math.cos(ang);
-        const py = y + R * Math.sin(ang);
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    }
+  ctx.shadowColor = rgba(color, 0.9);
+  for (const d of fallCache.get(key)) {
+    const age = t - start - d.born;
+    if (age < 0 || age > d.life) continue;
+    const k = age / d.life;
+    const fade = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
+    const tw = 0.55 + 0.45 * Math.sin(d.phase + age * d.tw);
+    const y = (-0.02 + d.speed * age) * H;
+    const r = (d.r / 1080) * H;
+    ctx.globalAlpha = fade * tw;
+    ctx.shadowBlur = r * 4;
+    ctx.fillStyle = rgba(color, 1);
+    ctx.beginPath();
+    ctx.arc(d.x * W, y, r, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
@@ -342,7 +329,8 @@ export function drawCornerVignette(ctx, W, H, strength) {
  * 평소에는 보이지 않고, 가로 띠 모양 영역만 회색으로 드러난 채 아래에서 위로 올라감
  */
 const circuitCache = new Map();
-function circuitLayer(W, H, seed) {
+function circuitLayer(W, H, seed, style = 'grid') {
+  if (style === 'penta') return pentaCircuitLayer(W, H, seed);
   const key = `${W}x${H}:${seed}`;
   if (circuitCache.has(key)) return circuitCache.get(key);
   const c = document.createElement('canvas');
@@ -405,10 +393,61 @@ function circuitLayer(W, H, seed) {
   return c;
 }
 
-// p: 0 = 띠가 화면 아래 밖, 1 = 화면 위 밖. band: 띠 높이 (H 비율)
-export function drawCircuitBand(ctx, W, H, p, { seed, color, opacity, band = 0.22 }) {
-  if (p <= 0 || p >= 1 || opacity <= 0) return;
-  const pattern = circuitLayer(W, H, seed);
+/*
+ * 108도(정오각형 내각) 기반의 쪼개진 회로 무늬 (아웃트로)
+ * 방향은 36도 단위, 꺾일 때 72도씩(내각 108도) 꺾이고 선 중간중간이 끊어짐
+ */
+function pentaCircuitLayer(W, H, seed) {
+  const key = `penta:${W}x${H}:${seed}`;
+  if (circuitCache.has(key)) return circuitCache.get(key);
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d');
+  const rng = mulberry32(seed * 3571 + 11);
+  const unit = H * 0.045;
+  g.strokeStyle = '#ffffff';
+  g.lineWidth = Math.max(1, H * 0.0013);
+  g.lineCap = 'butt';
+  const dir = k => [Math.cos((k * Math.PI) / 5), Math.sin((k * Math.PI) / 5)];
+  for (let n = 0; n < 46; n++) {
+    let x = rng() * W;
+    let y = rng() * H;
+    let k = Math.floor(rng() * 10);
+    const segs = 2 + Math.floor(rng() * 4);
+    for (let i = 0; i < segs; i++) {
+      const [dx, dy] = dir(k);
+      const len = unit * (1.5 + rng() * 5);
+      // 선을 몇 조각으로 끊어서 그림
+      const pieces = 1 + Math.floor(rng() * 3);
+      for (let j = 0; j < pieces; j++) {
+        const a = j / pieces;
+        const b = (j + 1) / pieces - (pieces > 1 ? 0.12 : 0);
+        g.beginPath();
+        g.moveTo(x + dx * len * a, y + dy * len * a);
+        g.lineTo(x + dx * len * b, y + dy * len * b);
+        g.stroke();
+      }
+      x += dx * len;
+      y += dy * len;
+      k = (k + (rng() < 0.5 ? 2 : -2) + 10) % 10; // 72도 꺾임 = 내각 108도
+    }
+  }
+  if (circuitCache.size > 6) circuitCache.delete(circuitCache.keys().next().value);
+  circuitCache.set(key, c);
+  return c;
+}
+
+/*
+ * 회로 무늬를 아래에서 위로 훑으며 드러냄
+ * p: 0 = 띠가 화면 아래 밖, 1 = 화면 위 밖. band: 띠 높이 (H 비율)
+ * trail: 띠가 지나간 아래쪽에 남는 밝기 (0 = 남지 않음), twinkle: 0~1 반짝임 정도
+ */
+export function drawCircuitBand(ctx, W, H, p, {
+  seed, color, opacity, band = 0.22, style = 'grid', trail = 0, twinkle = 0, t = 0,
+}) {
+  if (opacity <= 0 || p <= 0 || (p >= 1 && trail <= 0)) return;
+  const pattern = circuitLayer(W, H, seed, style);
   const { canvas, ctx: m } = layer('circuit', W, H);
   m.drawImage(pattern, 0, 0);
   m.globalCompositeOperation = 'source-in';
@@ -416,17 +455,18 @@ export function drawCircuitBand(ctx, W, H, p, { seed, color, opacity, band = 0.2
   m.fillRect(0, 0, W, H);
   // 띠 영역만 남김
   m.globalCompositeOperation = 'destination-in';
-  const cy = H * (1 + band) - p * H * (1 + band * 2);
+  const cy = H * (1 + band) - Math.min(1, p) * H * (1 + band * 2);
   const half = (band * H) / 2;
   const gr = m.createLinearGradient(0, cy - half, 0, cy + half);
   gr.addColorStop(0, 'rgba(0,0,0,0)');
   gr.addColorStop(0.35, 'rgba(0,0,0,1)');
   gr.addColorStop(0.65, 'rgba(0,0,0,1)');
-  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  gr.addColorStop(1, `rgba(0,0,0,${trail})`);
   m.fillStyle = gr;
-  m.fillRect(0, 0, W, H);
+  m.fillRect(0, 0, W, H); // 그라데이션 끝 색(trail)이 띠 아래쪽 전체로 이어짐
+  const tw = twinkle > 0 ? 1 - twinkle * (0.5 + 0.5 * Math.sin(t * 23) * Math.sin(t * 7.3 + 1)) : 1;
   ctx.save();
-  ctx.globalAlpha = opacity;
+  ctx.globalAlpha = opacity * tw;
   ctx.drawImage(canvas, 0, 0);
   ctx.restore();
 }

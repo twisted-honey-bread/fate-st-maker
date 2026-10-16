@@ -2,21 +2,24 @@ import { TEXT_BASE } from '../defaults';
 import { drawCard, drawText } from '../renderer';
 import { toNight } from './night';
 import {
-  drawBlot, drawDiamonds, drawDust, drawHexGrid, drawRevealMask, drawStarFlash, fillOverlay,
+  drawBlot, drawCircuitBand, drawDiamonds, drawFallingGold, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
 import { bell, easeIn, easeInOut, easeOut, flicker, layer, prog } from './util';
 
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
  *  0.0~0.6  원래 카드
- *  0.6~1.8  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
+ *  0.6~2.0  로고 중심에서 어둠이 번져 밤 장면으로 바뀜
  *  1.8~2.6  로고가 흰 실루엣으로 강하게 빛남, 상단 텍스트가 흐려짐
- *  2.5~3.1  금빛 별 섬광 + 가로 광선
- *  2.75~    양옆 가장자리에서 세로로 긴 마름모 입자가 나타나 위로 떠오름, 육각 격자가 비침
- *  2.9~3.9  '공상절제' / 'Cosmos Denial' 등장, 로고와 제목은 흐려짐
- *  유지 후 1.3초 동안 중앙부터 어두워지며 암전
+ *  2.55~3.4 로고 아래 중심에서 노란 별 섬광 + 가로 광선
+ *  3.0~     양옆 가장자리에서 정방형 입자가 터져 나옴 → 서로 다른 속도로 작아지며 조금씩 위로 올라감
+ *  3.1~     '공상절제' 페이드 인 시작, 108도 회로 무늬가 아래에서 반짝이며 올라옴
+ *  3.3~4.3  '공상절제' / 'Cosmos Denial' 이 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
+ *  4.0~     화면 위에서 금빛 입자가 쏟아져 내림
+ *  입자가 모두 사라지면 중앙부터 어두워지며 암전
  */
-const TEXT_END = 3.9;
+const TEXT_END = 4.3;
+const BURST = 3.0;
 const FADE = 1.4;
 
 export const outroDuration = state => (TEXT_END + state.anim.outroHold + FADE) / state.anim.speed;
@@ -75,6 +78,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   const ink = easeInOut(prog(t, 0.6, 2.0));
   const glowUp = prog(t, 1.8, 2.6);
   const dimOld = easeOut(prog(t, 3.0, 3.8));
+  const spread = easeOut(prog(t, 3.3, 4.3)); // 중앙에서 퍼지듯 자간이 넓어짐
 
   ctx.save();
   ctx.fillStyle = '#000000';
@@ -115,31 +119,37 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     drawRevealMask(ctx, W, H, canvas, lx, ly, ink);
   }
 
-  // 육각 격자
-  if (A.hexGrid) drawHexGrid(ctx, W, H, 0.22 * easeOut(prog(t, 3.0, 3.8)), '#d6c496');
+  // 108도 회로 무늬: 아래에서 반짝이며 올라오고, 지나간 자리에 옅게 남음
+  if (A.hexGrid) {
+    drawCircuitBand(ctx, W, H, prog(t, 3.1, 5.9), {
+      seed: A.seed, color: '#d6c496', opacity: 0.45, band: 0.3, style: 'penta', trail: 0.4, twinkle: 0.5, t,
+    });
+  }
 
   // 금빛 별 섬광 (로고 아래쪽 중심)
   const starY = ly + (L.height / 100) * H * 0.3;
-  drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.5, 2.75, 3.4), A.flareColor);
+  drawStarFlash(ctx, W, H, lx, starY, bell(t, 2.55, 2.8, 3.4), A.flareColor);
 
   // 공상절제 문구
   const { main, sub } = outroTextStyles(state);
-  const textIn = easeOut(prog(t, 2.9, 3.7));
+  // 처음엔 옅게 페이드 인 → 중앙에서 퍼지듯 자간이 넓어지며 완전히 나타남
+  const textIn = 0.4 * easeOut(prog(t, 3.1, 3.5)) + 0.6 * spread;
   if (textIn > 0) {
-    const scale = 1.06 - 0.06 * textIn;
     const ty = (A.outroY / 100) * H;
-    ctx.save();
-    ctx.translate(W / 2, ty);
-    ctx.scale(scale, scale);
-    ctx.translate(-W / 2, -ty);
-    drawText(ctx, { ...main, alpha: textIn }, W, H, W / 2, ty, 'center');
-    ctx.restore();
-    drawText(ctx, { ...sub, alpha: easeOut(prog(t, 3.2, 3.9)) }, W, H, W / 2, ty + (A.outroSize / 100) * H * 0.62, 'center');
+    drawText(ctx, { ...main, alpha: textIn, spacing: main.spacing * (0.3 + 0.7 * spread) }, W, H, W / 2, ty, 'center');
+    drawText(ctx, {
+      ...sub, alpha: easeOut(prog(t, 3.4, 4.3)), spacing: sub.spacing * (0.4 + 0.6 * spread),
+    }, W, H, W / 2, ty + (A.outroSize / 100) * H * 0.62, 'center');
   }
 
-  // 입자
-  drawDiamonds(ctx, W, H, t - 2.75, A.particleDensity, A.flareColor, A.particleAspect);
-  drawDust(ctx, W, H, t, 0.8 * prog(t, 3.2, 4.2) * A.particleDensity, '#fff3d6');
+  // 정방형 입자 (모두 사라지는 시점 = 암전 시작)
+  drawDiamonds(ctx, W, H, t - BURST, {
+    density: A.particleDensity, color: A.flareColor, aspect: A.particleAspect, seed: A.seed, endAt: endStart - BURST,
+  });
+  // 위에서 쏟아지는 금빛 입자
+  drawFallingGold(ctx, W, H, t, {
+    start: 4.0, seed: A.seed, count: Math.round(160 * A.particleDensity), color: '#ffe7a8',
+  });
 
   // 암전 (중앙부터)
   drawBlot(ctx, W, H, W / 2, H / 2, easeIn(prog(t, endStart, endStart + 1.0)));

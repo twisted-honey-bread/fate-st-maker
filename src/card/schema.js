@@ -220,9 +220,9 @@ export const PARTS = [
       when(F('anim.outroSubFont', '영문 부제 폰트'), isOutro),
       when(HD('빛 · 입자'), isOutro),
       when(C('anim.flareColor', '섬광 · 입자 색'), isOutro),
-      when(R('anim.particleDensity', '다이아 입자 양', 0, 3, 0.1, '배'), isOutro),
-      when(R('anim.particleAspect', '입자 세로 비율', 1, 4, 0.05, '배'), isOutro),
-      when(B('anim.hexGrid', '육각 격자'), isOutro),
+      when(R('anim.particleDensity', '입자 양', 0, 3, 0.1, '배'), isOutro),
+      when(R('anim.particleAspect', '정방형 입자 세로 비율', 1, 4, 0.05, '배'), isOutro),
+      when(B('anim.hexGrid', '회로 무늬'), isOutro),
     ],
   },
 ];

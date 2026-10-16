@@ -95,7 +95,7 @@ export const DEFAULTS = {
     outroHold: 3.5,
     flareColor: '#ffd27a',
     particleDensity: 1,
-    particleAspect: 1.8,
+    particleAspect: 1,
     seed: 1,
     riseDensity: 1,
     hexGrid: true,
