@@ -84,7 +84,7 @@ export function drawIntroFrame(ctx, W, H, state, images, time) {
     const { canvas, ctx: n } = layer('intro-night', W, H);
     drawCard(n, W, H, nightState, images, {
       afterBackground: (c, w, h) => {
-        drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor });
+        drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor, coverage: A.fogCoverage, scale: A.fogScale });
         drawCornerVignette(c, w, h, A.introCornerVignette, A.introCornerSize);
       },
     });

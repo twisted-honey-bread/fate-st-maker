@@ -94,7 +94,10 @@ export const DEFAULTS = {
     nightVignetteSize: 28,
     introCornerVignette: 0.9,
     introCornerSize: 38,
-    fogOpacity: 0.35, // 밤 장면의 구름·안개 노이즈
+    // 밤 장면의 구름·안개 노이즈 — 진하기(불투명도), 자욱함(덮는 면적), 덩어리 크기
+    fogOpacity: 0.25,
+    fogCoverage: 0.35,
+    fogScale: 1,
     fogColor: '#b9c2cc',
     circuit: true,
     circuitColor: '#8b949e',

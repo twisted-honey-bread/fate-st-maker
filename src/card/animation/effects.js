@@ -514,9 +514,11 @@ function hexCircuitLayer(W, H, seed) {
  * 밤 장면의 구름·안개 노이즈 — 저해상도 fBm 값 노이즈를 부드럽게 확대해 그림
  * t: 초 (아주 천천히 흘러감), opacity: 0~1
  */
+// coverage: 0~1 화면을 덮는 면적 (클수록 자욱함), scale: 덩어리 크기 배율
 const fogCache = new Map();
-function fogLayer(seed) {
-  if (fogCache.has(seed)) return fogCache.get(seed);
+function fogLayer(seed, coverage, scale) {
+  const key = `${seed}:${coverage}:${scale}`;
+  if (fogCache.has(key)) return fogCache.get(key);
   const w = 224;
   const h = 126;
   const rng = mulberry32(seed * 7919 + 5);
@@ -542,27 +544,28 @@ function fogLayer(seed) {
     for (let x = 0; x < w; x++) {
       let v = 0;
       let amp = 0.5;
-      let f = 1 / 28;
+      let f = 1 / (28 * scale);
       for (let o = 0; o < 5; o++) {
         v += amp * noise(x * f + o * 17.3, y * f * 1.3 + o * 9.1);
         amp *= 0.5;
         f *= 2;
       }
-      // 덩어리진 구름만 남기고 사이는 비움
-      const k = Math.max(0, Math.min(1, (v - 0.42) / 0.35));
+      // 덩어리진 구름만 남기고 사이는 비움 — 덮는 면적이 클수록 기준값을 낮춤
+      const k = Math.max(0, Math.min(1, (v - (0.66 - 0.42 * coverage)) / 0.35));
       const i = (y * w + x) * 4;
       img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
       img.data[i + 3] = Math.round(255 * k * k);
     }
   }
   g.putImageData(img, 0, 0);
-  fogCache.set(seed, c);
+  if (fogCache.size > 8) fogCache.delete(fogCache.keys().next().value);
+  fogCache.set(key, c);
   return c;
 }
 
-export function drawFog(ctx, W, H, { seed = 1, t = 0, opacity = 0.3, color = '#b9c2cc' } = {}) {
-  if (opacity <= 0) return;
-  const src = fogLayer(seed);
+export function drawFog(ctx, W, H, { seed = 1, t = 0, opacity = 0.3, color = '#b9c2cc', coverage = 0.35, scale = 1 } = {}) {
+  if (opacity <= 0 || coverage <= 0) return;
+  const src = fogLayer(seed, coverage, scale);
   const { canvas, ctx: m } = layer('fog', W, H);
   m.imageSmoothingEnabled = true;
   m.imageSmoothingQuality = 'high';

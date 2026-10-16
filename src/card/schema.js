@@ -220,7 +220,10 @@ export const PARTS = [
       when(R('anim.introSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isIntro),
       when(R('anim.outroSpeed', '재생 속도', 0.3, 2, 0.01, '배'), isOutro),
       R('anim.seed', '입자 시드', 1, 999, 1),
-      R('anim.fogOpacity', '밤 장면 안개 진하기', 0, 1, 0.01),
+      HD('밤 장면 안개'),
+      R('anim.fogCoverage', '자욱한 정도 (덮는 면적)', 0, 1, 0.01),
+      R('anim.fogOpacity', '진하기', 0, 1, 0.01),
+      R('anim.fogScale', '덩어리 크기', 0.4, 2.5, 0.05, '배'),
       C('anim.fogColor', '안개 색'),
     ],
     advanced: [

@@ -126,7 +126,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
     };
     const { canvas, ctx: n } = layer('outro-night', W, H);
     drawCard(n, W, H, nightState, images, {
-      afterBackground: (c, w, h) => drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor }),
+      afterBackground: (c, w, h) => drawFog(c, w, h, { seed: A.seed, t, opacity: A.fogOpacity, color: A.fogColor, coverage: A.fogCoverage, scale: A.fogScale }),
     });
     drawRevealMask(ctx, W, H, canvas, lx, ly, ink);
   }
