@@ -86,6 +86,7 @@ const Pin = styled.button`
   box-shadow: 0 1px 4px var(--shadow);
   cursor: ew-resize;
   touch-action: none;
+  ${p => p.$ghost && 'opacity: 0.45; pointer-events: none; border-style: dashed;'}
 
   &::after {
     content: '';
@@ -103,6 +104,27 @@ const Pin = styled.button`
     height: 100%;
     border-radius: 3px;
     background: ${p => p.$c};
+  }
+`;
+
+const Locked = styled.div`
+  position: absolute;
+  inset: 0 0 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px dashed rgba(255, 255, 255, 0.85);
+  border-radius: 0 5px 5px 0;
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0 4px, transparent 4px 9px);
+  cursor: not-allowed;
+
+  span {
+    padding: 0 5px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    font-size: 10px;
+    white-space: nowrap;
   }
 `;
 
@@ -160,17 +182,15 @@ const clamp01 = v => Math.max(0, Math.min(1, v));
 const round = v => Math.round(v * 1000) / 1000;
 
 // 전체 지점 → 앞쪽 절반(0~0.5) 지점 (최소 2개)
+// 정렬하지 않고 저장된 순서를 유지 — 끄는 도중 지점끼리 순서가 바뀌어도 잡고 있는 지점이 바뀌지 않게
 function halfStops(full) {
-  const h = sortStops(full).filter(([p]) => p <= 0.5);
+  const h = full.filter(([p]) => p <= 0.5);
   if (h.length >= 2) return h;
   if (h.length === 1) return [...h, [0.5, colorAt(full, 0.5)]];
   return [[0, colorAt(full, 0)], [0.5, colorAt(full, 0.5)]];
 }
 // 절반 → 전체 (0.5 의 지점은 한 번만)
-const expandHalf = half => {
-  const h = sortStops(half);
-  return [...h, ...h.filter(([p]) => p < 0.5).map(([p, c]) => [round(1 - p), c]).reverse()];
-};
+const expandHalf = half => [...half, ...half.filter(([p]) => p < 0.5).map(([p, c]) => [round(1 - p), c])];
 
 function HexInput({ value, onChange, id }) {
   const [draft, setDraft] = useState(null);
@@ -205,7 +225,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
   const updateStop = (i, patch) => setStops(stops.map((s, j) => (j === i ? [patch[0] ?? s[0], patch[1] ?? s[1]] : s)));
   const posFromEvent = e => {
     const r = trackRef.current.getBoundingClientRect();
-    return clamp01((e.clientX - r.left) / r.width) * span;
+    return Math.min(span, clamp01((e.clientX - r.left) / r.width)); // 띠는 항상 전체(0~100%), 편집은 span 까지
   };
 
   const addAt = p => {
@@ -287,7 +307,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
         <>
           <Track
             ref={trackRef}
-            style={{ background: cssGradient(stops.map(([p, c]) => [p / span, c])) }}
+            style={{ background: cssGradient(sym ? expandHalf(stops) : stops) }}
             title="빈 곳을 누르면 색 지점 추가"
             onPointerDown={e => addAt(posFromEvent(e))}
           >
@@ -297,7 +317,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
                 type="button"
                 $c={c}
                 $active={i === active}
-                style={{ left: `${(p / span) * 100}%` }}
+                style={{ left: `${p * 100}%` }}
                 aria-label={`색 지점 ${Math.round(p * 100)}%`}
                 onPointerDown={e => pinDown(e, i)}
                 onPointerMove={pinMove}
@@ -312,6 +332,22 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
                 <span />
               </Pin>
             ))}
+            {sym && (
+              <>
+                {/* 자동으로 채워지는 나머지 절반 — 보기만 하고 고를 수 없음 */}
+                <Locked
+                  title="대칭으로 자동 채워지는 부분 (편집하려면 대칭 끄기)"
+                  onPointerDown={e => { e.preventDefault(); e.stopPropagation(); }}
+                >
+                  <span>자동 대칭</span>
+                </Locked>
+                {stops.filter(([p]) => p < 0.5).map(([p, c]) => (
+                  <Pin key={`m${p}`} as="span" aria-hidden="true" $c={c} $ghost style={{ left: `${(1 - p) * 100}%` }}>
+                    <span />
+                  </Pin>
+                ))}
+              </>
+            )}
           </Track>
 
           <Sub>
