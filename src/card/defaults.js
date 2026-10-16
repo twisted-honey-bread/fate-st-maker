@@ -6,6 +6,7 @@ export const CARD_WIDTH = 1920;
 export const CARD_HEIGHT = 1080;
 
 import { isSymmetric, mirrorStops } from './gradient';
+import { FONT_GROUPS } from './fonts';
 // 앱의 ‘레포 기본값으로 저장’ 버튼이 덮어쓰는 파일 — 여기 있는 값이 아래 기본값보다 우선
 import SAVED_DEFAULTS from './defaults.json';
 
@@ -35,7 +36,7 @@ const BASE_DEFAULTS = {
     snow: true, snowCount: 160, snowOpacity: 0.75,
   },
   left: {
-    ...TEXT_BASE, text: 'Lostbelt No.1', font: 'Noto Serif', weight: 700, size: 6.0, spacing: 0.03,
+    ...TEXT_BASE, text: 'Lostbelt No.1', font: 'Spectral', weight: 700, size: 6.0, spacing: 0.03,
     x: 6, y: 11.4, fillMode: 'horizontal', mirrorScope: 'canvas', color: '#3f78b5', stops: mirrorStops('#3f78b5', '#262c34', 0.12), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
@@ -61,7 +62,7 @@ const BASE_DEFAULTS = {
     backShadow: 0.24, backShadowColor: '#1c2733', backShadowSize: 34,
   },
   era: {
-    ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,
+    ...TEXT_BASE, text: 'A.D.1570?', font: 'Libre Bodoni', weight: 400, size: 3.4, spacing: 0.02,
     fillMode: 'horizontal', color: '#2b78c2', stops: mirrorStops('#2b78c2', '#0b1626', 0.05), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.9, glowBlur: 0.45, glowStrength: 2,
     position: 'left', gap: 1.6, offsetY: -0.6,
@@ -109,7 +110,8 @@ const BASE_DEFAULTS = {
     outroSub: 'Cosmos Denial',
     outroFont: 'HCR Batang',
     outroWeight: 700,
-    outroSubFont: 'Noto Serif',
+    outroSubFont: 'Libre Bodoni',
+    outroSubWeight: 400,
     outroSize: 24.5,
     outroY: 60,
     outroSpacing: 0.42,
@@ -195,6 +197,17 @@ export function migrateSettings(src) {
     const s = out[k];
     if (s && Array.isArray(s.stops) && s.symmetric === undefined) out[k] = { ...s, symmetric: isSymmetric(s.stops) };
   }
+  // 폰트 선택지가 부분별로 정해짐 — 목록에 없는 예전 폰트(또는 다시 불러온 뒤 사라진 업로드 폰트)는 기본값으로
+  const keepFont = (sec, fontKey, weightKey, group) => {
+    const s = out[sec];
+    if (!s || typeof s[fontKey] !== 'string') return;
+    if (FONT_GROUPS[group].presets.some(([f]) => f === s[fontKey])) return;
+    const { [fontKey]: _f, [weightKey]: _w, ...rest } = s;
+    out[sec] = rest;
+  };
+  keepFont('left', 'font', 'weight', 'left');
+  keepFont('era', 'font', 'weight', 'latin');
+  keepFont('anim', 'outroSubFont', 'outroSubWeight', 'latin');
   const A = out.anim;
   if (A && A.outroStops === undefined && typeof A.outroColor === 'string') {
     const stop = A.outroColorStop ?? 0.72;

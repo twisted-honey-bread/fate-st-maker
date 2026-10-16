@@ -18,7 +18,36 @@ export const FONT_LIST = [
 
 export const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
 
-const FALLBACKS = new Map(FONT_LIST.map(f => [f.family, f.fallback || 'sans-serif']));
+/*
+ * 부분별 폰트 선택지 — 폰트와 굵기를 한 번에 고름 (첫 번째가 기본값)
+ * slot: 업로드 칸. left = 왼쪽 위 전용, latin = 영문(Cosmos Denial·연대), korean = 한글
+ */
+export const FONT_GROUPS = {
+  left: {
+    slot: 'left',
+    presets: [['Spectral', 700], ['Cormorant Garamond', 700], ['Bodoni Moda', 600]],
+  },
+  latin: {
+    slot: 'latin',
+    presets: [['Libre Bodoni', 400], ['Old Standard TT', 700], ['Playfair Display', 600]],
+  },
+  korean: {
+    slot: 'korean',
+    presets: FONT_LIST.filter(f => /KR|HCR|Nanum|Han|Hyeon|Gowun/.test(f.family)).map(f => [f.family, null]),
+  },
+};
+export const UPLOAD_SLOTS = {
+  left: '왼쪽 위 폰트',
+  latin: '영문 폰트 (Cosmos Denial·연대)',
+  korean: '한글 폰트',
+};
+
+const FALLBACKS = new Map([
+  ...FONT_LIST.map(f => [f.family, f.fallback || 'sans-serif']),
+  ...['Spectral', 'Bodoni Moda', 'Libre Bodoni', 'Old Standard TT'].map(f => [f, 'serif']),
+]);
+
+export const fontLabel = family => FONT_LIST.find(f => f.family === family)?.label || family;
 
 export const fontStr = (s, px) =>
   `${s.italic ? 'italic ' : ''}${s.weight} ${px}px "${s.font}", ${FALLBACKS.get(s.font) || 'sans-serif'}`;
@@ -26,7 +55,7 @@ export const fontStr = (s, px) =>
 /*
  * 함초롬바탕(HCR Batang)은 한컴 저작권 폰트라 레포에 포함하지 않음
  * 1) 기기에 설치된 폰트(local)  2) public/lostbelt/fonts/ 에 직접 넣은 woff2 파일 순으로 찾고,
- * 둘 다 없으면 Noto Serif KR 로 대신 그려짐 (툴바의 '폰트 추가'로 TTF 를 올려도 됨)
+ * 둘 다 없으면 Noto Serif KR 로 대신 그려짐 (한글 폰트 칸의 ‘업로드’로 TTF 를 올려도 됨)
  */
 export const HCR_FAMILY = 'HCR Batang';
 const HCR_SOURCES = {
@@ -66,9 +95,9 @@ export async function ensureFonts(state) {
  * 파일 이름이 함초롬바탕이면 기본값과 같은 'HCR Batang' 이름으로 등록해 바로 적용되게 함
  * 반환: { family, isHcr }
  */
-export async function registerFontFile(file) {
+export async function registerFontFile(file, { allowHcr = true } = {}) {
   const base = file.name.replace(/\.[^.]+$/, '');
-  const isHcr = /hcr|함초롬|hamchorom/i.test(base);
+  const isHcr = allowHcr && /hcr|함초롬|hamchorom/i.test(base);
   const family = isHcr ? HCR_FAMILY : base;
   const weight = isHcr && /bold|-b$|볼드/i.test(base) ? '700' : '400';
   const face = new FontFace(family, await file.arrayBuffer(), isHcr ? { weight } : undefined);

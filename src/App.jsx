@@ -6,7 +6,7 @@ import { Toolbar } from './components/Toolbar';
 import { Preview } from './components/Preview';
 import { ControlPanel } from './components/ControlPanel';
 import { Toast } from './components/Toast';
-import { FONT_LIST, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
+import { HCR_FAMILY, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
 import { drawCard } from './card/renderer';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
@@ -74,7 +74,8 @@ export default function App() {
   ];
   const [progress, setProgress] = useState(null); // null = 대기, 0~1 = 만드는 중
   const abortRef = useRef(null);
-  const [fontList, setFontList] = useState(FONT_LIST);
+  // 부분별 업로드 칸에 올린 폰트 이름 { left, latin, korean } (이 탭에서만 유지)
+  const [uploadedFonts, setUploadedFonts] = useState({ left: [], latin: [], korean: [] });
   const [toast, setToast] = useState(null);
   const [selected, setSelected] = useState('title');
   const [layout, setLayout] = useState(null);
@@ -168,17 +169,24 @@ export default function App() {
     }
   };
 
-  const handleAddFont = async file => {
+  // 폰트 칸의 '업로드': 그 칸의 목록에 추가하고 바로 적용 (한글 칸에 함초롬바탕을 올리면 기본 이름으로 등록)
+  const handleFontUpload = async (field, file) => {
     try {
-      const { family, isHcr } = await registerFontFile(file);
+      const { family, isHcr } = await registerFontFile(file, { allowHcr: field.group === 'korean' });
       setFontVersion(v => v + 1);
       if (isHcr) {
         setHcrAvailable(true);
+        card.setField(field.k, HCR_FAMILY);
         notify('함초롬바탕을 적용했습니다.');
         return;
       }
-      setFontList(list => (list.some(f => f.family === family) ? list : [...list, { family, label: `${family} (업로드)` }]));
-      notify(`"${family}" 폰트를 추가했습니다. 각 텍스트의 폰트 목록에서 고르세요.`);
+      setUploadedFonts(prev => ({
+        ...prev,
+        [field.group]: prev[field.group].includes(family) ? prev[field.group] : [...prev[field.group], family],
+      }));
+      card.setField(field.k, family);
+      if (field.weightKey) card.setField(field.weightKey, 400);
+      notify(`"${family}" 폰트를 올려 적용했습니다. 새로고침하면 다시 올려야 합니다.`);
     } catch {
       notify('폰트 파일을 읽지 못했습니다. ttf, otf, woff, woff2 파일만 쓸 수 있습니다.', true);
     }
@@ -204,7 +212,6 @@ export default function App() {
           guidesEnabled={!animMode}
           reference={reference}
           onReference={patch => setReference(r => ({ ...r, ...patch }))}
-          onAddFont={handleAddFont}
           onExport={handleExport}
           onSaveDefaults={() => setRepoDialog(true)}
           onImport={handleImport}
@@ -256,7 +263,8 @@ export default function App() {
           <ControlPanel
             state={state}
             onField={card.setField}
-            fontList={fontList}
+            uploadedFonts={uploadedFonts}
+            onFontUpload={handleFontUpload}
             imageUrls={card.imageUrls}
             onImageFile={handleImageFile}
             onImageClear={card.clearImage}

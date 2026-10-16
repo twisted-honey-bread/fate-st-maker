@@ -23,7 +23,8 @@ src/
   styles/GlobalStyle.js     색·폰트 토큰 (라이트/다크)
   hooks/useCardState.js     카드 설정 상태, 업로드 이미지, localStorage 자동 저장
   components/
-    Toolbar.jsx             상단 툴바 (가이드, 원본 겹쳐보기, 폰트 추가, 설정 저장/불러오기, 초기화)
+    Toolbar.jsx             상단 툴바 (가이드, 원본 겹쳐보기, 설정 저장/불러오기, 레포 기본값으로 저장, 초기화)
+    fields/FontField.jsx    부분별 폰트 선택 + 업로드
     DownloadBar.jsx         미리보기 아래 다운로드 (형식, 해상도, 프레임)
     BgEditor.jsx            배경 직접 조정 (끌어서 이동, 모서리로 확대)
     RepoDefaultsDialog.jsx  지금 설정을 레포 기본값(defaults.json)으로 저장
@@ -162,13 +163,25 @@ src/card/animation/
 src/lib/videoExport.js   MP4 / GIF 만들기
 ```
 
+## 폰트 선택지
+
+부분마다 고를 수 있는 폰트가 정해져 있고(폰트와 굵기를 함께 고름, 첫 번째가 기본값), 각 폰트 칸의 **업로드**로 직접 올린 폰트를 그 목록에 추가할 수 있습니다 (`src/card/fonts.js` 의 `FONT_GROUPS`).
+
+| 부분 | 선택지 | 업로드 칸 |
+|---|---|---|
+| 왼쪽 위 (Lostbelt No.1) | Spectral 700 (기본), Cormorant Garamond 700, Bodoni Moda 600 | 왼쪽 위 폰트 |
+| 연대 (A.D.1570?), 아웃트로 영문 부제 (Cosmos Denial) | Libre Bodoni 400 (기본), Old Standard TT 700, Playfair Display 600 | 영문 폰트 (두 곳이 함께 씀) |
+| 한글 (오른쪽 위, 제목, 부제, 공상절제 문구) | 함초롬바탕, Noto Sans/Serif KR, 나눔고딕·명조, 검은고딕, 도현, 고운바탕 — 굵기는 따로 | 한글 폰트 |
+
+업로드한 폰트는 지금 탭에서만 유지됩니다 (새로고침하면 다시 올려야 하고, 저장된 설정의 그 폰트는 기본값으로 돌아감).
+
 ## 함초롬바탕
 
 제목·부제 기본 폰트는 함초롬바탕(HCR Batang)입니다. 한컴 저작권 폰트라 레포에 포함하지 않았고, 다음 순서로 찾습니다.
 
 1. 기기에 설치된 폰트 (한컴오피스 설치 시 포함)
 2. `public/lostbelt/fonts/HCRBatang.woff2`, `public/lostbelt/fonts/HCRBatang-Bold.woff2` (라이선스를 확인한 뒤 직접 넣기)
-3. 툴바의 ‘폰트 추가’로 올린 파일 (파일 이름에 HCR/함초롬이 들어 있으면 자동으로 함초롬바탕으로 등록)
+3. 한글 폰트 칸의 ‘업로드’로 올린 파일 (파일 이름에 HCR/함초롬이 들어 있으면 자동으로 함초롬바탕으로 등록)
 
 셋 다 없으면 Noto Serif KR 로 대신 그립니다.
 

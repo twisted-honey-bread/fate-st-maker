@@ -12,7 +12,8 @@ const C = (k, label) => ({ k, label, type: 'color' });
 const T = (k, label) => ({ k, label, type: 'text' });
 const S = (k, label, options) => ({ k, label, type: 'select', options });
 const B = (k, label) => ({ k, label, type: 'check' });
-const F = (k, label) => ({ k, label, type: 'font' });
+// 폰트: group = FONT_GROUPS 의 키, weightKey 가 있으면 폰트와 굵기를 함께 고름
+const F = (k, label, group = 'korean', weightKey = null) => ({ k, label, type: 'font', group, weightKey });
 const IM = (k, label, hint) => ({ k, label, hint, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
@@ -28,12 +29,14 @@ const isOutro = s => s.anim.mode === 'outro';
 const isGen = s => s.logo.source === 'generate';
 const gen = f => when(f, isGen);
 
-function textMain(p, { x = true, y = true, extra = [] } = {}) {
+// fontGroup: 'korean' 이면 폰트·굵기를 따로, 그 외(left/latin)는 정해진 '폰트 + 굵기' 선택지
+function textMain(p, { x = true, y = true, extra = [], fontGroup = 'korean' } = {}) {
   return [
     B(`${p}.show`, '표시'),
     T(`${p}.text`, '텍스트'),
-    F(`${p}.font`, '폰트'),
-    S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)])),
+    ...(fontGroup === 'korean'
+      ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
+      : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
     R(`${p}.size`, '크기', 1, 20, 0.1, '%H'),
     ...(x ? [R(`${p}.x`, 'X 위치', 0, 100, 0.1, '%W')] : []),
     ...(y ? [R(`${p}.y`, 'Y (기준선)', 0, 100, 0.1, '%H')] : []),
@@ -132,7 +135,7 @@ export const PARTS = [
       R('bg.snowOpacity', '불투명도', 0, 1, 0.01),
     ],
   },
-  { id: 'left', short: '좌상단', title: '왼쪽 위 텍스트', desc: 'Lostbelt No.1', main: textMain('left'), advanced: textAdvanced('left') },
+  { id: 'left', short: '좌상단', title: '왼쪽 위 텍스트', desc: 'Lostbelt No.1', main: textMain('left', { fontGroup: 'left' }), advanced: textAdvanced('left') },
   { id: 'right', short: '우상단', title: '오른쪽 위 텍스트', desc: '오른쪽 끝 기준 정렬', main: textMain('right').flatMap(f => (f.k === 'right.text'
       ? [T('right.text', '_ 앞 텍스트'), { ...T('right.after', '_ 뒤 텍스트'), hint: '인트로에서 로고와 함께 나타납니다. 비워 두면 _ 도 표시하지 않습니다.' }]
       : [f])), advanced: textAdvanced('right') },
@@ -190,6 +193,7 @@ export const PARTS = [
   {
     id: 'era', short: '연대', title: '연대', desc: 'A.D.1570?',
     main: textMain('era', {
+      fontGroup: 'latin',
       x: false, y: false,
       extra: [S('era.position', '위치', [['left', '제목 왼쪽'], ['above', '제목 위'], ['hidden', '숨김']])],
     }),
@@ -272,7 +276,7 @@ export const PARTS = [
       when(G('문구 색 (세로 그라데이션)', { stops: 'anim.outroStops', symmetric: 'anim.outroSymmetric' }, ['vertical']), isOutro),
       when(C('anim.outroGlow', '글로우 색'), isOutro),
       when(HD('영문 부제'), isOutro),
-      when(F('anim.outroSubFont', '폰트'), isOutro),
+      when(F('anim.outroSubFont', '폰트', 'latin', 'anim.outroSubWeight'), isOutro),
       when(R('anim.outroSubSize', '크기', 1, 15, 0.1, '%H'), isOutro),
       when(R('anim.outroSubSpacing', '자간', -0.3, 2, 0.01, 'em'), isOutro),
       when(R('anim.outroSubScaleX', '장평 (글자 폭)', 40, 150, 1, '%'), isOutro),

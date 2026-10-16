@@ -55,7 +55,7 @@ function outroTextStyles(state) {
     ...TEXT_BASE,
     text: A.outroSub,
     font: A.outroSubFont,
-    weight: 500,
+    weight: A.outroSubWeight,
     size: A.outroSubSize,
     spacing: A.outroSubSpacing,
     scaleX: A.outroSubScaleX,

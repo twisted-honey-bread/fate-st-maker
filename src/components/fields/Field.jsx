@@ -180,7 +180,7 @@ function ImageField({ id, url, onFile, onClear }) {
   );
 }
 
-export function Field({ field, value, onChange, fontList, imageUrl, onImageFile, onImageClear, onAction }) {
+export function Field({ field, value, onChange, imageUrl, onImageFile, onImageClear, onAction }) {
   if (field.type === 'heading') return <Subhead>{field.label}</Subhead>;
   if (field.type === 'note') return <Note>{field.label}</Note>;
   if (field.type === 'segment') {
@@ -210,9 +210,8 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
     case 'range':
       control = <RangeField id={id} field={field} value={value} onChange={onChange} />;
       break;
-    case 'select':
-    case 'font': {
-      const options = field.type === 'font' ? fontList.map(f => [f.family, f.label]) : field.options;
+    case 'select': {
+      const { options } = field;
       control = (
         <Select
           id={id}
@@ -220,7 +219,7 @@ export function Field({ field, value, onChange, fontList, imageUrl, onImageFile,
           onChange={e => onChange(typeof value === 'number' ? +e.target.value : e.target.value)}
         >
           {options.map(([v, l]) => (
-            <option key={v} value={v} style={field.type === 'font' ? { fontFamily: `"${v}"` } : undefined}>
+            <option key={v} value={v}>
               {l}
             </option>
           ))}

@@ -4,6 +4,7 @@ import { PART_BY_ID, getPath } from '../card/schema';
 import { HCR_FAMILY } from '../card/fonts';
 import { Field } from './fields/Field';
 import { GradientEditor } from './fields/GradientEditor';
+import { FontField } from './fields/FontField';
 import { AnalysisNotes } from './AnalysisNotes';
 import { Section } from './Section';
 import { StructureMap } from './StructureMap';
@@ -74,14 +75,29 @@ function advancedHint(part, state) {
 }
 
 export function ControlPanel({
-  state, onField, fontList, imageUrls, onImageFile, onImageClear,
+  state, onField, uploadedFonts, onFontUpload, imageUrls, onImageFile, onImageClear,
   layout, selected, onSelect, hcrAvailable, onApplyTheme, onResetTheme, canUndoTheme, onUndoTheme, onAction,
 }) {
   const part = PART_BY_ID[selected] || PART_BY_ID.title;
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const renderFields = list =>
-    visibleFields(list, state).map((f, i) => (f.type === 'gradient' ? (
+    visibleFields(list, state).map((f, i) => (f.type === 'font' ? (
+      <FontField
+        key={f.k}
+        id={`f_${f.k.replace(/\./g, '_')}`}
+        label={f.label}
+        group={f.group}
+        withWeight={!!f.weightKey}
+        value={{ font: getPath(state, f.k), weight: f.weightKey ? getPath(state, f.weightKey) : null }}
+        uploaded={uploadedFonts[f.group] || []}
+        onPick={(font, weight) => {
+          onField(f.k, font);
+          if (f.weightKey && weight) onField(f.weightKey, weight);
+        }}
+        onUpload={file => onFontUpload(f, file)}
+      />
+    ) : f.type === 'gradient' ? (
       <GradientEditor
         key={f.k}
         id={`f_${f.k.replace(/\./g, '_')}`}
@@ -99,7 +115,6 @@ export function ControlPanel({
         field={f}
         value={f.k && f.type !== 'image' && f.type !== 'button' ? getPath(state, f.k) : undefined}
         onChange={v => onField(f.k, v)}
-        fontList={fontList}
         imageUrl={f.type === 'image' ? imageUrls[f.k] : undefined}
         onImageFile={file => onImageFile(f.k, file)}
         onImageClear={() => onImageClear(f.k)}
@@ -123,7 +138,7 @@ export function ControlPanel({
         {usesMissingHcr && (
           <Notice>
             이 기기에 함초롬바탕이 없어 Noto Serif KR로 대신 표시하고 있습니다.
-            툴바의 ‘폰트 추가’로 함초롬바탕 TTF/OTF 파일을 올리면 바로 적용됩니다.
+            폰트 칸의 ‘업로드’로 함초롬바탕 TTF/OTF 파일을 올리면 바로 적용됩니다.
           </Notice>
         )}
         <Body>{renderFields(part.main)}</Body>
