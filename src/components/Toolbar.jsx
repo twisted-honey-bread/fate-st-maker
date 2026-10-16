@@ -51,7 +51,7 @@ const Spacer = styled.span`
 
 export function Toolbar({
   guides, onGuides, guidesEnabled, reference, onReference,
-  onAddFont, onExport, onImport, onReset,
+  onAddFont, onExport, onImport, onReset, onSaveDefaults,
 }) {
   const fontRef = useRef(null);
   const jsonRef = useRef(null);
@@ -108,6 +108,7 @@ export function Toolbar({
         )}
         <Button type="button" title="TTF · OTF · WOFF · WOFF2 폰트 파일 (파일 이름에 HCR/함초롬이 있으면 함초롬바탕으로 등록)" onClick={() => fontRef.current?.click()}>폰트 추가</Button>
         <Button type="button" onClick={onExport}>설정 저장</Button>
+        <Button type="button" title="지금 설정으로 레포의 기본값 파일을 덮어씀 (GitHub 커밋 또는 파일 받기)" onClick={onSaveDefaults}>레포 기본값으로 저장</Button>
         <Button type="button" title="이 페이지의 ‘설정 저장’으로 만든 JSON 파일 (업로드한 이미지 포함)" onClick={() => jsonRef.current?.click()}>설정 불러오기</Button>
         <Button
           type="button"

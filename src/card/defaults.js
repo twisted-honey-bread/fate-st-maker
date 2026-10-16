@@ -6,10 +6,12 @@ export const CARD_WIDTH = 1920;
 export const CARD_HEIGHT = 1080;
 
 import { isSymmetric, mirrorStops } from './gradient';
+// 앱의 ‘레포 기본값으로 저장’ 버튼이 덮어쓰는 파일 — 여기 있는 값이 아래 기본값보다 우선
+import SAVED_DEFAULTS from './defaults.json';
 
 export const TEXT_BASE = {
   show: true, text: '', font: 'Noto Sans KR', weight: 400, italic: false,
-  size: 5, spacing: 0, x: 50, y: 50,
+  size: 5, spacing: 0, scaleX: 100, x: 50, y: 50, // scaleX: 장평 % (100 = 원래 폭, 작을수록 좁음)
   // 채우기: solid = 단색(color) | horizontal = 가로 그라데이션 | vertical = 세로 그라데이션 (stops 사용)
   // mirrorScope: 가로 그라데이션 기준 — text = 글자 폭, canvas = 화면 폭
   fillMode: 'solid', color: '#333333', stops: [[0, '#333333'], [1, '#000000']], symmetric: false, mirrorScope: 'text',
@@ -18,7 +20,8 @@ export const TEXT_BASE = {
   shadowColor: '#000000', shadowOpacity: 0, shadowBlur: 0.4, shadowX: 0, shadowY: 0.15,
 };
 
-export const DEFAULTS = {
+// 코드에 적어 둔 기본값 (항목 목록·자료형의 기준). 실제 기본값 = 이것 + defaults.json
+const BASE_DEFAULTS = {
   bg: {
     // 업로드한 사진을 설원 일러스트 톤으로 변환 (절차적 기본 배경에는 적용 안 함)
     styleMode: 'duotone', styleExposure: 0.22, styleContrast: 1.15, styleLevels: 4,
@@ -110,8 +113,10 @@ export const DEFAULTS = {
     outroSize: 24.5,
     outroY: 60,
     outroSpacing: 0.42,
+    outroScaleX: 100,
     outroSubSize: 7,
     outroSubSpacing: 0.72,
+    outroSubScaleX: 100,
     outroSubY: 75.1,
     // 문구 세로 그라데이션: 위(흰색) → 중간(금색) → 맨 아래에서 한 번 더 바뀜(옅은 파랑)
     outroStops: [[0, '#ffffff'], [0.6, '#d8bd88'], [0.72, '#d8bd88'], [1, '#cfe2f5']],
@@ -212,3 +217,6 @@ export function mergeKnown(def, src) {
   }
   return out;
 }
+
+// 실제 기본값: 코드 기본값 위에 defaults.json 을 덮음 (없는 항목·자료형이 다른 항목은 무시)
+export const DEFAULTS = mergeKnown(BASE_DEFAULTS, migrateSettings(SAVED_DEFAULTS));

@@ -12,6 +12,7 @@ import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from './card/animation';
 import { DownloadBar } from './components/DownloadBar';
+import { RepoDefaultsDialog } from './components/RepoDefaultsDialog';
 import { IMAGE_MAX_MB } from './card/utils';
 
 const Shell = styled.div`
@@ -80,6 +81,7 @@ export default function App() {
   const [hcrAvailable, setHcrAvailable] = useState(null);
   const [fontVersion, setFontVersion] = useState(0);
   const [themeUndo, setThemeUndo] = useState(null); // 색 한 번에 맞추기 직전 값
+  const [repoDialog, setRepoDialog] = useState(false);
   const [bgDraft, setBgDraft] = useState(null); // 배경 직접 조정 중인 값 { zoom, posX, posY } (적용 전)
   const viewState = bgDraft ? { ...state, bg: { ...state.bg, ...bgDraft } } : state;
 
@@ -204,6 +206,7 @@ export default function App() {
           onReference={patch => setReference(r => ({ ...r, ...patch }))}
           onAddFont={handleAddFont}
           onExport={handleExport}
+          onSaveDefaults={() => setRepoDialog(true)}
           onImport={handleImport}
           onReset={() => { card.reset(); notify('기본값으로 되돌렸습니다.'); }}
         />
@@ -283,6 +286,7 @@ export default function App() {
           />
         </Main>
       </Shell>
+      <RepoDefaultsDialog open={repoDialog} onClose={() => setRepoDialog(false)} state={state} notify={notify} />
       <Toast message={toast} />
     </>
   );

@@ -26,6 +26,7 @@ src/
     Toolbar.jsx             상단 툴바 (가이드, 원본 겹쳐보기, 폰트 추가, 설정 저장/불러오기, 초기화)
     DownloadBar.jsx         미리보기 아래 다운로드 (형식, 해상도, 프레임)
     BgEditor.jsx            배경 직접 조정 (끌어서 이동, 모서리로 확대)
+    RepoDefaultsDialog.jsx  지금 설정을 레포 기본값(defaults.json)으로 저장
     ThemePicker.jsx         테마 색 (대표색으로 색 일괄 변경, 되돌리기, 초기 색)
     Preview.jsx             캔버스 미리보기, 애니메이션 재생 (드래그&드롭으로 배경 지정)
     Player.jsx              정지/인트로/아웃트로 전환, 재생 막대
@@ -36,7 +37,7 @@ src/
     Section.js, Toast.jsx, ui.js
   card/                     React 와 무관한 카드 엔진
     renderer.js             Canvas 2D 렌더러 (미리보기와 다운로드가 같은 함수 사용)
-    defaults.js             원본 비율에 맞춘 기본값
+    defaults.js             원본 비율에 맞춘 기본값 (defaults.json 이 있으면 그 값이 우선)
     schema.js               파트별 콘솔 항목 정의 (main / advanced)
     fonts.js                폰트 목록, 폰트 로드, 사용자 폰트 등록
     background.js           배경 이미지가 없을 때 쓰는 절차적 설산
@@ -170,6 +171,19 @@ src/lib/videoExport.js   MP4 / GIF 만들기
 3. 툴바의 ‘폰트 추가’로 올린 파일 (파일 이름에 HCR/함초롬이 들어 있으면 자동으로 함초롬바탕으로 등록)
 
 셋 다 없으면 Noto Serif KR 로 대신 그립니다.
+
+## 기본값 바꾸기 (레포 기본값으로 저장)
+
+기본값은 두 겹입니다.
+
+- `src/card/defaults.js` — 코드에 적은 기본값 (항목 목록과 자료형의 기준)
+- `src/card/defaults.json` — 앱에서 저장한 기본값. 여기 있는 값이 위 값보다 우선하며, 없는 항목은 코드 기본값을 씁니다
+
+툴바의 **레포 기본값으로 저장**을 누르면 지금 화면의 모든 설정으로 `defaults.json` 을 덮어씁니다 (업로드한 이미지는 제외).
+
+- **GitHub에 커밋**: 저장소·브랜치와 fine-grained 개인 액세스 토큰(이 저장소 Contents 읽기·쓰기)을 넣으면 브라우저에서 바로 커밋합니다. 토큰은 GitHub API 에만 보내며, ‘기억하기’를 끄면 탭을 닫을 때 지워집니다
+- **JSON 파일로 받기**: 받은 파일로 `src/card/defaults.json` 을 바꾸고 직접 커밋
+- 어느 쪽이든 다시 빌드·배포해야 새 기본값이 적용됩니다
 
 ## 커스텀 항목 추가하기
 

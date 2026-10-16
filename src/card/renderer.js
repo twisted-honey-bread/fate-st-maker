@@ -202,9 +202,10 @@ export function measureText(ctx, s, H) {
   const px = (s.size / 100) * H;
   ctx.font = fontStr(s, px);
   const sp = s.spacing * px;
+  const k = (s.scaleX ?? 100) / 100; // 장평: 글자 폭만 줄이거나 늘림 (자간은 그대로)
   const chars = [...s.text];
-  if (!sp) return ctx.measureText(s.text).width;
-  return chars.reduce((w, c) => w + ctx.measureText(c).width, 0) + sp * (chars.length - 1);
+  if (!sp) return ctx.measureText(s.text).width * k;
+  return chars.reduce((w, c) => w + ctx.measureText(c).width, 0) * k + sp * (chars.length - 1);
 }
 
 // 텍스트 영역 계산 (숨김 상태여도 위치는 계산) 후 그리기
@@ -232,12 +233,21 @@ export function drawText(ctx, s, W, H, x, y, align) {
   ctx.miterLimit = 2;
 
   // 그라데이션 채우기 (stops: [[위치 0~1, 색], ...])
+  /*
+   * 장평(scaleX): 글자를 그릴 때만 시작점(sx) 기준으로 가로를 k 배로 눌러 그림
+   * 그 좌표계(local)에서는 시작점이 0, 자간은 sp / k, 가로 좌표 v 는 (v - sx) / k
+   */
+  const k = (s.scaleX ?? 100) / 100;
+  const local = v => (k === 1 ? v : (v - sx) / k);
+  const ox = local(sx);
+  const spL = sp / k;
+
   const hasStops = s.stops?.length > 0;
   let hFill = null;
   if (s.fillMode === 'horizontal' && hasStops) {
     // mirrorScope: 'text' = 글자 폭 기준, 'canvas' = 화면 폭 기준
     const [gx0, gx1] = s.mirrorScope === 'canvas' ? [0, W] : [sx, sx + Math.max(1, w)];
-    hFill = addStops(ctx.createLinearGradient(gx0, 0, gx1, 0), s.stops);
+    hFill = addStops(ctx.createLinearGradient(local(gx0), 0, local(gx1), 0), s.stops);
   }
   const fillAt = dy => {
     if (hFill) return hFill;
@@ -270,6 +280,12 @@ export function drawText(ctx, s, W, H, x, y, align) {
     };
   }
 
+  // 잘라내기(rise) 영역을 정한 뒤에 가로 압축 적용 (그림자·글로우 번짐은 변형되지 않음)
+  if (k !== 1) {
+    ctx.translate(sx, 0);
+    ctx.scale(k, 1);
+  }
+
   // tail: 애니메이션용 — from 번째 글자부터 alpha 로 그림 (자리는 차지)
   const tail = s.tail && s.tail.alpha < 1 ? s.tail : null;
 
@@ -285,14 +301,14 @@ export function drawText(ctx, s, W, H, x, y, align) {
       ctx.fillText(c, cx, y + dy);
     };
     if (!sp && !rise && !tail) {
-      one(s.text, sx);
+      one(s.text, ox);
       return;
     }
-    let cx = sx;
+    let cx = ox;
     chars.forEach((c, i) => {
       ctx.globalAlpha = tail && i >= tail.from ? baseAlpha * tail.alpha : baseAlpha;
       if (ctx.globalAlpha > 0) one(c, cx, charOffset(i));
-      cx += ctx.measureText(c).width + sp;
+      cx += ctx.measureText(c).width + spL;
     });
     ctx.globalAlpha = baseAlpha;
   };
