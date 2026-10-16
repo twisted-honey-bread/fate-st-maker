@@ -58,6 +58,31 @@ export const DEFAULTS = {
     ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
     x: 50, y: 89.4, color: '#4b4f56', glowOpacity: 0.8, glowBlur: 0.4,
   },
+  // 애니메이션 (인트로 / 아웃트로·공상절제)
+  anim: {
+    mode: 'still', // still | intro | outro
+    speed: 1,
+    nightTint: '#0d1626',
+    introHold: 2,
+    introLineColor: '#8fd0ff',
+    introFlash: true,
+    outroText: '공상절제',
+    outroSub: 'Cosmos Denial',
+    outroFont: 'HCR Batang',
+    outroWeight: 700,
+    outroSubFont: 'Noto Serif',
+    outroSize: 15,
+    outroY: 60,
+    outroColor: '#ffffff',
+    outroColor2: '#cdb27a',
+    outroGlow: '#ffd98a',
+    outroHold: 3.5,
+    flareColor: '#ffd27a',
+    particleDensity: 1,
+    hexGrid: true,
+    fps: 30,
+    gifFps: 15,
+  },
 };
 
 export const clone = o => JSON.parse(JSON.stringify(o));

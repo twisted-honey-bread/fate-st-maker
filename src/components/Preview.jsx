@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { CARD_HEIGHT, CARD_WIDTH } from '../card/defaults';
 import { ensureFonts } from '../card/fonts';
 import { drawCard, drawGuides } from '../card/renderer';
 import { PART_BY_ID } from '../card/schema';
+import { ANIMATIONS, ensureAnimFonts, isAnimMode } from '../card/animation';
+import { ModeSwitch, PlayerBar } from './Player';
 
 const Pane = styled.section`
   min-width: 0;
@@ -109,38 +111,149 @@ function hitTest(layout, px, py) {
   return 'bg';
 }
 
-export function Preview({ state, images, showGuides, fontVersion, layout, selected, onLayout, onSelect, onDropImage }) {
+// 애니메이션 미리보기 해상도 (재생 성능을 위해 낮춤, 다운로드는 선택한 해상도로 따로 렌더링)
+const ANIM_W = 1280;
+const ANIM_H = 720;
+
+export function Preview({
+  state, images, showGuides, fontVersion, layout, selected,
+  onLayout, onSelect, onDropImage, onModeChange,
+}) {
   const canvasRef = useRef(null);
   const renderId = useRef(0);
   const lastLayout = useRef('');
   const [fontsReady, setFontsReady] = useState(0);
   const [drag, setDrag] = useState(false);
 
+  const mode = state.anim.mode;
+  const animMode = isAnimMode(mode);
+  const anim = animMode ? ANIMATIONS[mode] : null;
+  const duration = anim ? anim.duration(state) : 0;
+
+  // 재생 상태
+  const [playing, setPlaying] = useState(true);
+  const [loop, setLoop] = useState(true);
+  const [time, setTime] = useState(0);
+  const [animFontsKey, setAnimFontsKey] = useState(0);
+  const timeRef = useRef(0);
+  const stateRef = useRef(state);
+  const imagesRef = useRef(images);
+  const durationRef = useRef(duration);
+  const loopRef = useRef(loop);
+  stateRef.current = state;
+  imagesRef.current = images;
+  durationRef.current = duration;
+  loopRef.current = loop;
+
   useEffect(() => {
     document.fonts.ready.then(() => setFontsReady(n => n + 1));
   }, []);
 
+  const publishLayout = useCallback((rects, W, H) => {
+    const next = normalize(rects, W, H);
+    const key = JSON.stringify(next);
+    if (key !== lastLayout.current) {
+      lastLayout.current = key;
+      onLayout(next);
+    }
+  }, [onLayout]);
+
+  // 정지 이미지 렌더링 (애니메이션 모드에서는 구조도용 배치만 계산)
   useEffect(() => {
     const id = ++renderId.current;
     let raf = 0;
     ensureFonts(state).then(() => {
       if (id !== renderId.current) return; // 더 최신 렌더가 있으면 버림
       raf = requestAnimationFrame(() => {
+        if (animMode) {
+          const c = document.createElement('canvas');
+          c.width = 480;
+          c.height = 270;
+          publishLayout(drawCard(c.getContext('2d'), c.width, c.height, state, images), c.width, c.height);
+          return;
+        }
         const c = canvasRef.current;
         if (!c) return;
         const ctx = c.getContext('2d');
         const rects = drawCard(ctx, c.width, c.height, state, images);
         if (showGuides) drawGuides(ctx, c.width, c.height, state);
-        const next = normalize(rects, c.width, c.height);
-        const key = JSON.stringify(next);
-        if (key !== lastLayout.current) {
-          lastLayout.current = key;
-          onLayout(next);
-        }
+        publishLayout(rects, c.width, c.height);
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [state, images, showGuides, fontsReady, fontVersion, onLayout]);
+  }, [state, images, showGuides, fontsReady, fontVersion, animMode, publishLayout]);
+
+  /* ---------- 애니메이션 ---------- */
+  const drawFrame = useCallback(t => {
+    const c = canvasRef.current;
+    const a = ANIMATIONS[stateRef.current.anim.mode];
+    if (!c || !a) return;
+    a.draw(c.getContext('2d'), c.width, c.height, stateRef.current, imagesRef.current, t);
+  }, []);
+
+  // 모드를 바꾸면 처음부터 재생
+  useEffect(() => {
+    timeRef.current = 0;
+    setTime(0);
+    setPlaying(true);
+  }, [mode]);
+
+  // 애니메이션용 폰트 준비
+  useEffect(() => {
+    if (!animMode) return undefined;
+    let alive = true;
+    Promise.all([ensureFonts(state), ensureAnimFonts(state)]).then(() => alive && setAnimFontsKey(k => k + 1));
+    return () => { alive = false; };
+  }, [animMode, state, fontVersion]);
+
+  // 재생 루프
+  useEffect(() => {
+    if (!animMode || !playing) return undefined;
+    let raf = 0;
+    let last = performance.now();
+    const step = now => {
+      let t = timeRef.current + (now - last) / 1000;
+      last = now;
+      const d = durationRef.current;
+      if (t >= d) {
+        if (loopRef.current) {
+          t = 0;
+        } else {
+          timeRef.current = d;
+          setTime(d);
+          drawFrame(d);
+          setPlaying(false);
+          return;
+        }
+      }
+      timeRef.current = t;
+      setTime(t);
+      drawFrame(t);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [animMode, playing, drawFrame]);
+
+  // 일시정지 중에는 설정이 바뀔 때 현재 프레임만 다시 그림
+  useEffect(() => {
+    if (animMode && !playing) drawFrame(Math.min(timeRef.current, duration));
+  }, [animMode, playing, state, images, animFontsKey, duration, drawFrame]);
+
+  const togglePlay = () => {
+    if (!playing && timeRef.current >= durationRef.current) {
+      timeRef.current = 0;
+      setTime(0);
+    }
+    setPlaying(p => !p);
+  };
+
+  const seek = t => {
+    setPlaying(false);
+    timeRef.current = t;
+    setTime(t);
+    drawFrame(t);
+  };
 
   const handleClick = e => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -149,19 +262,22 @@ export function Preview({ state, images, showGuides, fontVersion, layout, select
     onSelect(hitTest(layout, px, py));
   };
 
-  const sel = selected !== 'bg' && layout?.[selected];
+  const sel = !animMode && selected !== 'bg' && layout?.[selected];
   const isLine = selected.endsWith('Line');
 
   return (
     <Pane>
+      <ModeSwitch mode={mode} onChange={onModeChange} />
       <Frame>
         <Canvas
           ref={canvasRef}
-          width={CARD_WIDTH}
-          height={CARD_HEIGHT}
+          width={animMode ? ANIM_W : CARD_WIDTH}
+          height={animMode ? ANIM_H : CARD_HEIGHT}
           $drag={drag}
           role="img"
-          aria-label={`${state.title.text} 타이틀 카드 미리보기. 누르면 해당 부분을 편집합니다.`}
+          aria-label={animMode
+            ? `${state.title.text} ${anim.label} 애니메이션 미리보기`
+            : `${state.title.text} 타이틀 카드 미리보기. 누르면 해당 부분을 편집합니다.`}
           onClick={handleClick}
           onDragOver={e => { e.preventDefault(); setDrag(true); }}
           onDragLeave={() => setDrag(false)}
@@ -187,6 +303,17 @@ export function Preview({ state, images, showGuides, fontVersion, layout, select
           </Outline>
         )}
       </Frame>
+      {animMode && (
+        <PlayerBar
+          playing={playing}
+          onToggle={togglePlay}
+          time={time}
+          duration={duration}
+          onSeek={seek}
+          loop={loop}
+          onLoop={setLoop}
+        />
+      )}
       <Hint>미리보기에서 바꾸고 싶은 부분을 누르면 해당 설정이 열립니다 · 이미지 파일을 끌어다 놓으면 배경으로 설정</Hint>
     </Pane>
   );

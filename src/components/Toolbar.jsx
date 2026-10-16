@@ -46,9 +46,11 @@ const Spacer = styled.span`
 `;
 
 export function Toolbar({
-  scale, onScale, format, onFormat, onDownload, busy,
-  guides, onGuides, onAddFont, onExport, onImport, onReset,
+  formats, format, onFormat, sizes, size, onSize, onDownload, progress, onCancel,
+  guides, onGuides, guidesEnabled, onAddFont, onExport, onImport, onReset,
 }) {
+  const busy = progress !== null;
+  const formatLabel = formats.find(([v]) => v === format)?.[1] || '';
   const fontRef = useRef(null);
   const jsonRef = useRef(null);
   // alert/confirm 없이 두 번 눌러 초기화
@@ -64,27 +66,25 @@ export function Toolbar({
     <Bar>
       <Title>Lostbelt 타이틀 카드<small>fate-st-maker</small></Title>
       <Group>
-        <Inline htmlFor="scaleSel">해상도
-          <Select id="scaleSel" value={scale} onChange={e => onScale(+e.target.value)}>
-            <option value={0.5}>960×540</option>
-            <option value={1}>1920×1080</option>
-            <option value={2}>3840×2160</option>
+        <Inline htmlFor="fmtSel">형식
+          <Select id="fmtSel" value={format} onChange={e => onFormat(e.target.value)} disabled={busy}>
+            {formats.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
         </Inline>
-        <Inline htmlFor="fmtSel">형식
-          <Select id="fmtSel" value={format} onChange={e => onFormat(e.target.value)}>
-            <option value="image/png">PNG</option>
-            <option value="image/jpeg">JPG</option>
+        <Inline htmlFor="sizeSel">해상도
+          <Select id="sizeSel" value={size} onChange={e => onSize(+e.target.value)} disabled={busy}>
+            {sizes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
         </Inline>
         <Button $primary type="button" onClick={onDownload} disabled={busy}>
-          {busy ? '만드는 중…' : '이미지 다운로드'}
+          {busy ? `만드는 중 ${Math.round(progress * 100)}%` : `${formatLabel} 다운로드`}
         </Button>
+        {busy && <Button type="button" onClick={onCancel}>취소</Button>}
       </Group>
       <Spacer />
       <Group>
         <Inline htmlFor="guidesChk">
-          <Checkbox id="guidesChk" checked={guides} onChange={e => onGuides(e.target.checked)} />
+          <Checkbox id="guidesChk" checked={guides} disabled={!guidesEnabled} onChange={e => onGuides(e.target.checked)} />
           가이드
         </Inline>
         <Button type="button" onClick={() => fontRef.current?.click()}>폰트 추가</Button>

@@ -88,11 +88,12 @@ export function ControlPanel({
       />
     ));
 
-  const usesMissingHcr = hcrAvailable === false && state[part.id]?.font === HCR_FAMILY;
+  const partFont = part.id === 'anim' ? state.anim.mode === 'outro' && state.anim.outroFont : state[part.id]?.font;
+  const usesMissingHcr = hcrAvailable === false && partFont === HCR_FAMILY;
 
   return (
     <Panel aria-label="입력 콘솔">
-      <StructureMap layout={layout} selected={part.id} onSelect={onSelect} />
+      <StructureMap layout={layout} selected={part.id} onSelect={onSelect} animMode={state.anim.mode !== 'still'} />
 
       <div role="tabpanel" aria-labelledby={`tab_${part.id}`}>
         <PartHeader>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { GlobalStyle } from './styles/GlobalStyle';
 import { useCardState } from './hooks/useCardState';
@@ -6,10 +6,11 @@ import { Toolbar } from './components/Toolbar';
 import { Preview } from './components/Preview';
 import { ControlPanel } from './components/ControlPanel';
 import { Toast } from './components/Toast';
-import { CARD_HEIGHT, CARD_WIDTH } from './card/defaults';
 import { FONT_LIST, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
 import { drawCard } from './card/renderer';
 import { canvasToBlob, saveBlob } from './lib/download';
+import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
+import { ensureAnimFonts, isAnimMode } from './card/animation';
 
 const Shell = styled.div`
   display: grid;
@@ -35,15 +36,30 @@ const Main = styled.main`
   }
 `;
 
+// 출력 형식과 해상도 (해상도 값은 가로 픽셀, 세로는 16:9)
+const FORMATS = {
+  still: [['png', 'PNG'], ['jpg', 'JPG']],
+  anim: [['mp4', 'MP4'], ['gif', 'GIF']],
+};
+const SIZES = {
+  png: [[960, '960×540'], [1920, '1920×1080'], [3840, '3840×2160']],
+  jpg: [[960, '960×540'], [1920, '1920×1080'], [3840, '3840×2160']],
+  mp4: [[1280, '1280×720'], [1920, '1920×1080']],
+  gif: [[480, '480×270'], [640, '640×360'], [960, '960×540']],
+};
+const MIME = { png: 'image/png', jpg: 'image/jpeg' };
+const ANIM_NAMES = { intro: '인트로', outro: '공상절제' };
+
 const safeFileName = s => (s || '').replace(/[\\/:*?"<>|]/g, '').trim() || 'lostbelt';
 
 export default function App() {
   const card = useCardState();
   const { state, renderImages } = card;
-  const [scale, setScale] = useState(1);
-  const [format, setFormat] = useState('image/png');
+  const [formatByKind, setFormatByKind] = useState({ still: 'png', anim: 'mp4' });
+  const [sizeByFormat, setSizeByFormat] = useState({ png: 1920, jpg: 1920, mp4: 1920, gif: 640 });
   const [guides, setGuides] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(null); // null = 대기, 0~1 = 만드는 중
+  const abortRef = useRef(null);
   const [fontList, setFontList] = useState(FONT_LIST);
   const [toast, setToast] = useState(null);
   const [selected, setSelected] = useState('title');
@@ -63,23 +79,56 @@ export default function App() {
 
   const notify = useCallback((text, error = false) => setToast({ text, error, at: Date.now() }), []);
 
+  const animMode = isAnimMode(state.anim.mode);
+  const kind = animMode ? 'anim' : 'still';
+  const format = formatByKind[kind];
+  const size = sizeByFormat[format];
+
   const handleDownload = async () => {
-    setBusy(true);
+    const W = size;
+    const H = Math.round((size * 9) / 16);
+    const base = safeFileName(state.title.text);
+    setProgress(0);
     try {
       await ensureFonts(state);
-      const c = document.createElement('canvas');
-      c.width = Math.round(CARD_WIDTH * scale);
-      c.height = Math.round(CARD_HEIGHT * scale);
-      drawCard(c.getContext('2d'), c.width, c.height, state, renderImages);
-      const blob = await canvasToBlob(c, format, 0.95);
-      const ext = format === 'image/png' ? 'png' : 'jpg';
-      const result = await saveBlob(blob, `${safeFileName(state.title.text)}.${ext}`);
-      notify(result === 'saved' ? `${c.width}×${c.height} ${ext.toUpperCase()} 이미지를 저장했습니다.` : '저장을 취소했습니다.');
+      let blob;
+      let name;
+      if (!animMode) {
+        const c = document.createElement('canvas');
+        c.width = W;
+        c.height = H;
+        drawCard(c.getContext('2d'), W, H, state, renderImages);
+        blob = await canvasToBlob(c, MIME[format], 0.95);
+        name = `${base}.${format}`;
+      } else {
+        await ensureAnimFonts(state);
+        const ctrl = new AbortController();
+        abortRef.current = ctrl;
+        const opts = {
+          state, images: renderImages, width: W, height: H,
+          fps: format === 'mp4' ? state.anim.fps : state.anim.gifFps,
+          onProgress: setProgress, signal: ctrl.signal,
+        };
+        blob = format === 'mp4' ? await exportMp4(opts) : await exportGif(opts);
+        name = `${base}_${ANIM_NAMES[state.anim.mode]}.${format}`;
+      }
+      const result = await saveBlob(blob, name);
+      notify(result === 'saved'
+        ? `${W}×${H} ${format.toUpperCase()} 파일을 저장했습니다 (${(blob.size / 1048576).toFixed(1)}MB).`
+        : '저장을 취소했습니다.');
     } catch (e) {
-      notify('이미지를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.', true);
+      if (e?.name === 'AbortError') notify('만들기를 취소했습니다.');
+      else notify(e instanceof ExportError ? e.message : '파일을 만들지 못했습니다. 해상도를 낮춰 다시 시도해 주세요.', true);
     } finally {
-      setBusy(false);
+      setProgress(null);
+      abortRef.current = null;
     }
+  };
+
+  const handleModeChange = mode => {
+    card.setField('anim.mode', mode);
+    if (mode === 'still') setSelected(sel => (sel === 'anim' ? 'title' : sel));
+    else setSelected('anim');
   };
 
   const handleExport = async () => {
@@ -130,14 +179,18 @@ export default function App() {
       <GlobalStyle />
       <Shell>
         <Toolbar
-          scale={scale}
-          onScale={setScale}
+          formats={FORMATS[kind]}
           format={format}
-          onFormat={setFormat}
+          onFormat={f => setFormatByKind(prev => ({ ...prev, [kind]: f }))}
+          sizes={SIZES[format]}
+          size={size}
+          onSize={v => setSizeByFormat(prev => ({ ...prev, [format]: v }))}
           onDownload={handleDownload}
-          busy={busy}
+          progress={progress}
+          onCancel={() => abortRef.current?.abort()}
           guides={guides}
           onGuides={setGuides}
+          guidesEnabled={!animMode}
           onAddFont={handleAddFont}
           onExport={handleExport}
           onImport={handleImport}
@@ -153,6 +206,7 @@ export default function App() {
             selected={selected}
             onLayout={setLayout}
             onSelect={setSelected}
+            onModeChange={handleModeChange}
             onDropImage={file => handleImageFile('bg', file)}
           />
           <ControlPanel

@@ -15,6 +15,8 @@ const F = (k, label) => ({ k, label, type: 'font' });
 const IM = (k, label) => ({ k, label, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const when = (field, fn) => ({ ...field, when: fn });
+const isIntro = s => s.anim.mode === 'intro';
+const isOutro = s => s.anim.mode === 'outro';
 
 function textMain(p, { x = true, y = true, extra = [] } = {}) {
   return [
@@ -160,6 +162,39 @@ export const PARTS = [
   },
   { id: 'bottomLine', short: '하단선', title: '하단 구분선', desc: '제목 아래 가로선', main: lineMain('bottomLine'), advanced: lineAdvanced('bottomLine') },
   { id: 'sub', short: '부제', title: '부제', desc: '짐승 나라의 황녀', main: textMain('sub'), advanced: textAdvanced('sub') },
+  {
+    // 인트로/아웃트로 모드에서만 탭에 표시
+    id: 'anim', short: '애니메이션', title: '애니메이션', desc: '인트로 · 아웃트로(공상절제) 연출', animOnly: true,
+    main: [
+      when(T('anim.outroText', '문구'), isOutro),
+      when(T('anim.outroSub', '영문 부제'), isOutro),
+      when(F('anim.outroFont', '문구 폰트'), isOutro),
+      when(R('anim.outroHold', '문구 유지 시간', 0.5, 10, 0.1, '초'), isOutro),
+      when(R('anim.introHold', '마지막 정지 시간', 0, 10, 0.1, '초'), isIntro),
+      R('anim.speed', '재생 속도', 0.5, 2, 0.05, '배'),
+      S('anim.fps', 'MP4 프레임', [[24, '24 fps'], [30, '30 fps'], [60, '60 fps']]),
+      S('anim.gifFps', 'GIF 프레임', [[10, '10 fps'], [12, '12 fps'], [15, '15 fps'], [20, '20 fps']]),
+    ],
+    advanced: [
+      HD('밤 장면'),
+      C('anim.nightTint', '색조'),
+      when(HD('인트로'), isIntro),
+      when(C('anim.introLineColor', '라인 빛 색'), isIntro),
+      when(B('anim.introFlash', '전환 섬광'), isIntro),
+      when(HD('공상절제 문구'), isOutro),
+      when(S('anim.outroWeight', '굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
+      when(R('anim.outroSize', '크기', 4, 30, 0.1, '%H'), isOutro),
+      when(R('anim.outroY', 'Y (기준선)', 20, 90, 0.1, '%H'), isOutro),
+      when(C('anim.outroColor', '색 (상단)'), isOutro),
+      when(C('anim.outroColor2', '색 (하단)'), isOutro),
+      when(C('anim.outroGlow', '글로우 색'), isOutro),
+      when(F('anim.outroSubFont', '영문 부제 폰트'), isOutro),
+      when(HD('빛 · 입자'), isOutro),
+      when(C('anim.flareColor', '섬광 · 입자 색'), isOutro),
+      when(R('anim.particleDensity', '다이아 입자 양', 0, 3, 0.1, '배'), isOutro),
+      when(B('anim.hexGrid', '육각 격자'), isOutro),
+    ],
+  },
 ];
 
 export const PART_BY_ID = Object.fromEntries(PARTS.map(p => [p.id, p]));

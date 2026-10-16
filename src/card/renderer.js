@@ -24,8 +24,33 @@ export function drawCard(ctx, W, H, state, images) {
   return layout;
 }
 
-/* ---------- 배경 ---------- */
+/* ---------- 배경 ----------
+ * 배경은 효과가 많아 무거우므로, 같은 설정이면 그려 둔 캔버스를 재사용 (애니메이션 재생용)
+ */
+const bgCache = new Map();
+const imageIds = new WeakMap();
+let nextImageId = 1;
+const imageId = img => {
+  if (!img) return 0;
+  if (!imageIds.has(img)) imageIds.set(img, nextImageId++);
+  return imageIds.get(img);
+};
+
 function drawBackground(ctx, W, H, state, bgImage) {
+  const key = [W, H, imageId(bgImage), state.logo.x, state.logo.y, JSON.stringify(state.bg)].join('|');
+  let layer = bgCache.get(key);
+  if (!layer) {
+    layer = document.createElement('canvas');
+    layer.width = W;
+    layer.height = H;
+    paintBackground(layer.getContext('2d'), W, H, state, bgImage);
+    bgCache.set(key, layer);
+    if (bgCache.size > 6) bgCache.delete(bgCache.keys().next().value);
+  }
+  ctx.drawImage(layer, 0, 0);
+}
+
+function paintBackground(ctx, W, H, state, bgImage) {
   const B = state.bg;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
@@ -123,8 +148,10 @@ function drawLine(ctx, W, H, L) {
   g.addColorStop(f, rgba(L.color, L.opacity));
   g.addColorStop(1 - f, rgba(L.color, L.opacity));
   g.addColorStop(1, rgba(L.color, 0));
+  // reveal: 0~1, 가운데에서 양옆으로 그려지는 정도 (애니메이션용, 기본 1)
+  const reveal = L.reveal ?? 1;
   ctx.fillStyle = g;
-  ctx.fillRect(rect.x, rect.y, len, t);
+  ctx.fillRect(rect.x + (len * (1 - reveal)) / 2, rect.y, len * reveal, t);
   return rect;
 }
 
@@ -149,9 +176,10 @@ function placeText(ctx, s, W, H, x, y, align) {
 }
 
 // 그림자 → 글로우 → 외곽선 → 채우기 순으로 레이어링
-function drawText(ctx, s, W, H, x, y, align) {
-  if (!s.show || !s.text) return 0;
+export function drawText(ctx, s, W, H, x, y, align) {
+  if (!s.show || !s.text || s.alpha === 0) return 0;
   ctx.save();
+  ctx.globalAlpha *= s.alpha ?? 1; // alpha: 애니메이션용 투명도 (기본 1)
   const w = measureText(ctx, s, H);
   const px = (s.size / 100) * H;
   const sp = s.spacing * px;

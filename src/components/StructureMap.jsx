@@ -121,8 +121,9 @@ const Tab = styled.button`
 
 const pct = v => `${Math.round(v * 1000) / 1000}%`;
 
-export function StructureMap({ layout, selected, onSelect }) {
-  const parts = PARTS.filter(p => p.id !== 'bg');
+export function StructureMap({ layout, selected, onSelect, animMode }) {
+  const parts = PARTS.filter(p => p.id !== 'bg' && !p.animOnly);
+  const tabs = PARTS.filter(p => !p.animOnly || animMode);
   return (
     <Wrap>
       <Heading>
@@ -163,7 +164,7 @@ export function StructureMap({ layout, selected, onSelect }) {
         })}
       </Map>
       <Tabs role="tablist" aria-label="편집할 부분">
-        {PARTS.map(p => (
+        {tabs.map(p => (
           <Tab
             key={p.id}
             type="button"
