@@ -4,7 +4,7 @@ import { toNight } from './night';
 import {
   drawBlot, drawCircuitBand, drawDiamonds, drawFallingGold, drawRevealMask, drawStarFlash, fillOverlay,
 } from './effects';
-import { bell, easeIn, easeInOut, easeOut, flicker, layer, mixHex, prog } from './util';
+import { bell, easeIn, easeInOut, easeOut, layer, mixHex, prog } from './util';
 
 /*
  * 아웃트로 (공상절제) — 타이틀 카드가 어둠에 잠기고 금빛 문구가 떠오름
@@ -24,7 +24,7 @@ const TEXT_END = 4.3;
 const BURST = 3.0;
 const FADE = 1.4;
 
-export const outroDuration = state => (TEXT_END + state.anim.outroHold + FADE) / state.anim.speed;
+export const outroDuration = state => (TEXT_END + state.anim.outroHold + FADE) / state.anim.outroSpeed;
 
 function outroTextStyles(state) {
   const A = state.anim;
@@ -72,7 +72,7 @@ function outroTextStyles(state) {
 export const outroTexts = state => Object.values(outroTextStyles(state));
 
 export function drawOutroFrame(ctx, W, H, state, images, time) {
-  const t = time * state.anim.speed;
+  const t = time * state.anim.outroSpeed;
   const A = state.anim;
   const L = state.logo;
   const lx = (L.x / 100) * W;
@@ -92,8 +92,8 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
   // 원래 카드
   if (ink < 1) {
     const { canvas, ctx: d } = layer('outro-day', W, H);
-    // 렌즈 플레어 깜빡임
-    const dayState = { ...state, logo: { ...L, flareIntensity: L.flareIntensity * flicker(t) } };
+    // 아웃트로에는 렌즈 플레어가 없음
+    const dayState = { ...state, logo: { ...L, flare: false } };
     drawCard(d, W, H, dayState, images);
     ctx.drawImage(canvas, 0, 0);
   }
@@ -117,6 +117,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
         glowBlur: 1.2,
         glowStrength: 1,
         backShadow: 0,
+        edgeStrength: state.logo.edgeStrength * darken, // 검게 어두워지면서 가장자리 탄 듯한 색이 나타남
       },
       era: { ...night.era, alpha: 0.7 * (1 - 0.6 * dimOld) },
       title: { ...night.title, alpha: 0.7 * (1 - 0.6 * dimOld) },

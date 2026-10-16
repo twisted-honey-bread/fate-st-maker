@@ -47,6 +47,7 @@ export function toNight(state) {
       glowBlur: 0.8,
       glowStrength: 1,
       flare: false,
+      edgeStrength: 0, // 흰 실루엣일 때는 가장자리 색 없음
     },
     era: dimText(state.era, '#1b2a45'),
     title: dimText(state.title, '#1b2a45'),

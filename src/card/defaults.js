@@ -45,7 +45,8 @@ export const DEFAULTS = {
     tint: false, tintColor: '#1d2127',
     glowColor: '#ffffff', glowOpacity: 0.95, glowBlur: 2.5, glowStrength: 2,
     flare: true, flareColor: '#4fb8ff', flareX: 8.9, flareY: -6.7,
-    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'screen',
+    flareLength: 9, flareThickness: 0.9, flareIntensity: 0.9, flareAspect: 1.5, flareBlend: 'screen', flareSolid: 0.6,
+    edgeColor: '#6e4526', edgeStrength: 1.2, edgeWidth: 0.6,
     backShadow: 0.24, backShadowColor: '#1c2733', backShadowSize: 34,
   },
   era: {
@@ -72,7 +73,8 @@ export const DEFAULTS = {
   // 애니메이션 (인트로 / 아웃트로·공상절제)
   anim: {
     mode: 'still', // still | intro | outro
-    speed: 1,
+    introSpeed: 1, // 재생 속도 (1 = 기본, 작을수록 느림)
+    outroSpeed: 1,
     nightTint: '#0d1626',
     introHold: 2,
     introLineColor: '#8fd0ff',

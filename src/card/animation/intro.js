@@ -37,10 +37,10 @@ const lineRange = (line, W, H) => ({
   y: (line.y / 100) * H,
 });
 
-export const introDuration = state => (BASE + state.anim.introHold) / state.anim.speed;
+export const introDuration = state => (BASE + state.anim.introHold) / state.anim.introSpeed;
 
 export function drawIntroFrame(ctx, W, H, state, images, time) {
-  const t = time * state.anim.speed;
+  const t = time * state.anim.introSpeed;
   const A = state.anim;
   const end = BASE + A.introHold;
 

@@ -401,6 +401,8 @@ function drawLogo(ctx, W, H, L, img) {
     src = c;
   }
 
+  src = withInnerEdge(src, w, h, L, H);
+
   ctx.save();
   ctx.globalAlpha = L.opacity;
   if (L.glowOpacity > 0 && L.glowBlur > 0) {
@@ -423,39 +425,91 @@ function drawFlare(ctx, W, H, L) {
   const len = (L.flareLength / 100) * W;
   const th = Math.max(1, (L.flareThickness / 100) * H);
   const k = L.flareIntensity;
+  const blend = L.flareBlend || 'source-over';
 
-  // flareBlend: 아래 레이어와 합성하는 방식 (lighter = 더하기 발광, screen = 스크린)
-  ctx.save();
-  ctx.globalCompositeOperation = L.flareBlend || 'source-over';
+  // core: 중심 색 (발광 레이어는 흰색, 바탕 레이어는 플레어 색)
+  const paint = core => {
+    // 가로로 늘인 타원형 광선
+    ctx.save();
+    ctx.translate(fx, fy);
+    ctx.scale(1, th / len);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, len);
+    g.addColorStop(0, rgba(core, k));
+    g.addColorStop(0.12, rgba(L.flareColor, k));
+    g.addColorStop(0.45, rgba(L.flareColor, k * 0.35));
+    g.addColorStop(1, rgba(L.flareColor, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(-len, -len, len * 2, len * 2);
+    ctx.restore();
 
-  // 가로로 늘인 타원형 광선
-  ctx.save();
-  ctx.translate(fx, fy);
-  ctx.scale(1, th / len);
-  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, len);
-  g.addColorStop(0, `rgba(255,255,255,${k})`);
-  g.addColorStop(0.12, rgba(L.flareColor, k));
-  g.addColorStop(0.45, rgba(L.flareColor, k * 0.35));
-  g.addColorStop(1, rgba(L.flareColor, 0));
-  ctx.fillStyle = g;
-  ctx.fillRect(-len, -len, len * 2, len * 2);
-  ctx.restore();
+    // 중심 광원 — flareAspect 만큼 가로로 늘인 타원 (1 = 원)
+    const r = th * 3;
+    ctx.save();
+    ctx.translate(fx, fy);
+    ctx.scale(L.flareAspect, 1);
+    const g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    g2.addColorStop(0, rgba(core, k));
+    g2.addColorStop(0.4, rgba(L.flareColor, k * 0.5));
+    g2.addColorStop(1, rgba(L.flareColor, 0));
+    ctx.fillStyle = g2;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
 
-  // 중심 광원 — flareAspect 만큼 가로로 늘인 타원 (1 = 원)
-  const r = th * 3;
   ctx.save();
-  ctx.translate(fx, fy);
-  ctx.scale(L.flareAspect, 1);
-  const g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-  g2.addColorStop(0, `rgba(255,255,255,${k})`);
-  g2.addColorStop(0.4, rgba(L.flareColor, k * 0.5));
-  g2.addColorStop(1, rgba(L.flareColor, 0));
-  ctx.fillStyle = g2;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
+  // 바탕 레이어: 밝은 배경에서는 스크린·발광 합성이 거의 보이지 않으므로, 먼저 플레어 색을 보통 합성으로 깔아 줌
+  if (blend !== 'source-over' && L.flareSolid > 0) {
+    ctx.globalAlpha = L.flareSolid;
+    paint(L.flareColor);
+    ctx.globalAlpha = 1;
+  }
+  // 발광 레이어: 아래 레이어와 flareBlend 방식으로 합성 (screen = 스크린, lighter = 더하기)
+  ctx.globalCompositeOperation = blend;
+  paint('#ffffff');
   ctx.restore();
-  ctx.restore();
+}
+
+/* ---------- 로고 가장자리 탄 듯한 색 (안쪽 그림자) ----------
+ * 로고 모양 안쪽 가장자리에만 색이 번지도록, 로고를 오려낸 바깥 영역의 그림자를 로고 위에 얹음
+ */
+const edgeCache = new Map();
+function withInnerEdge(src, w, h, L, H) {
+  const strength = L.edgeStrength ?? 0;
+  if (strength <= 0) return src;
+  const cw = Math.max(1, Math.ceil(w));
+  const ch = Math.max(1, Math.ceil(h));
+  const blur = Math.max(0.5, ((L.edgeWidth ?? 0.4) / 100) * H);
+  const key = [imageId(src), cw, ch, L.tint, L.tintColor, L.edgeColor, strength, blur].join('|');
+  if (edgeCache.has(key)) return edgeCache.get(key);
+
+  const pad = Math.ceil(blur * 3);
+  // 로고를 오려낸 바깥 영역
+  const inv = document.createElement('canvas');
+  inv.width = cw + pad * 2;
+  inv.height = ch + pad * 2;
+  const ig = inv.getContext('2d');
+  ig.fillStyle = '#000';
+  ig.fillRect(0, 0, inv.width, inv.height);
+  ig.globalCompositeOperation = 'destination-out';
+  ig.drawImage(src, pad, pad, cw, ch);
+
+  const out = document.createElement('canvas');
+  out.width = cw;
+  out.height = ch;
+  const og = out.getContext('2d');
+  og.drawImage(src, 0, 0, cw, ch);
+  og.globalCompositeOperation = 'source-atop'; // 로고가 있는 곳에만
+  og.shadowColor = rgba(L.edgeColor, Math.min(1, strength));
+  og.shadowBlur = blur;
+  // 바깥 영역 자체는 로고 밖이라 그려지지 않고, 그 그림자만 로고 안쪽 가장자리에 남음
+  og.drawImage(inv, -pad, -pad);
+  if (strength > 1) og.drawImage(inv, -pad, -pad);
+
+  edgeCache.set(key, out);
+  if (edgeCache.size > 8) edgeCache.delete(edgeCache.keys().next().value);
+  return out;
 }
 
 /* ---------- 배치 가이드 (미리보기 전용) ---------- */
