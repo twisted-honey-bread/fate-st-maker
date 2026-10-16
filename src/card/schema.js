@@ -4,7 +4,7 @@ import { LOGO_SHAPES } from './logoGen';
 /*
  * 파트 스키마 — 캔버스의 각 구성 요소(파트)마다 메인 설정과 고급 설정을 정의
  * 여기에 항목을 추가하면 입력 UI가 자동으로 생성됨
- * k: 'section.key' 경로, type: range | color | text | select | check | font | image | heading
+ * k: 'section.key' 경로, type: range | color | text | select | check | font | image | segment | note | heading
  * when: (state) => boolean  — 조건이 맞을 때만 표시
  */
 const R = (k, label, min, max, step, unit = '') => ({ k, label, type: 'range', min, max, step, unit });
@@ -16,11 +16,14 @@ const F = (k, label) => ({ k, label, type: 'font' });
 const IM = (k, label, hint) => ({ k, label, hint, type: 'image' });
 const HD = label => ({ type: 'heading', label });
 const EZ = (k, label) => ({ k, label, type: 'ease' });
-const BTN = (action, label, text) => ({ k: `action.${action}`, action, label, text, type: 'button' });
+const SEG = (k, label, options) => ({ k, label, type: 'segment', options });
+const NOTE = text => ({ type: 'note', label: text });
 const when = (field, fn) => ({ ...field, when: fn });
 const isIntro = s => s.anim.mode === 'intro';
 const hasStyle = s => s.bg.styleMode !== 'none';
 const isOutro = s => s.anim.mode === 'outro';
+const isGen = s => s.logo.source === 'generate';
+const gen = f => when(f, isGen);
 
 function textMain(p, { x = true, y = true, extra = [] } = {}) {
   return [
@@ -135,16 +138,16 @@ export const PARTS = [
   {
     id: 'logo', short: '로고', title: '중앙 로고', desc: '문장(紋章) 이미지',
     main: [
-      IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'),
+      SEG('logo.source', '로고 가져오기', [['upload', '직접 업로드'], ['generate', '연대·제목으로 자동 생성']]),
+      when(IM('logo', '로고 이미지', '투명 배경 PNG 또는 SVG 권장, 정사각형 640px 이상. 잘리지 않고 비율을 유지한 채 높이에 맞춰 줄어듭니다. 이미지의 빈 여백도 크기에 포함되니 여백을 잘라서 올리세요.'), s => !isGen(s)),
+      gen(NOTE('연대와 제목 글자를 정해진 계산 규칙에 넣어 좌우대칭 무늬를 만듭니다. 그림을 지어내는 생성형 AI가 아니라 계산이라서, 연대·제목·아래 옵션이 같으면 언제 누가 만들어도 늘 똑같은 로고가 나옵니다. 글자를 한 자만 바꿔도 무늬는 완전히 달라집니다. 정식 로고가 준비되기 전에 임시로 쓰는 용도입니다.')),
       B('logo.show', '표시'),
-      HD('임시 로고 만들기 (연대·제목으로 생성)'),
-      S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label])),
-      R('logo.genGrid', '분할 수', 3, 21, 2),
-      R('logo.genDensity', '채움 비율', 0.15, 0.85, 0.01),
-      R('logo.genGap', '조각 사이 간격', 0, 0.5, 0.01),
-      B('logo.genFrame', '테두리'),
-      C('logo.genColor', '색'),
-      BTN('generateLogo', '', '연대·제목으로 로고 생성하기'),
+      gen(S('logo.genShape', '형태', Object.entries(LOGO_SHAPES).map(([k, v]) => [k, v.label]))),
+      gen(R('logo.genGrid', '분할 수', 3, 21, 2)),
+      gen(R('logo.genDensity', '채움 비율', 0.15, 0.85, 0.01)),
+      gen(R('logo.genGap', '조각 사이 간격', 0, 0.5, 0.01)),
+      gen(B('logo.genFrame', '테두리')),
+      gen(C('logo.genColor', '색')),
       HD('배치'),
       R('logo.x', 'X 중심', 0, 100, 0.1, '%W'),
       R('logo.y', 'Y 중심', 0, 100, 0.1, '%H'),

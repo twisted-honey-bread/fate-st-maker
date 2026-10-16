@@ -8,7 +8,6 @@ import { ControlPanel } from './components/ControlPanel';
 import { Toast } from './components/Toast';
 import { FONT_LIST, ensureFonts, hcrFontReady, registerFontFile } from './card/fonts';
 import { drawCard } from './card/renderer';
-import { generateLogo } from './card/logoGen';
 import { canvasToBlob, saveBlob } from './lib/download';
 import { ExportError, exportGif, exportMp4 } from './lib/videoExport';
 import { ANIMATIONS, ensureAnimFonts, isAnimMode } from './card/animation';
@@ -248,16 +247,6 @@ export default function App() {
             selected={selected}
             onSelect={setSelected}
             hcrAvailable={hcrAvailable}
-            onAction={async action => {
-              if (action !== 'generateLogo') return;
-              const L = state.logo;
-              const url = generateLogo({
-                era: state.era.text, title: state.title.text, shape: L.genShape,
-                grid: L.genGrid, density: L.genDensity, gap: L.genGap, frame: L.genFrame, color: L.genColor,
-              });
-              await card.setImageUrl('logo', url);
-              notify(`"${state.era.text} ${state.title.text}" 으로 임시 로고를 만들었습니다.`);
-            }}
             onApplyTheme={hex => {
               setThemeUndo(card.applyTheme(hex));
               notify('대표색에 맞춰 색을 바꿨습니다. 마음에 들지 않으면 되돌리기를 누르세요.');

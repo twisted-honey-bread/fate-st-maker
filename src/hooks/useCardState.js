@@ -3,6 +3,7 @@ import { DEFAULTS, clone, mergeKnown } from '../card/defaults';
 import { setPath } from '../card/schema';
 import { applyColorTheme, resetColorTheme, restoreColors } from '../card/theme';
 import { DEFAULT_LOGO_URL } from '../card/defaultLogo';
+import { generateLogo } from '../card/logoGen';
 import { loadImage, readFileAsDataURL } from '../card/utils';
 import { loadSettings, saveSettings } from '../lib/storage';
 import { IMAGE_MAX_MB } from '../card/utils';
@@ -19,6 +20,24 @@ export function useCardState() {
   useEffect(() => {
     loadImage(DEFAULT_LOGO_URL).then(setDefaultLogo).catch(() => {});
   }, []);
+
+  // 자동 생성 로고: 연대·제목·생성 옵션이 바뀔 때마다 다시 계산 (같은 입력이면 항상 같은 결과)
+  const L = state.logo;
+  const genKey = L.source === 'generate'
+    ? JSON.stringify([state.era.text, state.title.text, L.genShape, L.genGrid, L.genDensity, L.genGap, L.genFrame, L.genColor])
+    : null;
+  const [genLogo, setGenLogo] = useState(null);
+  useEffect(() => {
+    if (!genKey) return undefined;
+    let alive = true;
+    const [era, title, shape, grid, density, gap, frame, color] = JSON.parse(genKey);
+    const t = setTimeout(() => {
+      loadImage(generateLogo({ era, title, shape, grid, density, gap, frame, color }))
+        .then(img => alive && setGenLogo(img))
+        .catch(() => {});
+    }, 120);
+    return () => { alive = false; clearTimeout(t); };
+  }, [genKey]);
 
   // 설정값만 자동 저장 (이미지는 용량 문제로 JSON 내보내기에서만 저장)
   useEffect(() => {
@@ -87,11 +106,11 @@ export function useCardState() {
   const renderImages = useMemo(
     () => ({
       bg: images.bg?.img || null,
-      logo: images.logo?.img || defaultLogo,
+      logo: genKey ? genLogo : images.logo?.img || defaultLogo,
       circuitIntro: images.circuitIntro?.img || null,
       circuitOutro: images.circuitOutro?.img || null,
     }),
-    [images, defaultLogo],
+    [images, defaultLogo, genKey, genLogo],
   );
 
   const imageUrls = useMemo(

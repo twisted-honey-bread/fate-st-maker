@@ -25,6 +25,45 @@ const Hint = styled.p`
 `;
 
 
+const Note = styled.p`
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+`;
+
+// SwiftUI segmented picker 같은 선택 막대 (칸 너비 균등, 콘솔 폭 전체)
+const Seg = styled.div`
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+
+  button {
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  button:hover { color: var(--fg); }
+  button[aria-checked="true"] {
+    background: var(--surface);
+    color: var(--fg);
+    font-weight: 700;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+`;
+
 const Subhead = styled.div`
   margin-top: 6px;
   padding-top: 8px;
@@ -143,6 +182,16 @@ function ImageField({ id, url, onFile, onClear }) {
 
 export function Field({ field, value, onChange, fontList, imageUrl, onImageFile, onImageClear, onAction }) {
   if (field.type === 'heading') return <Subhead>{field.label}</Subhead>;
+  if (field.type === 'note') return <Note>{field.label}</Note>;
+  if (field.type === 'segment') {
+    return (
+      <Seg role="radiogroup" aria-label={field.label}>
+        {field.options.map(([v, l]) => (
+          <button key={v} type="button" role="radio" aria-checked={value === v} onClick={() => onChange(v)}>{l}</button>
+        ))}
+      </Seg>
+    );
+  }
 
   const id = fieldId(field.k);
   const label = field.label + (field.unit ? ` (${field.unit})` : '');

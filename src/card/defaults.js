@@ -42,6 +42,7 @@ export const DEFAULTS = {
   },
   logo: {
     show: true, x: 50.3, y: 40, height: 33, opacity: 1,
+    source: 'upload', // upload = 직접 업로드(없으면 기본 로고) | generate = 연대·제목으로 자동 생성
     // 임시 로고 생성 옵션 (연대·제목으로 패턴 생성)
     genShape: 'shield', genGrid: 9, genDensity: 0.5, genGap: 0.12, genFrame: true, genColor: '#1d2127',
     tint: false, tintColor: '#1d2127',
