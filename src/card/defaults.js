@@ -5,14 +5,14 @@
 export const CARD_WIDTH = 1920;
 export const CARD_HEIGHT = 1080;
 
-import { mirrorStops } from './gradient';
+import { isSymmetric, mirrorStops } from './gradient';
 
 export const TEXT_BASE = {
   show: true, text: '', font: 'Noto Sans KR', weight: 400, italic: false,
   size: 5, spacing: 0, x: 50, y: 50,
   // 채우기: solid = 단색(color) | horizontal = 가로 그라데이션 | vertical = 세로 그라데이션 (stops 사용)
   // mirrorScope: 가로 그라데이션 기준 — text = 글자 폭, canvas = 화면 폭
-  fillMode: 'solid', color: '#333333', stops: [[0, '#333333'], [1, '#000000']], mirrorScope: 'text',
+  fillMode: 'solid', color: '#333333', stops: [[0, '#333333'], [1, '#000000']], symmetric: false, mirrorScope: 'text',
   strokeWidth: 0, strokeColor: '#ffffff',
   glowColor: '#ffffff', glowOpacity: 0, glowBlur: 0.5, glowStrength: 1,
   shadowColor: '#000000', shadowOpacity: 0, shadowBlur: 0.4, shadowX: 0, shadowY: 0.15,
@@ -33,7 +33,7 @@ export const DEFAULTS = {
   },
   left: {
     ...TEXT_BASE, text: 'Lostbelt No.1', font: 'Noto Serif', weight: 700, size: 6.0, spacing: 0.03,
-    x: 6, y: 11.4, fillMode: 'horizontal', mirrorScope: 'canvas', color: '#3f78b5', stops: mirrorStops('#3f78b5', '#262c34', 0.12),
+    x: 6, y: 11.4, fillMode: 'horizontal', mirrorScope: 'canvas', color: '#3f78b5', stops: mirrorStops('#3f78b5', '#262c34', 0.12), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   right: {
@@ -42,7 +42,7 @@ export const DEFAULTS = {
     x: 94.3, y: 10.6, color: '#545961', stops: [[0, '#545961'], [1, '#2b2f35']], glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.45, glowStrength: 2,
   },
   topLine: {
-    show: true, y: 12.6, thickness: 0.22, fillMode: 'horizontal', color: '#4f86bf', stops: mirrorStops('#4f86bf', '#2c3138', 0.15),
+    show: true, y: 12.6, thickness: 0.22, fillMode: 'horizontal', color: '#4f86bf', stops: mirrorStops('#4f86bf', '#2c3138', 0.15), symmetric: true,
     opacity: 0.85, left: 3, right: 1.8, fade: 10,
   },
   logo: {
@@ -59,23 +59,23 @@ export const DEFAULTS = {
   },
   era: {
     ...TEXT_BASE, text: 'A.D.1570?', font: 'Noto Serif', weight: 700, size: 3.4, spacing: 0.02,
-    fillMode: 'horizontal', color: '#2b78c2', stops: mirrorStops('#2b78c2', '#0b1626', 0.05),
+    fillMode: 'horizontal', color: '#2b78c2', stops: mirrorStops('#2b78c2', '#0b1626', 0.05), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.9, glowBlur: 0.45, glowStrength: 2,
     position: 'left', gap: 1.6, offsetY: -0.6,
   },
   title: {
     ...TEXT_BASE, text: '영구동토제국 아나스타샤', font: 'HCR Batang', weight: 700, size: 8.4, spacing: 0.16,
     x: 50, y: 72.4, anchor: 'group',
-    fillMode: 'horizontal', color: '#2f9fe8', stops: mirrorStops('#2f9fe8', '#0b1626', 0.06),
+    fillMode: 'horizontal', color: '#2f9fe8', stops: mirrorStops('#2f9fe8', '#0b1626', 0.06), symmetric: true,
     glowColor: '#9ad8ff', glowOpacity: 0.85, glowBlur: 0.55, glowStrength: 2,
   },
   bottomLine: {
-    show: true, y: 77.6, thickness: 0.14, fillMode: 'solid', color: '#7d838b', stops: mirrorStops('#7d838b', '#4a4f56', 0.15),
+    show: true, y: 77.6, thickness: 0.14, fillMode: 'solid', color: '#7d838b', stops: mirrorStops('#7d838b', '#4a4f56', 0.15), symmetric: true,
     opacity: 0.8, left: 6, right: 6, fade: 18,
   },
   sub: {
     ...TEXT_BASE, text: '짐승 나라의 황녀', font: 'HCR Batang', weight: 400, size: 5.4,
-    x: 50, y: 89.4, fillMode: 'horizontal', color: '#7a828d', stops: mirrorStops('#7a828d', '#33383f', 0.08), mirrorScope: 'text',
+    x: 50, y: 89.4, fillMode: 'horizontal', color: '#7a828d', stops: mirrorStops('#7a828d', '#33383f', 0.08), symmetric: true, mirrorScope: 'text',
     glowOpacity: 0.8, glowBlur: 0.4,
   },
   // 애니메이션 (인트로 / 아웃트로·공상절제)
@@ -112,6 +112,7 @@ export const DEFAULTS = {
     outroSubY: 75.1,
     // 문구 세로 그라데이션: 위(흰색) → 중간(금색) → 맨 아래에서 한 번 더 바뀜(옅은 파랑)
     outroStops: [[0, '#ffffff'], [0.6, '#d8bd88'], [0.72, '#d8bd88'], [1, '#cfe2f5']],
+    outroSymmetric: false,
     outroGlow: '#ffd98a',
     outroHold: 3.5,
     flareColor: '#ffd27a',
@@ -180,6 +181,11 @@ export function migrateSettings(src) {
       fillMode: mode === 'mirror' ? 'horizontal' : mode === 'gradient' ? 'vertical' : 'solid',
       stops: mode === 'gradient' ? [[0, s.color], [1, c2]] : mirrorStops(s.color, c2, s.mirrorCenter ?? 0.1),
     };
+  }
+  // 대칭 여부가 저장돼 있지 않으면 지점 모양으로 판단
+  for (const k of ['left', 'right', 'era', 'title', 'sub', 'topLine', 'bottomLine']) {
+    const s = out[k];
+    if (s && Array.isArray(s.stops) && s.symmetric === undefined) out[k] = { ...s, symmetric: isSymmetric(s.stops) };
   }
   const A = out.anim;
   if (A && A.outroStops === undefined && typeof A.outroColor === 'string') {

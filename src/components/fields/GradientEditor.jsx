@@ -7,7 +7,8 @@ import { Button, ColorInput, NumberInput, Select } from '../ui';
  * 피그마식 그라데이션 편집기 — 형태(단색/가로/세로), 색 지점의 위치·색을 한 곳에서 보며 편집
  * - 띠 위의 핀을 끌어 위치 조정, 띠의 빈 곳을 누르면 그 위치의 색으로 지점 추가
  * - 아래 목록에서 위치(%)·색 입력, − 로 삭제 (최소 2개)
- * value: { mode, color, stops, scope }  — 없는 항목은 편집기에서 숨김
+ * - 대칭을 켜면 절반(끝 → 가운데)만 편집하고 나머지 절반은 자동으로 거울처럼 채움 (저장은 항상 전체 지점 목록)
+ * value: { mode, color, stops, scope, symmetric }  — 없는 항목은 편집기에서 숨김
  * onChange(patch): 바뀐 항목만 넘김
  */
 const Wrap = styled.div`
@@ -158,6 +159,19 @@ const MODE_LABEL = { solid: '단색', horizontal: '가로', vertical: '세로' }
 const clamp01 = v => Math.max(0, Math.min(1, v));
 const round = v => Math.round(v * 1000) / 1000;
 
+// 전체 지점 → 앞쪽 절반(0~0.5) 지점 (최소 2개)
+function halfStops(full) {
+  const h = sortStops(full).filter(([p]) => p <= 0.5);
+  if (h.length >= 2) return h;
+  if (h.length === 1) return [...h, [0.5, colorAt(full, 0.5)]];
+  return [[0, colorAt(full, 0)], [0.5, colorAt(full, 0.5)]];
+}
+// 절반 → 전체 (0.5 의 지점은 한 번만)
+const expandHalf = half => {
+  const h = sortStops(half);
+  return [...h, ...h.filter(([p]) => p < 0.5).map(([p, c]) => [round(1 - p), c]).reverse()];
+};
+
 function HexInput({ value, onChange, id }) {
   const [draft, setDraft] = useState(null);
   return (
@@ -176,18 +190,22 @@ function HexInput({ value, onChange, id }) {
 }
 
 export function GradientEditor({ id, label, value, modes, onChange }) {
-  const { mode = 'horizontal', color, stops = [], scope } = value;
+  const { mode = 'horizontal', color, stops: fullStops = [], scope, symmetric } = value;
+  const canSym = 'symmetric' in value;
+  const sym = canSym && !!symmetric;
+  const span = sym ? 0.5 : 1; // 편집하는 범위
+  const stops = sym ? halfStops(fullStops) : fullStops;
   const [sel, setSel] = useState(0);
   const trackRef = useRef(null);
   const drag = useRef(null);
   const isGrad = mode !== 'solid';
   const active = Math.min(sel, stops.length - 1);
 
-  const setStops = next => onChange({ stops: next });
+  const setStops = next => onChange({ stops: sym ? expandHalf(next) : next });
   const updateStop = (i, patch) => setStops(stops.map((s, j) => (j === i ? [patch[0] ?? s[0], patch[1] ?? s[1]] : s)));
   const posFromEvent = e => {
     const r = trackRef.current.getBoundingClientRect();
-    return clamp01((e.clientX - r.left) / r.width);
+    return clamp01((e.clientX - r.left) / r.width) * span;
   };
 
   const addAt = p => {
@@ -198,7 +216,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
   // 가장 넓은 빈 구간 가운데에 추가
   const addInGap = () => {
     const s = sortStops(stops);
-    let best = [0, 1];
+    let best = [0, span];
     for (let i = 1; i < s.length; i++) if (s[i][0] - s[i - 1][0] > best[1] - best[0]) best = [s[i - 1][0], s[i][0]];
     addAt((best[0] + best[1]) / 2);
   };
@@ -207,14 +225,11 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
     setStops(stops.filter((_, j) => j !== i));
     setSel(0);
   };
-  const reverse = () => setStops(stops.map(([p, c]) => [round(1 - p), c]));
-  // 왼쪽 절반을 기준으로 좌우대칭 만들기
-  const mirror = () => {
-    const left = sortStops(stops).filter(([p]) => p <= 0.5);
-    const base = left.length ? left : [[0, stops[0][1]]];
-    const right = base.filter(([p]) => p < 0.5).map(([p, c]) => [round(1 - p), c]).reverse();
-    setStops([...base, ...right]);
+  const reverse = () => setStops(stops.map(([p, c]) => [round(span - p), c]));
+  // 대칭 켜기: 지금의 앞쪽 절반을 기준으로 전체를 다시 만듦 / 끄기: 지금 모양 그대로 자유 편집
+  const toggleSym = on => {
     setSel(0);
+    onChange(on ? { symmetric: true, stops: expandHalf(halfStops(fullStops)) } : { symmetric: false });
   };
 
   const pinDown = (e, i) => {
@@ -246,7 +261,17 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
           </Seg>
         )}
         {isGrad && <Icon title="방향 뒤집기" aria-label="방향 뒤집기" onClick={reverse}>⇆</Icon>}
-        {isGrad && <Icon title="왼쪽 절반 기준으로 좌우대칭" aria-label="좌우대칭으로 만들기" onClick={mirror}>◇</Icon>}
+        {isGrad && canSym && (
+          <Icon
+            role="switch"
+            aria-checked={sym}
+            title={sym ? '대칭 끄기 — 전체를 자유롭게 편집' : '대칭 켜기 — 절반만 입력하면 나머지는 거울처럼'}
+            $primary={sym}
+            onClick={() => toggleSym(!sym)}
+          >
+            ◇ 대칭
+          </Icon>
+        )}
       </Head>
 
       {!isGrad && (
@@ -262,7 +287,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
         <>
           <Track
             ref={trackRef}
-            style={{ background: cssGradient(stops) }}
+            style={{ background: cssGradient(stops.map(([p, c]) => [p / span, c])) }}
             title="빈 곳을 누르면 색 지점 추가"
             onPointerDown={e => addAt(posFromEvent(e))}
           >
@@ -272,7 +297,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
                 type="button"
                 $c={c}
                 $active={i === active}
-                style={{ left: `${p * 100}%` }}
+                style={{ left: `${(p / span) * 100}%` }}
                 aria-label={`색 지점 ${Math.round(p * 100)}%`}
                 onPointerDown={e => pinDown(e, i)}
                 onPointerMove={pinMove}
@@ -280,7 +305,7 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
                 onPointerCancel={pinUp}
                 onKeyDown={e => {
                   const d = e.key === 'ArrowLeft' ? -0.01 : e.key === 'ArrowRight' ? 0.01 : 0;
-                  if (d) { e.preventDefault(); updateStop(i, [round(clamp01(p + d))]); }
+                  if (d) { e.preventDefault(); updateStop(i, [round(Math.min(span, clamp01(p + d)))]); }
                   if (e.key === 'Delete' || e.key === 'Backspace') remove(i);
                 }}
               >
@@ -290,7 +315,11 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
           </Track>
 
           <Sub>
-            <span>색 지점 {mode === 'horizontal' ? '(왼쪽 → 오른쪽)' : '(위 → 아래)'}</span>
+            <span>
+              색 지점 {sym
+                ? (mode === 'horizontal' ? '(왼쪽 끝 → 가운데 50%, 오른쪽은 자동 대칭)' : '(위 → 가운데 50%, 아래는 자동 대칭)')
+                : (mode === 'horizontal' ? '(왼쪽 → 오른쪽)' : '(위 → 아래)')}
+            </span>
             <Icon title="색 지점 추가" aria-label="색 지점 추가" onClick={addInGap}>＋</Icon>
           </Sub>
           <List>
@@ -302,10 +331,10 @@ export function GradientEditor({ id, label, value, modes, onChange }) {
                     <NumberInput
                       aria-label="위치"
                       min={0}
-                      max={100}
+                      max={span * 100}
                       step={1}
                       value={Math.round(p * 1000) / 10}
-                      onChange={e => e.target.value !== '' && updateStop(i, [round(clamp01(+e.target.value / 100))])}
+                      onChange={e => e.target.value !== '' && updateStop(i, [round(Math.min(span, clamp01(+e.target.value / 100)))])}
                     />
                   </Pct>
                   <ColorInput aria-label="색" value={c} onChange={e => updateStop(i, [undefined, e.target.value])} />

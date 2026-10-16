@@ -42,3 +42,12 @@ export const mirrorStops = (edge, center, c) => {
   const w = Math.max(0, Math.min(0.5, c));
   return [[0, edge], [0.5 - w, center], [0.5 + w, center], [1, edge]];
 };
+
+// 가운데(50%)를 기준으로 거울처럼 대칭인지
+export function isSymmetric(stops) {
+  const s = sortStops(stops);
+  return s.every(([p, c], i) => {
+    const [q, d] = s[s.length - 1 - i];
+    return Math.abs(p + q - 1) < 0.002 && c.toLowerCase() === d.toLowerCase();
+  });
+}

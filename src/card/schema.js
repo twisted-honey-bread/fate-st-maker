@@ -38,7 +38,7 @@ function textMain(p, { x = true, y = true, extra = [] } = {}) {
     ...(x ? [R(`${p}.x`, 'X 위치', 0, 100, 0.1, '%W')] : []),
     ...(y ? [R(`${p}.y`, 'Y (기준선)', 0, 100, 0.1, '%H')] : []),
     ...extra,
-    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, scope: `${p}.mirrorScope` }, ['solid', 'horizontal', 'vertical']),
+    G('채우기', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric`, scope: `${p}.mirrorScope` }, ['solid', 'horizontal', 'vertical']),
   ];
 }
 
@@ -70,7 +70,7 @@ function lineMain(p) {
     B(`${p}.show`, '표시'),
     R(`${p}.y`, 'Y 위치', 0, 100, 0.1, '%H'),
     R(`${p}.thickness`, '두께', 0.05, 1.5, 0.01, '%H'),
-    G('채우기 (양 끝 페이드는 고급 설정)', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops` }, ['solid', 'horizontal']),
+    G('채우기 (양 끝 페이드는 고급 설정)', { mode: `${p}.fillMode`, color: `${p}.color`, stops: `${p}.stops`, symmetric: `${p}.symmetric` }, ['solid', 'horizontal']),
   ];
 }
 
@@ -264,7 +264,7 @@ export const PARTS = [
       when(R('anim.outroSize', '크기', 4, 40, 0.1, '%H'), isOutro),
       when(R('anim.outroY', 'Y (기준선)', 20, 90, 0.1, '%H'), isOutro),
       when(R('anim.outroSpacing', '자간', 0, 1.5, 0.01, 'em'), isOutro),
-      when(G('문구 색 (세로 그라데이션)', { stops: 'anim.outroStops' }, ['vertical']), isOutro),
+      when(G('문구 색 (세로 그라데이션)', { stops: 'anim.outroStops', symmetric: 'anim.outroSymmetric' }, ['vertical']), isOutro),
       when(C('anim.outroGlow', '글로우 색'), isOutro),
       when(HD('영문 부제'), isOutro),
       when(F('anim.outroSubFont', '폰트'), isOutro),
