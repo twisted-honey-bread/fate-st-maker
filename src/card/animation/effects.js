@@ -129,21 +129,29 @@ export function drawStarFlash(ctx, W, H, x, y, k, color) {
   ray(H * 0.14 * (0.6 + 0.4 * k), H * 0.008);
   ctx.restore();
 
-  // 6갈래 섬광: 세로축 기준 60도 간격의 넓고 부드러운 광선 (위·아래 + 대각선 4개)
-  for (let i = 0; i < 6; i++) {
-    const ang = Math.PI / 2 + (i * Math.PI) / 3;
-    const len = H * 0.3 * (0.5 + 0.5 * k);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(ang);
-    ctx.scale(1, 0.09);
-    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, len);
-    g.addColorStop(0, `rgba(255,255,255,${0.55 * k})`);
-    g.addColorStop(0.35, `rgba(255,250,235,${0.22 * k})`);
+  // 6갈래 섬광: 세로축 기준 60도 간격의 직선 광선 (위·아래 + 대각선 4개)
+  // 중심에서 끝으로 갈수록 가늘어지고 흐려지는 직선 띠 + 가운데 밝은 심
+  const beamLen = H * 0.55 * (0.5 + 0.5 * k);
+  const beam = (len, w0, w1, a0) => {
+    const g = ctx.createLinearGradient(0, 0, len, 0);
+    g.addColorStop(0, `rgba(255,255,255,${a0})`);
+    g.addColorStop(0.3, `rgba(255,250,235,${a0 * 0.45})`);
     g.addColorStop(1, 'rgba(255,250,235,0)');
     ctx.fillStyle = g;
-    // 중심에서 한쪽 방향으로만 뻗도록 반쪽만 칠함
-    ctx.fillRect(0, -len, len, len * 2);
+    ctx.beginPath();
+    ctx.moveTo(0, -w0 / 2);
+    ctx.lineTo(len, -w1 / 2);
+    ctx.lineTo(len, w1 / 2);
+    ctx.lineTo(0, w0 / 2);
+    ctx.closePath();
+    ctx.fill();
+  };
+  for (let i = 0; i < 6; i++) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 2 + (i * Math.PI) / 3);
+    beam(beamLen, H * 0.022, H * 0.004, 0.32 * k); // 넓은 빛 띠
+    beam(beamLen * 0.85, H * 0.006, H * 0.001, 0.75 * k); // 밝은 심
     ctx.restore();
   }
 
