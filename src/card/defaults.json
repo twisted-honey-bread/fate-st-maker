@@ -508,7 +508,7 @@
       ],
       "outroDarken": [
         2.2,
-        3.1
+        2.6
       ],
       "outroText": [
         2.2,
@@ -542,7 +542,7 @@
     "easeIntroZoom": "linear",
     "easeIntroCircuit": "linear",
     "easeOutroInk": "inExpo",
-    "easeOutroDarken": "inOutCubic",
+    "easeOutroDarken": "linear",
     "easeOutroSpread": "inOutCubic",
     "easeOutroText": "inOutCubic",
     "easeOutroCircuit": "linear",

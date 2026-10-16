@@ -45,6 +45,7 @@ const fontFields = (p, fontGroup = 'korean') => [
   ...(fontGroup === 'korean'
     ? [F(`${p}.font`, '폰트'), S(`${p}.weight`, '굵기', WEIGHTS.map(w => [w, String(w)]))]
     : [F(`${p}.font`, '폰트', fontGroup, `${p}.weight`)]),
+  R(`${p}.spacing`, '자간', -0.3, 0.8, 0.005, 'em'),
 ];
 
 // 글자·외곽선·그림자·글로우 불투명도는 고정값 — 글로우의 색·번짐·강도만 조절
@@ -145,10 +146,13 @@ export const PARTS = [
       when(F('anim.outroFont', '제목 폰트'), isOutro),
       when(S('anim.outroWeight', '제목 폰트 굵기', WEIGHTS.map(w => [w, String(w)])), isOutro),
       when({ ...F('anim.outroSubFont', '부제 폰트', 'latin', 'anim.outroSubWeight'), weightLabel: '부제 폰트 굵기' }, isOutro),
+      when(HD('자간 (다 펼쳐졌을 때)'), isOutro),
+      when(R('anim.outroSpacing', '제목 자간', 0, 1.2, 0.005, 'em'), isOutro),
+      when(R('anim.outroSubSpacing', '부제 자간', 0, 1.5, 0.005, 'em'), isOutro),
       when(HD('움직임 곡선 · 재생 시간'), isIntro),
       ...STAGES.intro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isIntro)),
       when(HD('움직임 곡선 · 재생 시간'), isOutro),
-      when(B('anim.syncFlashToText', '섬광·로고 어두워짐을 제목이 다 나타날 때 함께 끝내기'), isOutro),
+      when(B('anim.syncFlashToText', '섬광을 제목이 다 나타날 때 함께 끝내기'), isOutro),
       ...STAGES.outro.map(st => when({ k: `stage.${st.id}`, type: 'stage', stage: st }, isOutro)),
     ],
   },

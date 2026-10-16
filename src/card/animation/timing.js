@@ -21,7 +21,7 @@ export const STAGES = {
   outro: [
     { id: 'outroInk', label: '로고에서부터 어두워짐 (번짐)', ease: 'easeOutroInk', time: [0.6, 2.0] },
     { id: 'outroFlash', label: '섬광·광선 (광선이 퍼진 뒤 사라짐)', ease: 'easeOutroRays', time: [2.55, 4.1], sync: true },
-    { id: 'outroDarken', label: '로고 검게 어두워짐', ease: 'easeOutroDarken', time: [3.0, 4.1], sync: true },
+    { id: 'outroDarken', label: '로고 검게 어두워짐 (글로우도 함께 사라짐)', ease: 'easeOutroDarken', time: [2.2, 2.6] },
     { id: 'outroText', label: '제목 페이드 인', ease: 'easeOutroText', time: [2.95, 4.1] },
     { id: 'outroSpread', label: '제목 펼쳐짐 (자간, 페이드 인과 함께)', ease: 'easeOutroSpread', time: null },
     { id: 'outroParticles', label: '정방형 입자 터짐', ease: null, time: [3.0, null] },
@@ -38,7 +38,7 @@ export const DEFAULT_TIMES = Object.fromEntries(
 // 설정에서 단계 시간 읽기 (없으면 기본값)
 export const stageTime = (A, id) => A.times?.[id] || DEFAULT_TIMES[id];
 
-// 섬광·로고 어두워짐의 끝을 문구 페이드 인 끝에 맞출지 (설정 anim.syncFlashToText)
+// 섬광의 끝을 문구 페이드 인 끝에 맞출지 (설정 anim.syncFlashToText)
 export function effectiveTime(A, id) {
   const [s, e] = stageTime(A, id);
   const stage = STAGES.outro.find(x => x.id === id);

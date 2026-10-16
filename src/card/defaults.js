@@ -175,7 +175,7 @@ const BASE_DEFAULTS = {
     easeIntroZoom: 'linear',
     easeIntroCircuit: 'linear',
     easeOutroInk: 'inOutCubic',
-    easeOutroDarken: 'inOutCubic',
+    easeOutroDarken: 'linear',
     easeOutroSpread: 'outCubic',
     easeOutroText: 'inOutCubic',
     easeOutroCircuit: 'linear',

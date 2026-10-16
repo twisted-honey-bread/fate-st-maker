@@ -124,7 +124,7 @@ export function drawOutroFrame(ctx, W, H, state, images, time) {
         ...night.logo,
         tintColor: mixHex(mixHex(A.outroLogoColor, '#ffffff', flashK), A.outroLogoDark, darken),
         opacity: 1,
-        glowOpacity: 0.35 * flashK,
+        glowOpacity: 0.35 * flashK * (1 - darken), // 검게 어두워지면서 글로우도 점점 사라짐
         glowBlur: 1.2,
         glowStrength: 1,
         backShadow: 0,
